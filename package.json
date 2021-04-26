@@ -1,0 +1,17 @@
+{
+  "name": "ideckia",
+  "version": "0.0.1",
+  "description": "Hackable and open macro deck",
+  "bin": "bin/ideckia.js",
+  "readme": "README.md",
+  "maintainers": [],
+  "author": "Josu Igoa Errandonea",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ideckia/ideckia-server.git"
+  },
+  "dependencies": {
+    "auto-launch": "^5.0.5",
+    "websocket": "^1.0.33"
+  }
+}

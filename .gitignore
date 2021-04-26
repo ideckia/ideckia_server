@@ -1,0 +1,5 @@
+node_modules/*
+bin/*
+app.props
+layout.json
+ideckia-*
