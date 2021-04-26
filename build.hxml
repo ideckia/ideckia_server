@@ -1,0 +1,18 @@
+--class-path src
+
+--library hxnodejs
+--library ideckia_api
+--library appropos
+--library tink_json
+
+-D analyzer-optimize
+-D js-es=6
+--dce full
+
+--debug
+
+--resource banner.txt@banner
+
+--main Ideckia
+
+--js bin/ideckia.js

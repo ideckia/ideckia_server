@@ -1,0 +1,53 @@
+name: Create PKG
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    env:
+      PKG_NODE_VERSION: 8
+      HAXE_VERSION: latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v2
+      with:
+        node-version: '14'
+
+    - name: Install lix, haxe ${{ env.HAXE_VERSION }} and dependencies
+      run: |
+            npm install
+            npm i -g lix
+            lix install haxe ${{ env.HAXE_VERSION }}
+            lix download
+
+    - name: Compile project
+      run: haxe build.hxml
+
+    - name: Install node.js dependencies
+      run: npm install
+
+    - name: Install pkg
+      run: npm i -g pkg
+    
+    - name: Package with pkg
+      run: pkg . --targets node${{ env.PKG_NODE_VERSION }}-linux,node${{ env.PKG_NODE_VERSION }}-win,node${{ env.PKG_NODE_VERSION }}-macos
+
+    - name: Release
+      uses: "marvinpinto/action-automatic-releases@latest"
+      with:
+        repo_token: "${{ secrets.GITHUB_TOKEN }}"
+        prerelease: false
+        files: |
+          ideckia-linux
+          ideckia-macos
+          ideckia-win.exe
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
