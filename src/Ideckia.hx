@@ -22,8 +22,8 @@ class Ideckia {
 	@:v('ideckia.auto-launch-enabled:true')
 	static var autoLaunchEnabled:Bool;
 	
-	@:v('ideckia.commands-path:commands')
-	static var commandsPath:String;
+	@:v('ideckia.actions-path:actions')
+	static var actionsPath:String;
     
     function new() {
 		
@@ -51,8 +51,8 @@ class Ideckia {
 				Log.error('Error with AutoLaunch: $error');
 			});
 		
-		if (Sys.args().indexOf('--create-cmd') != -1) {
-			api.cmd.creator.CmdCreator.create(commandsPath);
+		if (Sys.args().indexOf('--create-action') != -1) {
+			api.action.creator.ActionCreator.create(actionsPath);
 			return;
 		}
 		

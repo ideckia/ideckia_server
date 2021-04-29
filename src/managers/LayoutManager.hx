@@ -2,7 +2,7 @@ package managers;
 
 import exceptions.ItemNotFoundException;
 
-using api.IdeckiaCmdApi;
+using api.IdeckiaApi;
 using Types;
 
 import tink.Json.parse as tinkJsonParse;
@@ -32,7 +32,7 @@ class LayoutManager {
 		}
 		addIds();
 		switchFolder(currentFolderId);
-		CmdManager.initClientCommands();
+		ActionManager.initClientActions();
 	}
 
 	public static function getCurrentItems() {
@@ -148,18 +148,18 @@ class LayoutManager {
 		setIds(layout.folders);
 		// item IDs
 		setIds(getAllItems());
-		// command IDs
-		var cmds = [];
+		// action IDs
+		var actions = [];
 		for (i in getAllItems())
 			switch i.kind {
 				case SingleState(state):
-					cmds.push(state.cmd);
+					actions.push(state.action);
 				case MultiState(_, states):
 					for (s in states)
-						cmds.push(s.cmd);
+						actions.push(s.action);
 				default:
 			}
-		setIds(cmds.filter(cmd -> cmd != null));
+		setIds(actions.filter(action -> action != null));
 	}
 
 	public static function exportLayout() {
@@ -176,19 +176,19 @@ class LayoutManager {
 					i
 		], true);
 
-		// Remove cmd IDs
-		var cmds = [];
+		// Remove action IDs
+		var actions = [];
 		for (i in getAllItems())
 			switch i.kind {
 				case SingleState(state):
-					cmds.push(state.cmd);
+					actions.push(state.action);
 				case MultiState(_, states):
 					for (s in states)
-						cmds.push(s.cmd);
+						actions.push(s.action);
 				default:
 			}
 
-		setIds(cmds.filter(cmd -> cmd != null), true);
+		setIds(actions.filter(action -> action != null), true);
 
 		return tinkJsonStringify(expLayout);
 	}
