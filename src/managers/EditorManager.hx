@@ -1,6 +1,6 @@
 package managers;
 
-using api.IdeckiaCmdApi;
+using api.IdeckiaApi;
 
 import websocket.WebSocketConnection;
 
@@ -12,8 +12,8 @@ class EditorManager {
 			wsConnection = connection;
 
 		switch msg.type {
-			case getCommands:
-				MsgManager.send(connection, CmdManager.getEditorCmdDescriptors());
+			case getActions:
+				MsgManager.send(connection, ActionManager.getEditorActionDescriptors());
 			case t:
 				throw new haxe.Exception('[$t] type of message is not allowed for the client.');
 		}

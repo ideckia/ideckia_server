@@ -2,7 +2,7 @@ package managers;
 
 import exceptions.ItemNotFoundException;
 
-using api.IdeckiaCmdApi;
+using api.IdeckiaApi;
 using Types;
 
 import websocket.WebSocketConnection;
@@ -40,16 +40,16 @@ class ClientManager {
 		}
 
 		if (currentState != null) {
-			var cmd = currentState.cmd;
-			if (cmd != null) {
+			var stateAction = currentState.action;
+			if (stateAction != null) {
 				var newState:BaseState = currentState;
-				var command:IdeckiaCmd = CmdManager.getClientCommand(cmd.id);
-				if (command != null) {
+				var action:IdeckiaAction = ActionManager.getClientAction(stateAction.id);
+				if (action != null) {
 					try {
-						Log.debug('Executing [${cmd.name}] command from currentState = [${currentState}]');
-						newState = command.execute();
+						Log.debug('Executing [${stateAction.name}] action from currentState = [${currentState}]');
+						newState = action.execute();
 					} catch (e:haxe.Exception) {
-						Log.error('Error executing [${command}]: ${e.message}');
+						Log.error('Error executing [${action}]: ${e.message}');
 						return;
 					}
 
@@ -66,8 +66,8 @@ class ClientManager {
 		MsgManager.send(wsConnection, LayoutManager.currentFolderForClient());
 	}
 
-	public static function fromCmdToClient(itemId:UInt, newState:ItemState) {
-		Log.debug('From CMD to client state [$itemId] [$newState]');
+	public static function fromActionToClient(itemId:UInt, newState:ItemState) {
+		Log.debug('From Action to client state [$itemId] [$newState]');
 		if (newState == null)
 			return;
 

@@ -1,16 +1,16 @@
 package;
 
-using api.IdeckiaCmdApi;
+using api.IdeckiaApi;
 
 interface Types {}
-typedef BaseState = api.IdeckiaCmdApi.ItemState;
+typedef BaseState = api.IdeckiaApi.ItemState;
 
 typedef ClientItem = {
 	> BaseState,
 	var id:UInt;
 }
 
-typedef Cmd = {
+typedef Action = {
 	var ?id:UInt;
 	var name:String;
 	var ?props:Any;
@@ -18,7 +18,7 @@ typedef Cmd = {
 
 typedef ServerState = {
 	> BaseState,
-	var ?cmd:Cmd;
+	var ?action:Action;
 }
 
 enum Kind {

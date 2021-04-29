@@ -1,6 +1,6 @@
 package managers;
 
-import api.IdeckiaCmdApi.ClientMsg;
+import api.IdeckiaApi.ClientMsg;
 import haxe.Json;
 import websocket.WebSocketConnection;
 

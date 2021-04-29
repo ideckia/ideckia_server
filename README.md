@@ -1,10 +1,10 @@
 # ideckia server
 
-## Commands
+## Actions
 
-### Create your own command
+### Create your own action
 
-Execute `ideckia --create-cmd` to create a new command from a existing template.
+Execute `ideckia --create-action` to create a new action from a existing template.
   * Select which template do you want to use as base. Current options Haxe and JavaScript
-  * Select the name for the commnand.
-  * A new folder is created in the commands folder with the name of you new command.
+  * Select the name for the action.
+  * A new folder is created in the actions folder with the name of you new action.
