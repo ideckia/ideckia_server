@@ -18,7 +18,7 @@ class LayoutManager {
 
 	public static function load() {
 		var layoutFullPath = Sys.getCwd() + '/' + layoutFilePath;
-		Log.debug('Loading layout from [$layoutFullPath]');
+		Log.info('Loading layout from [$layoutFullPath]');
 		try {
 			layout = tinkJsonParse(sys.io.File.getContent(layoutFullPath));
 		} catch (e:haxe.Exception) {
@@ -57,7 +57,7 @@ class LayoutManager {
 	}
 
 	public static function getItemCurrentState(itemId:UInt, advanceMultiState:Bool = false) {
-		Log.debug('Get state of item [$itemId]');
+		Log.info('Get state of item [$itemId]');
 		var item = getItem(itemId);
 
 		var state = switch item.kind {
@@ -78,7 +78,7 @@ class LayoutManager {
 	}
 
 	public static inline function currentFolderForClient():ServerMsg<ClientLayout> {
-		Log.debug('Sending current folder to client.');
+		Log.info('Sending current folder to client.');
 
 		function getIconData(iconName:String) {
 			if (layout.icons != null) {
@@ -129,7 +129,7 @@ class LayoutManager {
 			throw new haxe.Exception('There is no loaded layout. First call LayoutManager.load().');
 		}
 
-		Log.debug('Switching folder to [$folderId]');
+		Log.info('Switching folder to [$folderId]');
 		if (folderId >= layout.folders.length) {
 			Log.error('Incorrect id for folder [$folderId]');
 			return;
@@ -140,7 +140,7 @@ class LayoutManager {
 		}
 
 		currentFolder = layout.folders[folderId];
-		Log.debug('Folder switched');
+		Log.info('Folder switched');
 	}
 
 	static function addIds() {

@@ -24,12 +24,6 @@ enum abstract Level(Int) from Int to Int {
 class Log {
 	public static var level:Level = ERROR;
 
-	#if sys
-	static var logger:Dynamic->Void = Sys.println;
-	#elseif js
-	static var logger:Dynamic->Void = js.html.Console.log;
-	#end
-
 	public static function debug(data:Dynamic, ?posInfos:haxe.PosInfos) {
 		if (level > DEBUG) {
 			return;
@@ -59,6 +53,6 @@ class Log {
 	}
 
 	static private function doLog(levelString:String, data:Dynamic, posInfos:haxe.PosInfos) {
-		logger('[$levelString] - [${posInfos.className}.${posInfos.methodName}:${posInfos.lineNumber}]: $data');
+		trace('[$levelString] - [${posInfos.className}.${posInfos.methodName}:${posInfos.lineNumber}]: $data');
 	}
 }

@@ -23,7 +23,7 @@ class ClientManager {
 	}
 
 	static function onItemClick(clickedId:UInt) {
-		Log.debug('[$clickedId] item clicked');
+		Log.info('[$clickedId] item clicked');
 
 		var toFolder = LayoutManager.getSwitchFolderId(clickedId);
 		if (toFolder != -1) {
