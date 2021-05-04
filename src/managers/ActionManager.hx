@@ -10,47 +10,53 @@ class ActionManager {
 	static var clientActions:Map<Int, IdeckiaAction>;
 	static var editorActions:Map<Int, IdeckiaAction>;
 
+	static function loadAndInitAction(itemId:Int, state:ServerState):IdeckiaAction {
+		var action = state.action;
+		if (action == null)
+			return null;
+
+		try {
+			var name = action.name;
+			var actionPath = Sys.getCwd() + '/${actionsPath}/$name';
+			js.Syntax.code("var requiredAction = require({0})", actionPath);
+
+			var idkServer:IdeckiaServer = {
+				log: {
+					debug: actionLog.bind(Log.debug, name),
+					info: actionLog.bind(Log.info, name),
+					warn: actionLog.bind(Log.warn, name),
+					error: actionLog.bind(Log.error, name)
+				},
+				sendToClient: ClientManager.fromActionToClient.bind(itemId)
+			};
+			var ideckiaAction:IdeckiaAction = js.Syntax.code('new requiredAction.IdeckiaAction()');
+			ideckiaAction.setProps(action.props, state, idkServer);
+			ideckiaAction.init();
+
+			return ideckiaAction;
+		} catch (e:haxe.Exception) {
+			Log.error('Error creating [${action.name}] action: ${e.message}');
+		}
+		
+		return null;
+	}
+
 	public static function initClientActions() {
 		clientActions = new Map();
-
-		function fromState(itemId:UInt, state:ServerState) {
-			var stateAction = state.action;
-			if (stateAction == null)
-				return;
-
-			var name = stateAction.name;
-			try {
-				var props = stateAction.props;
-				var actionPath = Sys.getCwd() + '/${actionsPath}/$name';
-				js.Syntax.code("var requiredAction = require({0})", actionPath);
-
-				var idkServer:IdeckiaServer = {
-					log: {
-						debug: actionLog.bind(Log.debug, name),
-						info: actionLog.bind(Log.info, name),
-						warn: actionLog.bind(Log.warn, name),
-						error: actionLog.bind(Log.error, name)
-					},
-					sendToClient: ClientManager.fromActionToClient.bind(itemId),
-					props: (key:String) -> appropos.Appropos.get(key, '')
-				};
-				var action:IdeckiaAction = js.Syntax.code('new requiredAction.IdeckiaAction()');
-				action.setProps(props, state, idkServer);
-				action.init();
-
-				clientActions.set(stateAction.id, action);
-			} catch (e:haxe.Exception) {
-				Log.error('Error creating [$name] action: ${e.message}');
-			}
+		
+		inline function getActionFromState(itemId:Int, state:ServerState) {
+			var action = loadAndInitAction(itemId, state);
+			if (action != null)
+				clientActions.set(itemId, action);
 		}
 
 		for (i in LayoutManager.getAllItems()) {
 			switch i.kind {
 				case SingleState(state):
-					fromState(i.id, state);
+					getActionFromState(i.id, state);
 				case MultiState(_, states):
 					for (s in states)
-						fromState(i.id, s);
+						getActionFromState(i.id, s);
 				default:
 			}
 		}
@@ -101,5 +107,10 @@ class ActionManager {
 				return action;
 
 		return null;
+	}
+
+	public static function testAction(state:ServerState) {
+		var action = loadAndInitAction(-1, state);
+		action.execute();
 	}
 }
