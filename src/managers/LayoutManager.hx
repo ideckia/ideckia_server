@@ -14,12 +14,13 @@ class LayoutManager {
 
 	public static var layout:Layout;
 	public static var currentFolder:Folder;
-	static var currentFolderId:UInt = 0;
+	static var currentFolderId:FolderId;
 
 	public static function load() {
 		var layoutFullPath = Sys.getCwd() + '/' + layoutFilePath;
 		Log.info('Loading layout from [$layoutFullPath]');
 		try {
+			currentFolderId = new FolderId(0);
 			layout = tinkJsonParse(sys.io.File.getContent(layoutFullPath));
 		} catch (e:haxe.Exception) {
 			Log.error(e);
@@ -47,7 +48,7 @@ class LayoutManager {
 		];
 	}
 
-	public static function getItem(itemId:UInt) {
+	public static function getItem(itemId:ItemId) {
 		for (f in layout.folders)
 			for (i in f.items)
 				if (i.id == itemId)
@@ -56,7 +57,7 @@ class LayoutManager {
 		throw new ItemNotFoundException('Could not find [$itemId]');
 	}
 
-	public static function getItemCurrentState(itemId:UInt, advanceMultiState:Bool = false) {
+	public static function getItemCurrentState(itemId:ItemId, advanceMultiState:Bool = false) {
 		Log.info('Get state of item [$itemId]');
 		var item = getItem(itemId);
 
@@ -98,7 +99,7 @@ class LayoutManager {
 					var currentState = getItemCurrentState(i.id);
 
 					// from ServerState to ClientItem
-					var clientItem:ClientItem = {id: i.id};
+					var clientItem:ClientItem = {id: i.id.toUInt()};
 
 					if (currentState != null) {
 						clientItem.text = currentState.text;
@@ -113,41 +114,42 @@ class LayoutManager {
 		};
 	}
 
-	public static function getSwitchFolderId(itemId:UInt) {
+	public static function getSwitchFolderId(itemId:ItemId) {
 		var item = getItem(itemId);
 
 		return switch item.kind {
 			case SwitchFolder(toFolder, _):
 				toFolder;
 			default:
-				-1;
+				null;
 		}
 	}
 
-	public static function switchFolder(folderId:UInt) {
+	public static function switchFolder(folderId:FolderId) {
 		if (layout == null) {
 			throw new haxe.Exception('There is no loaded layout. First call LayoutManager.load().');
 		}
 
 		Log.info('Switching folder to [$folderId]');
-		if (folderId >= layout.folders.length) {
+		var folderUInt = folderId.toUInt();
+		if (folderUInt >= layout.folders.length) {
 			Log.error('Incorrect id for folder [$folderId]');
 			return;
 		}
 
-		if (folderId == layout.folders.indexOf(currentFolder)) {
+		if (folderUInt == layout.folders.indexOf(currentFolder)) {
 			return;
 		}
 
-		currentFolder = layout.folders[folderId];
+		currentFolder = layout.folders[folderUInt];
 		Log.info('Folder switched');
 	}
 
 	static function addIds() {
 		// folder IDs
-		setIds(layout.folders);
+		setFolderIds(layout.folders);
 		// item IDs
-		setIds(getAllItems());
+		setItemIds(getAllItems());
 		// action IDs
 		var actions = [];
 		for (i in getAllItems())
@@ -159,7 +161,7 @@ class LayoutManager {
 						actions.push(s.action);
 				default:
 			}
-		setIds(actions.filter(action -> action != null));
+		setActionIds(actions.filter(action -> action != null));
 	}
 
 	public static function exportLayout() {
@@ -167,10 +169,10 @@ class LayoutManager {
 		var expLayout:Layout = tinkJsonParse(tinkJsonStringify(layout));
 
 		// Remove folder IDs
-		setIds(expLayout.folders, true);
+		setFolderIds(expLayout.folders, true);
 
 		// Remove item IDs
-		setIds([
+		setItemIds([
 			for (f in expLayout.folders)
 				for (i in f.items)
 					i
@@ -188,14 +190,26 @@ class LayoutManager {
 				default:
 			}
 
-		setIds(actions.filter(action -> action != null), true);
+		setActionIds(actions.filter(action -> action != null), true);
 
 		return tinkJsonStringify(expLayout);
 	}
 
-	static function setIds(elements:Array<{id:UInt}>, toNull:Bool = false) {
+	static function setFolderIds(folders:Array<Folder>, toNull:Bool = false) {
 		var id = 0;
-		for (e in elements)
-			e.id = toNull ? null : id++;
+		for (f in folders)
+			f.id = toNull ? null : new FolderId(id++);
+	}
+
+	static function setItemIds(items:Array<ServerItem>, toNull:Bool = false) {
+		var id = 0;
+		for (i in items)
+			i.id = toNull ? null : new ItemId(id++);
+	}
+
+	static function setActionIds(actions:Array<Action>, toNull:Bool = false) {
+		var id = 0;
+		for (a in actions)
+			a.id = toNull ? null : new ActionId(id++);
 	}
 }

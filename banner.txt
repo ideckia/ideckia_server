@@ -7,4 +7,4 @@
 
 Built on: ::buildDate::
 Git hash: ::gitCommitHash::
-Server running at port ::port::
+Server running at ::address::

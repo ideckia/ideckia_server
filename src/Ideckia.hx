@@ -90,7 +90,7 @@ class Ideckia {
 			var banner = haxe.Resource.getString('banner');
 			banner = banner.replace('::buildDate::', Macros.buildDate().toString());
 			banner = banner.replace('::gitCommitHash::', Macros.getGitCommitHash());
-			banner = banner.replace('::port::', '$port');
+			banner = banner.replace('::address::', '${getIPAddress()}:$port');
 			js.Node.console.log(banner);
 		});
 
@@ -119,6 +119,17 @@ class Ideckia {
 				Log.info('closing connection');
 			});
 		});
+	}
+
+	function getIPAddress() {
+		var interfaces = Os.networkInterfaces();
+		for (iface in interfaces) {
+			for (alias in iface) {
+				if(alias.family == 'IPv4' && alias.address.startsWith('192'))
+					return alias.address;
+			}
+		}
+		return '0.0.0.0';
 	}
 
 	static function main() {

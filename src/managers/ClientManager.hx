@@ -16,17 +16,17 @@ class ClientManager {
 
 		switch msg.type {
 			case click:
-				onItemClick(msg.itemId);
+				onItemClick(new ItemId(msg.itemId));
 			case t:
 				throw new haxe.Exception('[$t] type of message is not allowed for the client.');
 		}
 	}
 
-	static function onItemClick(clickedId:UInt) {
+	static function onItemClick(clickedId:ItemId) {
 		Log.info('[$clickedId] item clicked');
 
 		var toFolder = LayoutManager.getSwitchFolderId(clickedId);
-		if (toFolder != -1) {
+		if (toFolder != null) {
 			LayoutManager.switchFolder(toFolder);
 			MsgManager.send(wsConnection, LayoutManager.currentFolderForClient());
 			return;
@@ -35,6 +35,7 @@ class ClientManager {
 		var currentState = null;
 		try {
 			currentState = LayoutManager.getItemCurrentState(clickedId, true);
+			Log.info('Clicked state: [$currentState]');
 		} catch (e:ItemNotFoundException) {
 			Log.error(e.message, e.posInfos);
 		}
@@ -43,7 +44,7 @@ class ClientManager {
 			var stateAction = currentState.action;
 			if (stateAction != null) {
 				var newState:BaseState = currentState;
-				var action:IdeckiaAction = ActionManager.getClientAction(stateAction.id);
+				var action:IdeckiaAction = ActionManager.getClientAction(clickedId);
 				if (action != null) {
 					try {
 						Log.debug('Executing [${stateAction.name}] action from currentState = [${currentState}]');
@@ -54,6 +55,7 @@ class ClientManager {
 					}
 
 					if (newState != null) {
+						Log.debug('newState: $newState');
 						currentState.text = newState.text;
 						currentState.textColor = newState.textColor;
 						currentState.icon = newState.icon;
@@ -66,7 +68,7 @@ class ClientManager {
 		MsgManager.send(wsConnection, LayoutManager.currentFolderForClient());
 	}
 
-	public static function fromActionToClient(itemId:UInt, newState:ItemState) {
+	public static function fromActionToClient(itemId:ItemId, newState:ItemState) {
 		Log.debug('From Action to client state [$itemId] [$newState]');
 		if (newState == null)
 			return;

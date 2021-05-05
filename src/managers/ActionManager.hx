@@ -7,10 +7,10 @@ class ActionManager {
 	@:v('ideckia.actions-path:actions')
 	static var actionsPath:String;
 
-	static var clientActions:Map<Int, IdeckiaAction>;
-	static var editorActions:Map<Int, IdeckiaAction>;
+	static var clientActions:Map<ItemId, IdeckiaAction>;
+	static var editorActions:Map<ActionId, IdeckiaAction>;
 
-	static function loadAndInitAction(itemId:Int, state:ServerState):IdeckiaAction {
+	static function loadAndInitAction(itemId:ItemId, state:ServerState):IdeckiaAction {
 		var action = state.action;
 		if (action == null)
 			return null;
@@ -44,7 +44,8 @@ class ActionManager {
 	public static function initClientActions() {
 		clientActions = new Map();
 		
-		inline function getActionFromState(itemId:Int, state:ServerState) {
+		inline function getActionFromState(itemId:ItemId, state:ServerState) {
+			Log.debug('item [$itemId]: text [${state.text}]');
 			var action = loadAndInitAction(itemId, state);
 			if (action != null)
 				clientActions.set(itemId, action);
@@ -77,7 +78,7 @@ class ActionManager {
 
 				js.Syntax.code("var requiredAction = require({0})", '$actionPath/$c');
 				action = js.Syntax.code('new requiredAction.IdeckiaAction()');
-				editorActions.set(cId++, action);
+				editorActions.set(new ActionId(cId++), action);
 			}
 		}
 
@@ -86,7 +87,7 @@ class ActionManager {
 
 		for (index => action in editorActions) {
 			desc = action.getActionDescriptor();
-			desc.id = index;
+			desc.id = index.toUInt();
 			descriptors.push(desc);
 		}
 
@@ -98,7 +99,7 @@ class ActionManager {
 		return data;
 	}
 
-	public static function getClientAction(id:UInt) {
+	public static function getClientAction(id:ItemId) {
 		if (clientActions == null)
 			return null;
 
@@ -110,7 +111,7 @@ class ActionManager {
 	}
 
 	public static function testAction(state:ServerState) {
-		var action = loadAndInitAction(-1, state);
+		var action = loadAndInitAction(new ItemId(-1), state);
 		action.execute();
 	}
 }
