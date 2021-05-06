@@ -58,7 +58,6 @@ class LayoutManager {
 	}
 
 	public static function getItemCurrentState(itemId:ItemId, advanceMultiState:Bool = false) {
-		Log.info('Get state of item [$itemId]');
 		var item = getItem(itemId);
 
 		var state = switch item.kind {
@@ -74,7 +73,7 @@ class LayoutManager {
 				states[index];
 		}
 
-		Log.debug('Items state: [$state]');
+		Log.debug('State of the item [id=$itemId]: [text=${state.text}], [icon=${state.icon}]');
 		return state;
 	}
 

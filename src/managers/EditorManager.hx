@@ -8,8 +8,7 @@ class EditorManager {
 	static var wsConnection:WebSocketConnection;
 
 	public static function handleMsg(connection:WebSocketConnection, msg:ClientMsg) {
-		if (wsConnection == null)
-			wsConnection = connection;
+		wsConnection = connection;
 
 		switch msg.type {
 			case getActions:
