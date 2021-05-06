@@ -45,7 +45,7 @@ class ActionManager {
 		clientActions = new Map();
 		
 		inline function getActionFromState(itemId:ItemId, state:ServerState) {
-			Log.debug('item [$itemId]: text [${state.text}]');
+			Log.debug('item [$itemId] / state [text=${state.text}], [icon=${state.icon}]');
 			var action = loadAndInitAction(itemId, state);
 			if (action != null)
 				clientActions.set(itemId, action);
@@ -112,6 +112,9 @@ class ActionManager {
 
 	public static function testAction(state:ServerState) {
 		var action = loadAndInitAction(new ItemId(-1), state);
-		action.execute();
+		if (action != null)
+			action.execute();
+		else
+			Log.error('the action is null');
 	}
 }

@@ -11,8 +11,7 @@ class ClientManager {
 	public static var wsConnection:WebSocketConnection;
 
 	public static function handleMsg(connection:WebSocketConnection, msg:ClientMsg) {
-		if (wsConnection == null)
-			wsConnection = connection;
+		wsConnection = connection;
 
 		switch msg.type {
 			case click:
@@ -35,7 +34,7 @@ class ClientManager {
 		var currentState = null;
 		try {
 			currentState = LayoutManager.getItemCurrentState(clickedId, true);
-			Log.info('Clicked state: [$currentState]');
+			Log.info('Clicked state: [text=${currentState.text}], [icon=${currentState.icon}]');
 		} catch (e:ItemNotFoundException) {
 			Log.error(e.message, e.posInfos);
 		}
@@ -47,7 +46,7 @@ class ClientManager {
 				var action:IdeckiaAction = ActionManager.getClientAction(clickedId);
 				if (action != null) {
 					try {
-						Log.debug('Executing [${stateAction.name}] action from currentState = [${currentState}]');
+						Log.info('Executing [${stateAction.name}] action from clicked state.');
 						newState = action.execute();
 					} catch (e:haxe.Exception) {
 						Log.error('Error executing [${action}]: ${e.message}');

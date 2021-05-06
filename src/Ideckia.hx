@@ -32,7 +32,7 @@ class Ideckia {
 
 		var autoLauncher = new AutoLaunch({
 			name: 'Ideckia',
-			path: sys.FileSystem.fullPath(Sys.programPath())
+			path: haxe.io.Path.join([Sys.getCwd(), executableName()])
 		});
 
 		autoLauncher.isEnabled().then((isEnabled) -> {
@@ -94,7 +94,6 @@ class Ideckia {
 			js.Node.console.log(banner);
 		});
 
-		// create the server
 		var wsServer = new WebSocketServer({
 			httpServer: server
 		});
@@ -102,23 +101,33 @@ class Ideckia {
 		LayoutManager.load();
 		// WebSocket server
 		wsServer.on('request', function(request) {
+			Log.info('Request received [origin=${request.origin}]');
 			var connection = request.accept(null, request.origin);
 
 			MsgManager.send(connection, LayoutManager.currentFolderForClient());
 
-			// This is the most important callback for us, we'll handle
-			// all messages from users here.
 			connection.on('message', function(msg:{type:String, utf8Data:String}) {
-				Log.info('onMessage: $msg');
+				Log.info('Message received: $msg');
 				if (msg.type == 'utf8') {
 					MsgManager.route(connection, msg.utf8Data);
 				}
 			});
 
-			connection.on('close', function(connection) {
-				Log.info('closing connection');
+			connection.on('close', function(reasonCode, description) {
+				Log.info('Closing connection [code=$reasonCode]: $description');
 			});
 		});
+	}
+	
+	public static function executableName():String {
+		var ext = switch (Sys.systemName()) {
+			case 'Mac': 'mac';
+			case 'Linux': 'linux';
+			case 'Windows': 'win.exe';
+			default: '';
+		}
+		
+		return 'ideckia-$ext';
 	}
 
 	function getIPAddress() {
