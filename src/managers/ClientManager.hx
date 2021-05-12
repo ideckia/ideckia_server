@@ -35,6 +35,7 @@ class ClientManager {
 		try {
 			currentState = LayoutManager.getItemCurrentState(clickedId, true);
 			Log.info('Clicked state: [text=${currentState.text}], [icon=${currentState.icon}]');
+			Log.debug('State of the item [id=$clickedId]: $currentState');
 		} catch (e:ItemNotFoundException) {
 			Log.error(e.message, e.posInfos);
 		}
@@ -43,11 +44,11 @@ class ClientManager {
 			var stateAction = currentState.action;
 			if (stateAction != null) {
 				var newState:BaseState = currentState;
-				var action:IdeckiaAction = ActionManager.getClientAction(clickedId);
+				var action:IdeckiaAction = ActionManager.getActionByStateId(currentState.id);
 				if (action != null) {
 					try {
 						Log.info('Executing [${stateAction.name}] action from clicked state.');
-						newState = action.execute();
+						newState = action.execute(currentState);
 					} catch (e:haxe.Exception) {
 						Log.error('Error executing [${action}]: ${e.message}');
 						return;
@@ -67,8 +68,8 @@ class ClientManager {
 		MsgManager.send(wsConnection, LayoutManager.currentFolderForClient());
 	}
 
-	public static function fromActionToClient(itemId:ItemId, newState:ItemState) {
-		Log.debug('From Action to client state [$itemId] [$newState]');
+	public static function fromActionToClient(itemId:ItemId, actionName:String, newState:ItemState) {
+		Log.debug('From Action [$actionName] to client state [$itemId] [$newState]');
 		if (newState == null)
 			return;
 

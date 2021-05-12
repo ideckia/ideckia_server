@@ -7,7 +7,7 @@ class ActionManager {
 	@:v('ideckia.actions-path:actions')
 	static var actionsPath:String;
 
-	static var clientActions:Map<ItemId, IdeckiaAction>;
+	static var clientActions:Map<StateId, IdeckiaAction>;
 	static var editorActions:Map<ActionId, IdeckiaAction>;
 
 	static function loadAndInitAction(itemId:ItemId, state:ServerState):IdeckiaAction {
@@ -27,28 +27,28 @@ class ActionManager {
 					warn: actionLog.bind(Log.warn, name),
 					error: actionLog.bind(Log.error, name)
 				},
-				sendToClient: ClientManager.fromActionToClient.bind(itemId)
+				sendToClient: ClientManager.fromActionToClient.bind(itemId, name)
 			};
 			var ideckiaAction:IdeckiaAction = js.Syntax.code('new requiredAction.IdeckiaAction()');
-			ideckiaAction.setProps(action.props, state, idkServer);
+			ideckiaAction.setProps(action.props, idkServer);
 			ideckiaAction.init();
 
 			return ideckiaAction;
 		} catch (e:haxe.Exception) {
 			Log.error('Error creating [${action.name}] action: ${e.message}');
 		}
-		
+
 		return null;
 	}
 
 	public static function initClientActions() {
 		clientActions = new Map();
-		
+
 		inline function getActionFromState(itemId:ItemId, state:ServerState) {
-			Log.debug('item [$itemId] / state [text=${state.text}], [icon=${state.icon}]');
+			Log.debug('item [$itemId] / state [id=${state.id}] [text=${state.text}], [icon=${state.icon}]');
 			var action = loadAndInitAction(itemId, state);
 			if (action != null)
-				clientActions.set(itemId, action);
+				clientActions.set(state.id, action);
 		}
 
 		for (i in LayoutManager.getAllItems()) {
@@ -99,21 +99,17 @@ class ActionManager {
 		return data;
 	}
 
-	public static function getClientAction(id:ItemId) {
-		if (clientActions == null)
+	public static function getActionByStateId(stateId:StateId) {
+		if (clientActions == null || stateId == null)
 			return null;
-
-		for (cid => action in clientActions)
-			if (cid == id)
-				return action;
-
-		return null;
+		
+		return clientActions.get(stateId);
 	}
 
 	public static function testAction(state:ServerState) {
 		var action = loadAndInitAction(new ItemId(-1), state);
 		if (action != null)
-			action.execute();
+			action.execute(state);
 		else
 			Log.error('the action is null');
 	}

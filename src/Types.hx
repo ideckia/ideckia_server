@@ -20,6 +20,7 @@ typedef Action = {
 
 typedef ServerState = {
 	> BaseState,
+	var ?id:StateId;
 	var ?action:Action;
 }
 
@@ -87,4 +88,18 @@ abstract FolderId(UInt) {
 
 	@:from static function ofRepresentation(rep:Representation<UInt>)
 		return new FolderId(rep.get());
+}
+
+abstract StateId(UInt) {
+	public inline function new(v)
+		this = v;
+
+	@:to function toRepresentation():Representation<UInt>
+		return new Representation(this);
+	
+	public function toUInt():UInt
+		return this;
+
+	@:from static function ofRepresentation(rep:Representation<UInt>)
+		return new StateId(rep.get());
 }

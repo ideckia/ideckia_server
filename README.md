@@ -1,5 +1,15 @@
 # ideckia server
 
+## Concepts
+
+* Layout: Bunch of items
+* Item: An element that has one or more states and is clickable in the client.
+* State: Definition of the item status: text, textColor, bgColor, icon and a action which will be executed when the item is pressed.
+
+## Configuration file
+
+All the items and their actions are defined in a plain JSON file.
+
 ## Actions
 
 ### Create your own action
