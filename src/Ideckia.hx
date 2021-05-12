@@ -29,7 +29,6 @@ class Ideckia {
 	static var actionsPath:String;
 
 	function new() {
-
 		var autoLauncher = new AutoLaunch({
 			name: 'Ideckia',
 			path: haxe.io.Path.join([Sys.getCwd(), executableName()])
@@ -106,6 +105,11 @@ class Ideckia {
 
 			MsgManager.send(connection, LayoutManager.currentFolderForClient());
 
+			Chokidar.watch(LayoutManager.getLayoutPath()).on('change', (_, _) -> {
+				LayoutManager.load();
+				MsgManager.send(connection, LayoutManager.currentFolderForClient());
+			});
+
 			connection.on('message', function(msg:{type:String, utf8Data:String}) {
 				Log.info('Message received: $msg');
 				if (msg.type == 'utf8') {
@@ -118,7 +122,7 @@ class Ideckia {
 			});
 		});
 	}
-	
+
 	public static function executableName():String {
 		var ext = switch (Sys.systemName()) {
 			case 'Mac': 'mac';
@@ -126,7 +130,7 @@ class Ideckia {
 			case 'Windows': 'win.exe';
 			default: '';
 		}
-		
+
 		return 'ideckia-$ext';
 	}
 
@@ -134,7 +138,7 @@ class Ideckia {
 		var interfaces = Os.networkInterfaces();
 		for (iface in interfaces) {
 			for (alias in iface) {
-				if(alias.family == 'IPv4' && alias.address.startsWith('192'))
+				if (alias.family == 'IPv4' && alias.address.startsWith('192'))
 					return alias.address;
 			}
 		}

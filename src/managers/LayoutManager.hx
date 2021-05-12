@@ -15,9 +15,13 @@ class LayoutManager {
 	public static var layout:Layout;
 	public static var currentFolder:Folder;
 	static var currentFolderId:FolderId;
+	
+	public static function getLayoutPath() {
+		return Sys.getCwd() + '/' + layoutFilePath;
+	}
 
 	public static function load() {
-		var layoutFullPath = Sys.getCwd() + '/' + layoutFilePath;
+		var layoutFullPath = getLayoutPath();
 		Log.info('Loading layout from [$layoutFullPath]');
 		try {
 			currentFolderId = new FolderId(0);
@@ -201,9 +205,19 @@ class LayoutManager {
 	}
 
 	static function setItemIds(items:Array<ServerItem>, toNull:Bool = false) {
-		var id = 0;
-		for (i in items)
-			i.id = toNull ? null : new ItemId(id++);
+		var itemId = 0;
+		var stateId = 0;
+		for (i in items) {
+			i.id = toNull ? null : new ItemId(itemId++);
+			switch i.kind {
+				case SingleState(state):
+					state.id = toNull ? null : new StateId(stateId++);
+				case MultiState(_, states):
+					for (s in states)
+						s.id = toNull ? null : new StateId(stateId++);
+				default:
+			}
+		}
 	}
 
 	static function setActionIds(actions:Array<Action>, toNull:Bool = false) {
