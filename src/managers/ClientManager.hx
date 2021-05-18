@@ -48,14 +48,13 @@ class ClientManager {
 					try {
 						Log.info('Executing [${stateAction.name}] action from clicked state.');
 						action.execute(currentState).then((newState:ItemState) -> {
-							if (newState == null)
-								return;
-
-							Log.debug('newState: $newState');
-							currentState.text = newState.text;
-							currentState.textColor = newState.textColor;
-							currentState.icon = newState.icon;
-							currentState.bgColor = newState.bgColor;
+							if (newState != null) {
+								Log.debug('newState: $newState');
+								currentState.text = newState.text;
+								currentState.textColor = newState.textColor;
+								currentState.icon = newState.icon;
+								currentState.bgColor = newState.bgColor;
+							}
 
 							MsgManager.send(wsConnection, LayoutManager.currentFolderForClient());
 						}).catchError((error) -> {
@@ -68,6 +67,8 @@ class ClientManager {
 				}
 			}
 		}
+
+		MsgManager.send(wsConnection, LayoutManager.currentFolderForClient());
 	}
 
 	public static function fromActionToClient(itemId:ItemId, actionName:String, newState:ItemState) {
