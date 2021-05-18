@@ -31,7 +31,7 @@ class Ideckia {
 	function new() {
 		var autoLauncher = new AutoLaunch({
 			name: 'Ideckia',
-			path: haxe.io.Path.join([Sys.getCwd(), executableName()])
+			path: js.Node.process.execPath
 		});
 
 		autoLauncher.isEnabled().then((isEnabled) -> {
@@ -104,11 +104,7 @@ class Ideckia {
 			var connection = request.accept(null, request.origin);
 
 			MsgManager.send(connection, LayoutManager.currentFolderForClient());
-
-			Chokidar.watch(LayoutManager.getLayoutPath()).on('change', (_, _) -> {
-				LayoutManager.load();
-				MsgManager.send(connection, LayoutManager.currentFolderForClient());
-			});
+			LayoutManager.watchForChanges(connection);
 
 			connection.on('message', function(msg:{type:String, utf8Data:String}) {
 				Log.info('Message received: $msg');
@@ -144,9 +140,13 @@ class Ideckia {
 		}
 		return '0.0.0.0';
 	}
+	
+	public static function getAppPath() {
+		return haxe.io.Path.directory(js.Node.process.execPath);
+	}
 
 	static function main() {
-		appropos.Appropos.init(Sys.getCwd() + '/app.props');
+		appropos.Appropos.init(getAppPath() + '/app.props');
 		Log.level = logLevel;
 
 		var args = Sys.args();

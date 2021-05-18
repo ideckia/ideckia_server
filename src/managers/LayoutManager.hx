@@ -1,5 +1,6 @@
 package managers;
 
+import websocket.WebSocketConnection;
 import exceptions.ItemNotFoundException;
 
 using api.IdeckiaApi;
@@ -16,8 +17,8 @@ class LayoutManager {
 	public static var currentFolder:Folder;
 	static var currentFolderId:FolderId;
 	
-	public static function getLayoutPath() {
-		return Sys.getCwd() + '/' + layoutFilePath;
+	static function getLayoutPath() {
+		return Ideckia.getAppPath() + '/' + layoutFilePath;
 	}
 
 	public static function load() {
@@ -38,6 +39,13 @@ class LayoutManager {
 		addIds();
 		switchFolder(currentFolderId);
 		ActionManager.initClientActions();
+	}
+	
+	public static function watchForChanges(connection:WebSocketConnection) {
+		Chokidar.watch(getLayoutPath()).on('change', (_, _) -> {
+			load();
+			MsgManager.send(connection, LayoutManager.currentFolderForClient());
+		});
 	}
 
 	public static function getCurrentItems() {
