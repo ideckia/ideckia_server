@@ -43,29 +43,31 @@ class ClientManager {
 		if (currentState != null) {
 			var stateAction = currentState.action;
 			if (stateAction != null) {
-				var newState:BaseState = currentState;
 				var action:IdeckiaAction = ActionManager.getActionByStateId(currentState.id);
 				if (action != null) {
 					try {
 						Log.info('Executing [${stateAction.name}] action from clicked state.');
-						newState = action.execute(currentState);
+						action.execute(currentState).then((newState:ItemState) -> {
+							if (newState == null)
+								return;
+
+							Log.debug('newState: $newState');
+							currentState.text = newState.text;
+							currentState.textColor = newState.textColor;
+							currentState.icon = newState.icon;
+							currentState.bgColor = newState.bgColor;
+
+							MsgManager.send(wsConnection, LayoutManager.currentFolderForClient());
+						}).catchError((error) -> {
+							Log.error('Error executing [${action}]: $error');
+						});
 					} catch (e:haxe.Exception) {
 						Log.error('Error executing [${action}]: ${e.message}');
 						return;
 					}
-
-					if (newState != null) {
-						Log.debug('newState: $newState');
-						currentState.text = newState.text;
-						currentState.textColor = newState.textColor;
-						currentState.icon = newState.icon;
-						currentState.bgColor = newState.bgColor;
-					}
 				}
 			}
 		}
-
-		MsgManager.send(wsConnection, LayoutManager.currentFolderForClient());
 	}
 
 	public static function fromActionToClient(itemId:ItemId, actionName:String, newState:ItemState) {

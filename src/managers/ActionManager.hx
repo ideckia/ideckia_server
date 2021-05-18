@@ -17,7 +17,7 @@ class ActionManager {
 
 		try {
 			var name = action.name;
-			var actionPath = Sys.getCwd() + '/${actionsPath}/$name';
+			var actionPath = Ideckia.getAppPath() + '/${actionsPath}/$name';
 			js.Syntax.code("var requiredAction = require({0})", actionPath);
 
 			var idkServer:IdeckiaServer = {
@@ -71,7 +71,7 @@ class ActionManager {
 		if (editorActions == null) {
 			editorActions = new Map();
 			var cId = 0, action:IdeckiaAction;
-			var actionPath = Sys.getCwd() + '/${actionsPath}/';
+			var actionPath = Ideckia.getAppPath() + '/${actionsPath}/';
 			for (c in sys.FileSystem.readDirectory(actionPath)) {
 				if (!sys.FileSystem.exists('$actionPath/$c/index.js'))
 					continue;
