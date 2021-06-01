@@ -3,7 +3,7 @@ package managers;
 import exceptions.ItemNotFoundException;
 
 using api.IdeckiaApi;
-using Types;
+using api.internal.ServerApi;
 
 import websocket.WebSocketConnection;
 
