@@ -72,7 +72,9 @@ class LayoutManager {
 	public static function getItemCurrentState(itemId:ItemId, advanceMultiState:Bool = false) {
 		var item = getItem(itemId);
 
-		var state = switch item.kind {
+		var state:ServerState = switch item.kind {
+			case null:
+				{};
 			case SwitchFolder(_, state):
 				state;
 			case SingleState(state):
