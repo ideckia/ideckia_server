@@ -21,12 +21,12 @@ This `index.js` file must have [this structure](https://github.com/ideckia/ideck
 |-- ideckia
 |-- app.props
 |-- layout.json
-|   |-- actions
-|       |-- my_action
-|           |-- index.js
-|       |-- another_action
-|           |-- index.js
-|           |-- dependencies.js
+|-- actions
+|   |-- my_action
+|       |-- index.js
+|   |-- another_action
+|       |-- index.js
+|       |-- dependencies.js
 ```
 
 ### Examples
