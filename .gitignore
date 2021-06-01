@@ -1,3 +1,4 @@
+actions/**
 node_modules/*
 bin/*
 app.props

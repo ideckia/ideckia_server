@@ -1,6 +1,6 @@
 package;
 
-import Types.ServerState;
+import api.internal.ServerApi.ServerState;
 import managers.ActionManager;
 import js.node.Os;
 import managers.LayoutManager;

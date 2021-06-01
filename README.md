@@ -4,13 +4,33 @@
 
 * Layout: Bunch of items
 * Item: An element that has one or more states and is clickable in the client.
-* State: Definition of the item status: text, textColor, bgColor, icon and a action which will be executed when the item is pressed.
+* State: Definition of the item status: text, textColor, bgColor, icon and a action.
+* Action: Action which will be fired in the host computer when the item is pressed.
 
 ## Configuration file
 
 All the items and their actions are defined in a plain JSON file.
 
 ## Actions
+
+Actions are available in the `actions` folder usually (configurable via `app.props`). Every action is defined in it's own folder and an `index.js` file in it.
+
+This `index.js` file must have [this structure](https://github.com/ideckia/ideckia_api#action-structure) to be called from the server when loaded and executed
+
+```
+|-- ideckia
+|-- app.props
+|-- layout.json
+|   |-- actions
+|       |-- my_action
+|           |-- index.js
+|       |-- another_action
+|           |-- index.js
+|           |-- dependencies.js
+```
+
+A simple Haxe example: [action_command](https://github.com/ideckia/action_command)
+A simple JS example: [action_counter](https://github.com/ideckia/action_counter)
 
 ### Create your own action
 

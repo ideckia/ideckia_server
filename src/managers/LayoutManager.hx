@@ -4,7 +4,7 @@ import websocket.WebSocketConnection;
 import exceptions.ItemNotFoundException;
 
 using api.IdeckiaApi;
-using Types;
+using api.internal.ServerApi;
 
 import tink.Json.parse as tinkJsonParse;
 import tink.Json.stringify as tinkJsonStringify;

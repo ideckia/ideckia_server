@@ -1,7 +1,9 @@
 package managers;
 
+import dialog.Dialog;
+
 using api.IdeckiaApi;
-using Types;
+using api.internal.ServerApi;
 
 class ActionManager {
 	@:v('ideckia.actions-path:actions')
@@ -20,13 +22,26 @@ class ActionManager {
 			var actionPath = Ideckia.getAppPath() + '/${actionsPath}/$name';
 			js.Syntax.code("var requiredAction = require({0})", actionPath);
 
+			inline function createDialog(type:DialogType, text:String) {
+				return new js.lib.Promise((resolve, reject) -> {
+					var dialogType = switch type {
+						case DialogType.error: Dialog.error;
+						case DialogType.question: Dialog.question;
+						case DialogType.entry: Dialog.entry;
+						default: Dialog.info;
+					}
+					dialogType(text, name, 0, (code, returnValue, stdError) -> {
+						if (code == 0)
+							resolve(returnValue);
+						else
+							reject(stdError);
+					});
+				});
+			}
+
 			var idkServer:IdeckiaServer = {
-				log: {
-					debug: actionLog.bind(Log.debug, name),
-					info: actionLog.bind(Log.info, name),
-					warn: actionLog.bind(Log.warn, name),
-					error: actionLog.bind(Log.error, name)
-				},
+				log: actionLog.bind(Log.debug, name),
+				dialog: (type:DialogType, text:String) -> createDialog(type, text),
 				sendToClient: ClientManager.fromActionToClient.bind(itemId, name)
 			};
 			var ideckiaAction:IdeckiaAction = js.Syntax.code('new requiredAction.IdeckiaAction()');
@@ -102,7 +117,7 @@ class ActionManager {
 	public static function getActionByStateId(stateId:StateId) {
 		if (clientActions == null || stateId == null)
 			return null;
-		
+
 		return clientActions.get(stateId);
 	}
 
