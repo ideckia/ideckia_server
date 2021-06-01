@@ -1,7 +1,7 @@
 package managers;
 
 import dialog.Dialog;
-
+import haxe.exceptions.NotImplementedException;
 using api.IdeckiaApi;
 using api.internal.ServerApi;
 
@@ -22,46 +22,10 @@ class ActionManager {
 			var actionPath = Ideckia.getAppPath() + '/${actionsPath}/$name';
 			js.Syntax.code("var requiredAction = require({0})", actionPath);
 
-			inline function createDialog(type:DialogType, text:String) {
-				return new js.lib.Promise((resolve, reject) -> {
-					var dialogType = switch type {
-						case DialogType.error: Dialog.error;
-						case DialogType.question: Dialog.question;
-						case DialogType.entry: Dialog.entry;
-						default: Dialog.info;
-					}
-					dialogType(text, name, 0, (code, returnValue, stdError) -> {
-						if (code == 0)
-							resolve(returnValue);
-						else
-							reject(stdError);
-					});
-				});
-			}
-
 			var idkServer:IdeckiaServer = {
 				log: actionLog.bind(Log.debug, name),
-				dialog: (type:DialogType, text:String) -> {
-					new js.lib.Promise((resolve, reject) -> {
-						var timeout = 0;
-						var callback = (code, returnValue, stdError) -> {
-							if (code == 0)
-								resolve(returnValue);
-							else
-								reject(stdError);
-						};
-						switch type {
-							case DialogType.error:
-								Dialog.error(text, name, timeout, callback);
-							case DialogType.question:
-								Dialog.question(text, name, timeout, callback);
-							case DialogType.entry:
-								Dialog.entry(text, name, timeout, callback);
-							default:
-								Dialog.info(text, name, timeout, callback);
-						}
-					});
-				},
+				// dialog: (type:DialogType, text:String) -> Dialog.show(type, name, text),
+				dialog: (type:DialogType, text:String) -> throw new NotImplementedException(),
 				sendToClient: ClientManager.fromActionToClient.bind(itemId, name)
 			};
 			var ideckiaAction:IdeckiaAction = js.Syntax.code('new requiredAction.IdeckiaAction()');
