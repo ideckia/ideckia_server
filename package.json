@@ -15,5 +15,11 @@
     "chokidar": "^3.5.1",
     "websocket": "^1.0.33",
     "dialog-node": "^0.2.1"
+  },
+  "pkg": {
+    "assets": [
+      "node_modules/dialog-node/datepicker.osa",
+      "node_modules/dialog-node/*.vbs"
+    ]
   }
 }

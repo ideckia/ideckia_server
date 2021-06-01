@@ -41,7 +41,27 @@ class ActionManager {
 
 			var idkServer:IdeckiaServer = {
 				log: actionLog.bind(Log.debug, name),
-				dialog: (type:DialogType, text:String) -> createDialog(type, text),
+				dialog: (type:DialogType, text:String) -> {
+					new js.lib.Promise((resolve, reject) -> {
+						var timeout = 0;
+						var callback = (code, returnValue, stdError) -> {
+							if (code == 0)
+								resolve(returnValue);
+							else
+								reject(stdError);
+						};
+						switch type {
+							case DialogType.error:
+								Dialog.error(text, name, timeout, callback);
+							case DialogType.question:
+								Dialog.question(text, name, timeout, callback);
+							case DialogType.entry:
+								Dialog.entry(text, name, timeout, callback);
+							default:
+								Dialog.info(text, name, timeout, callback);
+						}
+					});
+				},
 				sendToClient: ClientManager.fromActionToClient.bind(itemId, name)
 			};
 			var ideckiaAction:IdeckiaAction = js.Syntax.code('new requiredAction.IdeckiaAction()');

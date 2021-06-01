@@ -5,9 +5,9 @@
 * Layout: Bunch of items
 * Item: An element that has one or more states and is clickable in the client.
 * State: Definition of the item status: text, textColor, bgColor, icon and a action.
-* Action: Action which will be fired in the host computer when the item is pressed.
+* Action: Action which will be fired in the host computer when the item is pressed in the client.
 
-## Configuration file
+## Layout file
 
 All the items and their actions are defined in a plain JSON file.
 
@@ -21,20 +21,23 @@ This `index.js` file must have [this structure](https://github.com/ideckia/ideck
 |-- ideckia
 |-- app.props
 |-- layout.json
-|   |-- actions
-|       |-- my_action
-|           |-- index.js
-|       |-- another_action
-|           |-- index.js
-|           |-- dependencies.js
+|-- actions
+|   |-- my_action
+|       |-- index.js
+|   |-- another_action
+|       |-- index.js
+|       |-- dependencies.js
 ```
 
-A simple Haxe example: [action_command](https://github.com/ideckia/action_command)
-A simple JS example: [action_counter](https://github.com/ideckia/action_counter)
+### Examples
+
+* All pieces in the `sample` folder. Download the [latest release](https://github.com/ideckia/ideckia_server/releases/) of this server for you OS, put it in the `sample` folder and run it.
+* Haxe: [action_command](https://github.com/ideckia/action_command)
+* Javascript: [action_counter](https://github.com/ideckia/action_counter)
 
 ### Create your own action
 
 Execute `ideckia --create-action` to create a new action from a existing template.
   * Select which template do you want to use as base. Current options Haxe and JavaScript
   * Select the name for the action.
-  * A new folder is created in the actions folder with the name of you new action.
+  * A new folder is created in the actions folder with the name of you new action which contains the files from the selected template.
