@@ -1,5 +1,6 @@
 package;
 
+import dialog.Dialog;
 import api.internal.ServerApi.ServerState;
 import managers.ActionManager;
 import js.node.Os;
@@ -98,6 +99,7 @@ class Ideckia {
 		});
 
 		LayoutManager.load();
+		Dialog.extractFiles();
 		// WebSocket server
 		wsServer.on('request', function(request) {
 			Log.info('Request received [origin=${request.origin}]');

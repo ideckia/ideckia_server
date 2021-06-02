@@ -29,11 +29,7 @@ This `index.js` file must have [this structure](https://github.com/ideckia/ideck
 |       |-- dependencies.js
 ```
 
-### Examples
-
-* All pieces in the `sample` folder. Download the [latest release](https://github.com/ideckia/ideckia_server/releases/) of this server for you OS, put it in the `sample` folder and run it.
-* Haxe: [action_command](https://github.com/ideckia/action_command)
-* Javascript: [action_counter](https://github.com/ideckia/action_counter)
+There is a [sample project](https://github.com/ideckia/sample_project) to try.
 
 ### Create your own action
 
