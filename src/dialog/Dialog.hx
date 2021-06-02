@@ -26,6 +26,41 @@ class Dialog {
 			}
 		});
 	}
+
+	/**
+		Since the OS can't access to the pkg virtual filesystem to access the dialogs files,
+		they must be in an accesible folder. I put them in the home directory of the current
+		user. Then we can specify to the 'dialog-node' module where to look for those files.
+	**/
+	@:noCompletion
+	public static function extractFiles() {
+		var homedir = js.node.Os.homedir() + '/';
+		var msgboxVbs = 'msgbox.vbs';
+		var datepickerOsa = 'datepicker.osa';
+
+		DialogNode.setCwd(homedir);
+
+		inline function checkExists(filename:String) {
+			return sys.FileSystem.exists(homedir + filename);
+		}
+
+		if (checkExists(msgboxVbs) && checkExists(datepickerOsa))
+			return;
+
+		var dialogsPath = js.Node.__dirname + '/../node_modules/dialog-node/';
+
+		inline function copyFile(filename:String) {
+			var src = dialogsPath + filename;
+			var dst = homedir + filename;
+			trace('Copying dialogs [$filename] to $dst');
+			sys.io.File.copy(src, dst);
+		}
+
+		if (!checkExists(msgboxVbs))
+			copyFile(msgboxVbs);
+		if (!checkExists(datepickerOsa))
+			copyFile(datepickerOsa);
+	}
 }
 
 @:jsRequire('dialog-node')
