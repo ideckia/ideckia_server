@@ -153,15 +153,15 @@ class Ideckia {
 
 		var args = Sys.args();
 		if (args.length > 0) {
-			if (args.indexOf('--create-action') != -1) {
+			if (args.indexOf('--new-action') != -1) {
 				api.action.creator.ActionCreator.create(actionsPath);
 			} else {
-				var testIndex = args.indexOf('--test-action');
-				if (testIndex != -1) {
-					var param = args[testIndex + 1];
+				var runIndex = args.indexOf('--run-action');
+				if (runIndex != -1) {
+					var param = args[runIndex + 1];
 					var state:ServerState;
 					if (param.endsWith('.json')) {
-						Log.debug('Reading test file: [$param]');
+						Log.debug('Reading file: [$param]');
 						state = haxe.Json.parse(sys.io.File.getContent(param));
 					} else {
 						state = {
@@ -172,7 +172,7 @@ class Ideckia {
 						};
 					}
 
-					ActionManager.testAction(state);
+					ActionManager.runAction(state);
 				} else {
 					showHelp();
 				}
@@ -187,9 +187,9 @@ class Ideckia {
 		trace("	If no argumet is given, the server runs normally.");
 		trace("	Accepted arguments:");
 		trace("	--help: You are here.");
-		trace("	--create-action: Creates a new action from a template (Haxe or Javascript).");
-		trace("	--test-action: Executes an action from actions path with testing purposes. The parameter can be the action name *or* an action properties Json file, only one. The argument type will be evaluated from the extension of the parameter.");
-		trace("		action-name: Name of the action to test.");
+		trace("	--new-action: Creates a new action from a template (Haxe or Javascript).");
+		trace("	--run-action: Executes an action from actions path. The parameter can be the action name *or* an action properties Json file, only one. The argument type will be evaluated from the extension of the parameter.");
+		trace("		action-name: Name of the action to run.");
 		trace("		action-props.json: Json file path with the action properties");
 	}
 }
