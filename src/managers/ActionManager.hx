@@ -104,7 +104,7 @@ class ActionManager {
 		return clientActions.get(stateId);
 	}
 
-	public static function testAction(state:ServerState) {
+	public static function runAction(state:ServerState) {
 		var action = loadAndInitAction(new ItemId(-1), state);
 		if (action != null)
 			action.execute(state);

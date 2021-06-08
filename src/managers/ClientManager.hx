@@ -24,10 +24,15 @@ class ClientManager {
 	static function onItemClick(clickedId:ItemId) {
 		Log.info('[$clickedId] item clicked');
 
-		var toFolder = LayoutManager.getSwitchFolderId(clickedId);
-		if (toFolder != null) {
-			LayoutManager.switchFolder(toFolder);
-			MsgManager.send(wsConnection, LayoutManager.currentFolderForClient());
+		try {
+			var toFolder = LayoutManager.getSwitchFolderId(clickedId);
+			if (toFolder != null) {
+				LayoutManager.switchFolder(toFolder);
+				MsgManager.send(wsConnection, LayoutManager.currentFolderForClient());
+				return;
+			}
+		} catch (e:ItemNotFoundException) {
+			Log.debug(e);
 			return;
 		}
 

@@ -15,11 +15,11 @@ class Dialog {
 					reject(stdError);
 			};
 			switch type {
-				case DialogType.error:
+				case Error:
 					DialogNode.error(text, title, timeout, callback);
-				case DialogType.question:
+				case Question:
 					DialogNode.question(text, title, timeout, callback);
-				case DialogType.entry:
+				case Entry:
 					DialogNode.entry(text, title, timeout, callback);
 				default:
 					DialogNode.info(text, title, timeout, callback);
