@@ -11,16 +11,20 @@ This repository is for the application installed in the computer. The client app
 
 ### Hackable
 
-Don't you like the stock actions? Change them or [create your own](create-your-own-action) to fit your needs.
+Don't you like the stock actions? Change them or [create your own](#create-your-own-action) to fit your needs.
 
 here are some actions:
 
 * [Command](https://github.com/ideckia/action_command): Execute an application or shell file with given parameters 
 * [Keymouse](https://github.com/ideckia/action_keymouse): Create hotkeys, write strings, move the mouse... A wrapper for [RobotJs](http://robotjs.io/)
-* [Counter](https://github.com/ideckia/action_counter): Count how many times you killed someone or how many times crashes your app
-* [Clipboard](https://github.com/ideckia/action_clipboard): Executing this action, the defined value will store in the clipboard
+* [Counter](https://github.com/ideckia/action_counter): Count how many times you killed someone or how many times crashes your app.
+* [Clipboard](https://github.com/ideckia/action_clipboard): Executing this action, the defined value will store in the clipboard.
 * [Stopwatch](https://github.com/ideckia/action_stopwatch): Executing this action, will start and pause a timer shown in the button itself.
 * [OBS-websocket](https://github.com/ideckia/action_obs-websocket): Control OBS via websockets. A wrapper for [obs-websocket-js](https://www.npmjs.com/package/obs-websocket-js)
+
+### Sample
+
+There is a [sample project](https://github.com/ideckia/sample_project) to try.
 
 ## Concepts
 
@@ -35,7 +39,7 @@ All the items and their actions are defined in a plain JSON file.
 
 ## Actions
 
-Actions are available in the `actions` folder usually (configurable via `app.props`). Every action is defined in it's own folder and an `index.js` file in it.
+Actions are available in the `actions` folder usually (configurable via `app.props` file next to the executable). Every action is defined in it's own folder and an `index.js` file in it.
 
 This `index.js` file must have [this structure](https://github.com/ideckia/ideckia_api#action-structure) to be called from the server when loaded and executed
 
@@ -50,8 +54,6 @@ This `index.js` file must have [this structure](https://github.com/ideckia/ideck
 |       |-- index.js
 |       |-- dependencies.js
 ```
-
-There is a [sample project](https://github.com/ideckia/sample_project) to try.
 
 ### Create your own action
 

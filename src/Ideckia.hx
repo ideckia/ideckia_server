@@ -99,7 +99,6 @@ class Ideckia {
 		});
 
 		LayoutManager.load();
-		Dialog.extractFiles();
 		// WebSocket server
 		wsServer.on('request', function(request) {
 			Log.info('Request received [origin=${request.origin}]');
@@ -150,6 +149,7 @@ class Ideckia {
 	static function main() {
 		appropos.Appropos.init(getAppPath() + '/app.props');
 		Log.level = logLevel;
+		Dialog.init();
 
 		var args = Sys.args();
 		if (args.length > 0) {
