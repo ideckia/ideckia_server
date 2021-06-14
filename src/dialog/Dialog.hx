@@ -21,6 +21,8 @@ class Dialog {
 					DialogNode.question(text, title, timeout, callback);
 				case Entry:
 					DialogNode.entry(text, title, timeout, callback);
+				case FileSelect:
+					DialogNode.fileselect(text, title, timeout, callback);
 				default:
 					DialogNode.info(text, title, timeout, callback);
 			}
