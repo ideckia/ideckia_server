@@ -28,7 +28,7 @@ class ActionManager {
 				sendToClient: ClientManager.fromActionToClient.bind(itemId, name)
 			};
 			var ideckiaAction:IdeckiaAction = js.Syntax.code('new requiredAction.IdeckiaAction()');
-			ideckiaAction.setProps(action.props, idkServer);
+			ideckiaAction.setup(action.props, idkServer);
 			ideckiaAction.init();
 
 			return ideckiaAction;
