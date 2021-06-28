@@ -14,14 +14,14 @@ class ClientManager {
 		wsConnection = connection;
 
 		switch msg.type {
-			case click:
-				onItemClick(new ItemId(msg.itemId));
+			case click | longPress:
+				onItemClick(new ItemId(msg.itemId), msg.type == longPress);
 			case t:
 				throw new haxe.Exception('[$t] type of message is not allowed for the client.');
 		}
 	}
 
-	static function onItemClick(clickedId:ItemId) {
+	static function onItemClick(clickedId:ItemId, isLongPress:Bool) {
 		Log.info('[$clickedId] item clicked');
 
 		try {
@@ -51,8 +51,7 @@ class ClientManager {
 				var action:IdeckiaAction = ActionManager.getActionByStateId(currentState.id);
 				if (action != null) {
 					try {
-						Log.info('Executing [${stateAction.name}] action from clicked state.');
-						action.execute(currentState).then((newState:ItemState) -> {
+						var promiseThen = (newState:ItemState) -> {
 							if (newState != null) {
 								Log.debug('newState: $newState');
 								currentState.text = newState.text;
@@ -62,9 +61,18 @@ class ClientManager {
 							}
 
 							MsgManager.send(wsConnection, LayoutManager.currentFolderForClient());
-						}).catchError((error) -> {
+						};
+						var promiseError = (error) -> {
 							Log.error('Error executing [${action}]: $error');
-						});
+						};
+
+						if (isLongPress) {
+							Log.info('Executing [${stateAction.name}] action from long pressed state.');
+							action.onLongPress(currentState).then(promiseThen).catchError(promiseError);
+						} else {
+							Log.info('Executing [${stateAction.name}] action from clicked state.');
+							action.execute(currentState).then(promiseThen).catchError(promiseError);
+						}
 					} catch (e:haxe.Exception) {
 						Log.error('Error executing [${action}]: ${e.message}');
 						return;
