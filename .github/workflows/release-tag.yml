@@ -35,7 +35,7 @@ jobs:
       run: npm install
 
     - name: Install pkg
-      run: npm i -g pkg
+      run: npm i -g pkg@5.2.1
     
     - name: Package with pkg
       run: pkg . --targets node${{ env.PKG_NODE_VERSION }}-linux,node${{ env.PKG_NODE_VERSION }}-win,node${{ env.PKG_NODE_VERSION }}-macos
