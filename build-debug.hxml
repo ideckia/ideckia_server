@@ -9,6 +9,8 @@
 -D js-es=6
 --dce full
 
+--debug
+
 --resource banner.txt@banner
 
 --main Ideckia

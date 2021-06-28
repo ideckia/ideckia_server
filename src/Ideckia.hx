@@ -35,6 +35,10 @@ class Ideckia {
 			path: js.Node.process.execPath
 		});
 
+		#if debug
+		haxe.NativeStackTrace.wrapCallSite = js.Lib.require('source-map-support').wrapCallSite;
+		#end
+
 		autoLauncher.isEnabled().then((isEnabled) -> {
 			switch [isEnabled, autoLaunchEnabled] {
 				case [false, false] | [true, true]:
@@ -141,7 +145,7 @@ class Ideckia {
 		}
 		return '0.0.0.0';
 	}
-	
+
 	public static function getAppPath() {
 		return haxe.io.Path.directory(js.Node.process.execPath);
 	}
