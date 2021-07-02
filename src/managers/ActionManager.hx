@@ -29,7 +29,7 @@ class ActionManager {
 			};
 			var ideckiaAction:IdeckiaAction = js.Syntax.code('new requiredAction.IdeckiaAction()');
 			ideckiaAction.setup(action.props, idkServer);
-			ideckiaAction.init();
+			ideckiaAction.init(state);
 
 			return ideckiaAction;
 		} catch (e:haxe.Exception) {
