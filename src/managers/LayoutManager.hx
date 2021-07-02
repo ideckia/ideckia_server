@@ -1,13 +1,13 @@
 package managers;
 
-import websocket.WebSocketConnection;
+import js.node.Require;
 import exceptions.ItemNotFoundException;
+import tink.Json.parse as tinkJsonParse;
+import tink.Json.stringify as tinkJsonStringify;
+import websocket.WebSocketConnection;
 
 using api.IdeckiaApi;
 using api.internal.ServerApi;
-
-import tink.Json.parse as tinkJsonParse;
-import tink.Json.stringify as tinkJsonStringify;
 
 class LayoutManager {
 	@:v('ideckia.layout-file-path:layout.json')
@@ -16,7 +16,7 @@ class LayoutManager {
 	public static var layout:Layout;
 	public static var currentFolder:Folder;
 	static var currentFolderId:FolderId;
-	
+
 	static function getLayoutPath() {
 		return Ideckia.getAppPath() + '/' + layoutFilePath;
 	}
@@ -40,9 +40,12 @@ class LayoutManager {
 		switchFolder(currentFolderId);
 		ActionManager.initClientActions();
 	}
-	
+
 	public static function watchForChanges(connection:WebSocketConnection) {
 		Chokidar.watch(getLayoutPath()).on('change', (_, _) -> {
+			for (module in Require.cache)
+				Require.cache.remove(module.id);
+
 			load();
 			MsgManager.send(connection, LayoutManager.currentFolderForClient());
 		});
