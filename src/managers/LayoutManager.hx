@@ -21,8 +21,9 @@ class LayoutManager {
 		return Ideckia.getAppPath() + '/' + layoutFilePath;
 	}
 
-	public static function load() {
+	public static function readLayout() {
 		var layoutFullPath = getLayoutPath();
+
 		Log.info('Loading layout from [$layoutFullPath]');
 		try {
 			currentFolderId = new FolderId(0);
@@ -36,6 +37,10 @@ class LayoutManager {
 				icons: []
 			};
 		}
+	}
+
+	public static function load() {
+		readLayout();
 		addIds();
 		switchFolder(currentFolderId);
 		ActionManager.initClientActions();
@@ -98,6 +103,9 @@ class LayoutManager {
 		Log.info('Sending current folder to client.');
 
 		function getIconData(iconName:String) {
+			// Icon base64 directly in the state (from some action, for example)
+			if (iconName != null && iconName.length > 1000)
+				return iconName;
 			if (layout.icons != null) {
 				var f = layout.icons.filter(i -> i.key == iconName);
 				if (f.length > 0)
@@ -106,11 +114,14 @@ class LayoutManager {
 			return null;
 		}
 
+		var rows = currentFolder.rows == null ? layout.rows : currentFolder.rows;
+		var columns = currentFolder.columns == null ? layout.columns : currentFolder.columns;
+
 		return {
 			type: ServerMsgType.layout,
 			data: {
-				rows: layout.rows,
-				columns: layout.columns,
+				rows: rows,
+				columns: columns,
 				items: getCurrentItems().map(i -> {
 					var currentState = getItemCurrentState(i.id);
 
@@ -119,6 +130,7 @@ class LayoutManager {
 
 					if (currentState != null) {
 						clientItem.text = currentState.text;
+						clientItem.textSize = currentState.textSize;
 						clientItem.textColor = currentState.textColor;
 						clientItem.icon = getIconData(currentState.icon);
 						clientItem.bgColor = currentState.bgColor;
@@ -213,8 +225,15 @@ class LayoutManager {
 
 	static function setFolderIds(folders:Array<Folder>, toNull:Bool = false) {
 		var id = 0;
-		for (f in folders)
+		for (f in folders) {
+			if (toNull) {
+				if (f.rows == layout.rows && f.columns == layout.columns) {
+					f.rows = null;
+					f.columns = null;
+				}
+			}
 			f.id = toNull ? null : new FolderId(id++);
+		}
 	}
 
 	static function setItemIds(items:Array<ServerItem>, toNull:Bool = false) {
