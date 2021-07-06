@@ -1,3 +1,3 @@
-# @install: lix --silent download "gh://github.com/ideckia/ideckia_api#9c0033d8855c84a59e0797200eb8a9c0cd414017" into ideckia_api/1.0.1/github/9c0033d8855c84a59e0797200eb8a9c0cd414017
--cp ${HAXE_LIBCACHE}/ideckia_api/1.0.1/github/9c0033d8855c84a59e0797200eb8a9c0cd414017/.
--D ideckia_api=1.0.1
+# @install: lix --silent download "gh://github.com/ideckia/ideckia_api#444386dc353295f93ea08c304d43e4582f0c9d53" into ideckia_api/1.0.2/github/444386dc353295f93ea08c304d43e4582f0c9d53
+-cp ${HAXE_LIBCACHE}/ideckia_api/1.0.2/github/444386dc353295f93ea08c304d43e4582f0c9d53/.
+-D ideckia_api=1.0.2
