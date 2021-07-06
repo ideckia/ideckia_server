@@ -16,6 +16,8 @@ class LayoutManager {
 	public static var layout:Layout;
 	public static var currentFolder:Folder;
 	static var currentFolderId:FolderId;
+    
+    static inline var DEFAULT_TEXT_SIZE = 15;
 
 	static function getLayoutPath() {
 		return Ideckia.getAppPath() + '/' + layoutFilePath;
@@ -37,6 +39,9 @@ class LayoutManager {
 				icons: []
 			};
 		}
+        
+        if (layout.textSize == null)
+            layout.textSize = DEFAULT_TEXT_SIZE;
 	}
 
 	public static function load() {
@@ -130,7 +135,7 @@ class LayoutManager {
 
 					if (currentState != null) {
 						clientItem.text = currentState.text;
-						clientItem.textSize = currentState.textSize;
+						clientItem.textSize = currentState.textSize == null ? layout.textSize : currentState.textSize;
 						clientItem.textColor = currentState.textColor;
 						clientItem.icon = getIconData(currentState.icon);
 						clientItem.bgColor = currentState.bgColor;
