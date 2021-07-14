@@ -158,6 +158,10 @@ class LayoutManager {
 		}
 	}
 
+	public static function isItemVisible(itemId:ItemId) {
+		return getCurrentItems().filter(item -> item.id == itemId).length > 0;
+	}
+
 	public static function switchFolder(folderId:FolderId) {
 		if (layout == null) {
 			throw new haxe.Exception('There is no loaded layout. First call LayoutManager.load().');
