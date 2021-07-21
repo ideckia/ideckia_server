@@ -13,8 +13,8 @@ import websocket.*;
 
 @:build(appropos.Appropos.generate())
 class Ideckia {
-	public static inline var DISCOVER_ENDPOINT = '/marco';
-	public static inline var DISCOVER_RESPONSE = 'polo';
+	public static inline var DISCOVER_ENDPOINT = '/ping';
+	public static inline var DISCOVER_RESPONSE = 'pong';
 	public static inline var NAME_ENDPOINT = '/name';
 
 	@:v('ideckia.port:8000')
