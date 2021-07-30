@@ -16,8 +16,8 @@ class LayoutManager {
 	public static var layout:Layout;
 	public static var currentFolder:Folder;
 	static var currentFolderId:FolderId;
-    
-    static inline var DEFAULT_TEXT_SIZE = 15;
+
+	static inline var DEFAULT_TEXT_SIZE = 15;
 
 	static function getLayoutPath() {
 		return Ideckia.getAppPath() + '/' + layoutFilePath;
@@ -39,9 +39,9 @@ class LayoutManager {
 				icons: []
 			};
 		}
-        
-        if (layout.textSize == null)
-            layout.textSize = DEFAULT_TEXT_SIZE;
+
+		if (layout.textSize == null)
+			layout.textSize = DEFAULT_TEXT_SIZE;
 	}
 
 	public static function load() {
@@ -53,8 +53,9 @@ class LayoutManager {
 
 	public static function watchForChanges(connection:WebSocketConnection) {
 		Chokidar.watch(getLayoutPath()).on('change', (_, _) -> {
-            for (module in Require.cache)
-                Decache.run(module.id);
+			for (module in Require.cache)
+				if (module != null)
+					Decache.run(module.id);
 
 			load();
 			MsgManager.send(connection, LayoutManager.currentFolderForClient());
@@ -105,7 +106,7 @@ class LayoutManager {
 	}
 
 	public static inline function currentFolderForClient():ServerMsg<ClientLayout> {
-		Log.info('Sending current folder to client.');
+		Log.debug('Sending current folder to client.');
 
 		function getIconData(iconName:String) {
 			// Icon base64 directly in the state (from some action, for example)

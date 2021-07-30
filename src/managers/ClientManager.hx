@@ -39,7 +39,7 @@ class ClientManager {
 		var currentState = null;
 		try {
 			currentState = LayoutManager.getItemCurrentState(clickedId, true);
-			Log.info('Clicked state: [text=${currentState.text}], [icon=${currentState.icon}]');
+			Log.info('Clicked state: [text=${currentState.text}], [icon=${(currentState.icon == null) ? null : currentState.icon.substring(0, 100)}]');
 			Log.debug('State of the item [id=$clickedId]: $currentState');
 		} catch (e:ItemNotFoundException) {
 			Log.error(e.message, e.posInfos);
