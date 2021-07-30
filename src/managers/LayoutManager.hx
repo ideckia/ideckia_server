@@ -106,7 +106,7 @@ class LayoutManager {
 	}
 
 	public static inline function currentFolderForClient():ServerMsg<ClientLayout> {
-		Log.info('Sending current folder to client.');
+		Log.debug('Sending current folder to client.');
 
 		function getIconData(iconName:String) {
 			// Icon base64 directly in the state (from some action, for example)
