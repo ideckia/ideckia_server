@@ -89,12 +89,7 @@ class ActionManager {
 			descriptors.push(desc);
 		}
 
-		var data:ServerMsg<Array<ActionDescriptor>> = {
-			type: ServerMsgType.actionDescriptors,
-			data: descriptors
-		};
-
-		return data;
+		return descriptors;
 	}
 
 	public static function getActionByStateId(stateId:StateId) {

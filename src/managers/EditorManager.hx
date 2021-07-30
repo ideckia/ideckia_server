@@ -14,7 +14,11 @@ class EditorManager {
 
 		switch msg.type {
 			case getActions:
-				MsgManager.send(connection, ActionManager.getEditorActionDescriptors());
+				var descriptorsData:ServerMsg<Array<ActionDescriptor>> = {
+					type: ServerMsgType.actionDescriptors,
+					data: ActionManager.getEditorActionDescriptors()
+				};
+				MsgManager.send(connection, descriptorsData);
 			case getServerItem:
 				var data:ServerMsg<ServerItem> = {
 					type: ServerMsgType.serverItem,
