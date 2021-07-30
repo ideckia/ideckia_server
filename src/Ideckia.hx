@@ -120,19 +120,9 @@ class Ideckia {
 
 			connection.on('close', function(reasonCode, description) {
 				Log.info('Closing connection [code=$reasonCode]: $description');
+				connection.dispose();
 			});
 		});
-	}
-
-	public static function executableName():String {
-		var ext = switch (Sys.systemName()) {
-			case 'Mac': 'mac';
-			case 'Linux': 'linux';
-			case 'Windows': 'win.exe';
-			default: '';
-		}
-
-		return 'ideckia-$ext';
 	}
 
 	function getIPAddress() {
