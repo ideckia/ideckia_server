@@ -106,7 +106,7 @@ class Ideckia {
 		// WebSocket server
 		wsServer.on('request', function(request) {
 			Log.info('Request received [origin=${request.origin}]');
-			var connection = request.accept(null, request.origin);
+			var connection = new WebSocketConnection(request.accept(null, request.origin));
 
 			MsgManager.send(connection, LayoutManager.currentFolderForClient());
 			LayoutManager.watchForChanges(connection);
