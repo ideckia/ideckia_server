@@ -92,8 +92,8 @@ class Ideckia {
 
 		server.listen(port, () -> {
 			var banner = haxe.Resource.getString('banner');
+			banner = banner.replace('::version::', Macros.getLastTagName());
 			banner = banner.replace('::buildDate::', Macros.buildDate().toString());
-			banner = banner.replace('::gitCommitHash::', Macros.getGitCommitHash());
 			banner = banner.replace('::address::', '${getIPAddress()}:$port');
 			js.Node.console.log(banner);
 		});
