@@ -28,15 +28,23 @@ class Macros {
 
 	public static macro function getLastTagName():haxe.macro.Expr.ExprOf<String> {
 		#if !display
-		var process = new sys.io.Process('git', ['describe', '--abbrev=0', '--always']);
+		var process = new sys.io.Process('git tag --sort=taggerdate');
+		
 		if (process.exitCode() != 0) {
 			var message = process.stderr.readAll().toString();
 			var pos = haxe.macro.Context.currentPos();
-			haxe.macro.Context.error("Cannot execute `git describe --abbrev=0 --always`. " + message, pos);
+			haxe.macro.Context.error("Cannot execute `git tag --sort=taggerdate`. " + message, pos);
 		}
 
 		// read the output of the process
-		var lastTagName:String = process.stdout.readLine();
+		var lastTagName = process.stdout.readLine();
+		while (lastTagName != null) {
+            try {
+                lastTagName = process.stdout.readLine();
+            } catch(e:Any) {
+                break;
+            }
+		}
 		#else
 		// `#if display` is used for code completion. In this case returning an
 		// empty string is good enough; We don't want to call git on every hint.
