@@ -10,7 +10,7 @@ jobs:
 
     runs-on: ubuntu-latest
     env:
-      PKG_NODE_VERSION: 8
+      PKG_NODE_VERSION: 10
       HAXE_VERSION: latest
 
     steps:
