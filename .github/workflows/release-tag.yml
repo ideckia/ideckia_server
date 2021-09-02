@@ -38,7 +38,7 @@ jobs:
       run: npm i -g pkg@5.2.1
     
     - name: Package with pkg
-      run: pkg . --targets node${{ env.PKG_NODE_VERSION }}-linux,node${{ env.PKG_NODE_VERSION }}-win,node${{ env.PKG_NODE_VERSION }}-macos
+      run: pkg . --targets node${{ env.PKG_NODE_VERSION }}-linux,node${{ env.PKG_NODE_VERSION }}-win-x64,node${{ env.PKG_NODE_VERSION }}-macos --debug
 
     - name: Release
       uses: "marvinpinto/action-automatic-releases@latest"
