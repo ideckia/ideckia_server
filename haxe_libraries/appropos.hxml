@@ -1,4 +1,4 @@
-# @install: lix --silent download "gh://github.com/josuigoa/appropos#1069bc888a5954881832e48c44914e1e2535adad" into appropos/0.0.0/github/1069bc888a5954881832e48c44914e1e2535adad
--cp ${HAXE_LIBCACHE}/appropos/0.0.0/github/1069bc888a5954881832e48c44914e1e2535adad/src
--D appropos=0.0.0
+# @install: lix --silent download "haxelib:/appropos#1.0.0" into appropos/1.0.0/haxelib
+-cp ${HAXE_LIBCACHE}/appropos/1.0.0/haxelib/src/
+-D appropos=1.0.0
 --macro addGlobalMetadata('', '@:build(appropos.Appropos.generate())')
