@@ -91,14 +91,12 @@ class LayoutManager {
 				{};
 			case SwitchFolder(_, state):
 				state;
-			case SingleState(state):
-				state;
-			case MultiState(index, states):
+			case States(index, list):
 				if (advanceMultiState) {
-					var newIndex = (index + 1) % states.length;
-					item.kind = MultiState(newIndex, states);
+					var newIndex = (index + 1) % list.length;
+					item.kind = States(newIndex, list);
 				}
-				states[index];
+				list[index];
 		}
 
 		Log.debug('State of the item [id=$itemId]: [text=${state.text}], [icon=${state.icon}]');
@@ -191,13 +189,13 @@ class LayoutManager {
 		// action IDs
 		var actions = [];
 		for (i in getAllItems())
-			switch i.kind {
-				case SingleState(state):
-					actions.push(state.action);
-				case MultiState(_, states):
-					for (s in states)
-						actions.push(s.action);
-				default:
+			i.kind = switch i.kind {
+				case States(_, list):
+					for (s in list)
+						actions.concat(s.actions);
+					States(0, list);
+				case k:
+					k;
 			}
 		setActionIds(actions.filter(action -> action != null));
 	}
@@ -220,11 +218,9 @@ class LayoutManager {
 		var actions = [];
 		for (i in getAllItems())
 			switch i.kind {
-				case SingleState(state):
-					actions.push(state.action);
-				case MultiState(_, states):
-					for (s in states)
-						actions.push(s.action);
+				case States(_, list):
+					for (state in list)
+						actions.concat(state.actions);
 				default:
 			}
 
@@ -251,13 +247,13 @@ class LayoutManager {
 		var stateId = 0;
 		for (i in items) {
 			i.id = toNull ? null : new ItemId(itemId++);
-			switch i.kind {
-				case SingleState(state):
-					state.id = toNull ? null : new StateId(stateId++);
-				case MultiState(_, states):
-					for (s in states)
-						s.id = toNull ? null : new StateId(stateId++);
-				default:
+			i.kind = switch i.kind {
+				case States(_, list):
+					for (state in list)
+						state.id = toNull ? null : new StateId(stateId++);
+					States(null, list);
+				case k:
+					k;
 			}
 		}
 	}

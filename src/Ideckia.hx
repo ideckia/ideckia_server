@@ -159,10 +159,12 @@ class Ideckia {
 						state = haxe.Json.parse(sys.io.File.getContent(param));
 					} else {
 						state = {
-							action: {
-								name: param,
-								props: {}
-							}
+							actions: [
+								{
+									name: param,
+									props: {}
+								}
+							]
 						};
 					}
 
