@@ -97,7 +97,7 @@ class ActionManager {
 	}
 
 	public static function getActionByStateId(stateId:StateId) {
-		if (clientActions == null || stateId == null)
+		if (clientActions == null || stateId == null || !clientActions.exists(stateId))
 			return None;
 
 		return Some(clientActions.get(stateId));
@@ -106,8 +106,8 @@ class ActionManager {
 	public static function runAction(state:ServerState) {
 		switch loadAndInitAction(new ItemId(-1), state) {
 			case Some(actions):
-                for (action in actions)
-				    action.execute(state);
+				for (action in actions)
+					action.execute(state);
 			case None:
 				Log.error('the action is null');
 		};
