@@ -1,5 +1,6 @@
 package managers;
 
+import haxe.ds.Option;
 import dialog.Dialog;
 
 using api.IdeckiaApi;
@@ -9,34 +10,37 @@ class ActionManager {
 	@:v('ideckia.actions-path:actions')
 	static var actionsPath:String;
 
-	static var clientActions:Map<StateId, IdeckiaAction>;
+	static var clientActions:Map<StateId, Array<IdeckiaAction>>;
 	static var editorActions:Map<ActionId, IdeckiaAction>;
 
-	static function loadAndInitAction(itemId:ItemId, state:ServerState):IdeckiaAction {
-		var action = state.action;
-		if (action == null)
-			return null;
+	static function loadAndInitAction(itemId:ItemId, state:ServerState):Option<Array<IdeckiaAction>> {
+		var actions = state.actions;
+		if (actions == null || actions.length == 0)
+			return None;
 
-		try {
-			var name = action.name;
-			var actionPath = Ideckia.getAppPath() + '/${actionsPath}/$name';
-			js.Syntax.code("var requiredAction = require({0})", actionPath);
+		var retActions = [];
+		for (action in actions) {
+			try {
+				var name = action.name;
+				var actionPath = Ideckia.getAppPath() + '/${actionsPath}/$name';
+				js.Syntax.code("var requiredAction = require({0})", actionPath);
 
-			var idkServer:IdeckiaServer = {
-				log: actionLog.bind(Log.debug, name),
-				dialog: (type:DialogType, text:String) -> Dialog.show(type, name, text),
-				sendToClient: ClientManager.fromActionToClient.bind(itemId, name)
-			};
-			var ideckiaAction:IdeckiaAction = js.Syntax.code('new requiredAction.IdeckiaAction()');
-			ideckiaAction.setup(action.props, idkServer);
-			ideckiaAction.init(state);
+				var idkServer:IdeckiaServer = {
+					log: actionLog.bind(Log.debug, name),
+					dialog: (type:DialogType, text:String) -> Dialog.show(type, name, text),
+					sendToClient: ClientManager.fromActionToClient.bind(itemId, name)
+				};
+				var ideckiaAction:IdeckiaAction = js.Syntax.code('new requiredAction.IdeckiaAction()');
+				ideckiaAction.setup(action.props, idkServer);
+				ideckiaAction.init(state);
 
-			return ideckiaAction;
-		} catch (e:haxe.Exception) {
-			Log.error('Error creating [${action.name}] action: ${e.message}');
+				retActions.push(ideckiaAction);
+			} catch (e:haxe.Exception) {
+				Log.error('Error creating [${action.name}] action: ${e.message}');
+			}
 		}
 
-		return null;
+		return Some(retActions);
 	}
 
 	public static function initClientActions() {
@@ -44,18 +48,18 @@ class ActionManager {
 
 		inline function getActionFromState(itemId:ItemId, state:ServerState) {
 			Log.debug('item [$itemId] / state [id=${state.id}] [text=${state.text}], [icon=${state.icon}]');
-			var action = loadAndInitAction(itemId, state);
-			if (action != null)
-				clientActions.set(state.id, action);
+			switch loadAndInitAction(itemId, state) {
+				case Some(actions):
+					clientActions.set(state.id, actions);
+				case None:
+			};
 		}
 
 		for (i in LayoutManager.getAllItems()) {
 			switch i.kind {
-				case SingleState(state):
-					getActionFromState(i.id, state);
-				case MultiState(_, states):
-					for (s in states)
-						getActionFromState(i.id, s);
+				case States(_, list):
+					for (state in list)
+						getActionFromState(i.id, state);
 				default:
 			}
 		}
@@ -94,16 +98,18 @@ class ActionManager {
 
 	public static function getActionByStateId(stateId:StateId) {
 		if (clientActions == null || stateId == null)
-			return null;
+			return None;
 
-		return clientActions.get(stateId);
+		return Some(clientActions.get(stateId));
 	}
 
 	public static function runAction(state:ServerState) {
-		var action = loadAndInitAction(new ItemId(-1), state);
-		if (action != null)
-			action.execute(state);
-		else
-			Log.error('the action is null');
+		switch loadAndInitAction(new ItemId(-1), state) {
+			case Some(actions):
+                for (action in actions)
+				    action.execute(state);
+			case None:
+				Log.error('the action is null');
+		};
 	}
 }

@@ -39,45 +39,40 @@ class ClientManager {
 		var currentState = null;
 		try {
 			currentState = LayoutManager.getItemCurrentState(clickedId, true);
-			Log.info('Clicked state: [text=${currentState.text}], [icon=${(currentState.icon == null) ? null : currentState.icon.substring(0, 100)}]');
+			Log.info('Clicked state: [text=${currentState.text}], [icon=${(currentState.icon == null) ? null : currentState.icon.substring(0, 50) + "..."}]');
 			Log.debug('State of the item [id=$clickedId]: $currentState');
 		} catch (e:ItemNotFoundException) {
 			Log.error(e.message, e.posInfos);
 		}
 
 		if (currentState != null) {
-			var stateAction = currentState.action;
-			if (stateAction != null) {
-				var action:IdeckiaAction = ActionManager.getActionByStateId(currentState.id);
-				if (action != null) {
-					try {
-						var promiseThen = (newState:ItemState) -> {
-							if (newState != null) {
-								Log.debug('newState: $newState');
-								currentState.text = newState.text;
-								currentState.textColor = newState.textColor;
-								currentState.icon = newState.icon;
-								currentState.bgColor = newState.bgColor;
-							}
-
-							MsgManager.send(wsConnection, LayoutManager.currentFolderForClient());
-						};
-						var promiseError = (error) -> {
-							Log.error('Error executing [${action}]: $error');
-						};
-
-						if (isLongPress) {
-							Log.info('Executing [${stateAction.name}] action from long pressed state.');
-							action.onLongPress(currentState).then(promiseThen).catchError(promiseError);
-						} else {
-							Log.info('Executing [${stateAction.name}] action from clicked state.');
-							action.execute(currentState).then(promiseThen).catchError(promiseError);
+			switch ActionManager.getActionByStateId(currentState.id) {
+				case Some(actions):
+					var promiseThen = (newState:ItemState) -> {
+						if (newState != null) {
+							Log.debug('newState: $newState');
+							currentState.text = newState.text;
+							currentState.textColor = newState.textColor;
+							currentState.icon = newState.icon;
+							currentState.bgColor = newState.bgColor;
 						}
-					} catch (e:haxe.Exception) {
-						Log.error('Error executing [${action}]: ${e.message}');
-						return;
-					}
-				}
+
+						MsgManager.send(wsConnection, LayoutManager.currentFolderForClient());
+					};
+					var promiseError = (error) -> {
+						Log.error('Error executing actions of the state [${currentState.id}]: $error');
+					};
+					// Action chaining: use the output of each action as input for the next action
+					Lambda.fold(actions, (action:IdeckiaAction, promise:Promise<ItemState>) -> {
+						return promise.then((curState) -> {
+							if (isLongPress)
+								return action.onLongPress(curState);
+							else
+								return action.execute(currentState);
+						});
+					},
+						js.lib.Promise.resolve(currentState)).then(promiseThen).catchError(promiseError);
+				case None:
 			}
 		}
 
