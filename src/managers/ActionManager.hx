@@ -28,7 +28,7 @@ class ActionManager {
 				var idkServer:IdeckiaServer = {
 					log: actionLog.bind(Log.debug, name),
 					dialog: (type:DialogType, text:String) -> Dialog.show(type, name, text),
-					sendToClient: ClientManager.fromActionToClient.bind(itemId, name)
+					updateClientState: ClientManager.fromActionToClient.bind(itemId, name)
 				};
 				var ideckiaAction:IdeckiaAction = js.Syntax.code('new requiredAction.IdeckiaAction()');
 				ideckiaAction.setup(action.props, idkServer);
