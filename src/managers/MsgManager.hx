@@ -10,10 +10,14 @@ class MsgManager {
 
 		switch parsedMsg.whoami {
 			case client:
-				ClientManager.handleMsg(connection, parsedMsg);
+				ClientManager.handleMsg(parsedMsg);
 			case editor:
 				EditorManager.handleMsg(connection, parsedMsg);
 		}
+	}
+
+	public static function sendToAll(data:Any) {
+		WebSocketConnection.sendToAll(Json.stringify(data));
 	}
 
 	public static function send(connection:WebSocketConnection, data:Any) {

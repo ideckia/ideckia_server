@@ -3,8 +3,11 @@ package websocket;
 class WebSocketConnection {
 	var connectionJs:WebSocketConnectionJs;
 
+	static var ALL:Array<WebSocketConnection> = [];
+
 	public function new(connectionJs:WebSocketConnectionJs) {
 		this.connectionJs = connectionJs;
+		ALL.push(this);
 	}
 
 	public function on(event:String, fb:Dynamic) {
@@ -21,8 +24,14 @@ class WebSocketConnection {
 		connectionJs.sendUTF(data);
 	}
 
+	public static function sendToAll(data:String) {
+		for (c in ALL)
+			c.sendUTF(data);
+	}
+
 	public function dispose() {
 		connectionJs = null;
+		ALL.remove(this);
 	}
 }
 

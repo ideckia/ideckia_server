@@ -1,7 +1,7 @@
 package managers;
 
-import js.node.Require;
 import exceptions.ItemNotFoundException;
+import js.node.Require;
 import tink.Json.parse as tinkJsonParse;
 import tink.Json.stringify as tinkJsonStringify;
 import websocket.WebSocketConnection;
@@ -15,9 +15,10 @@ class LayoutManager {
 
 	public static var layout:Layout;
 	public static var currentFolder:Folder;
-	static var currentFolderId:FolderId;
+	static var currentFolderName:FolderName;
 
 	static inline var DEFAULT_TEXT_SIZE = 15;
+	static inline var MAIN_FOLDER_ID = "_main_";
 
 	static function getLayoutPath() {
 		return Ideckia.getAppPath() + '/' + layoutFilePath;
@@ -28,7 +29,7 @@ class LayoutManager {
 
 		Log.info('Loading layout from [$layoutFullPath]');
 		try {
-			currentFolderId = new FolderId(0);
+			currentFolderName = new FolderName(MAIN_FOLDER_ID);
 			layout = tinkJsonParse(sys.io.File.getContent(layoutFullPath));
 		} catch (e:haxe.Exception) {
 			Log.error(e);
@@ -47,18 +48,18 @@ class LayoutManager {
 	public static function load() {
 		readLayout();
 		addIds();
-		switchFolder(currentFolderId);
+		switchFolder(currentFolderName);
 		ActionManager.initClientActions();
 	}
 
 	public static function watchForChanges(connection:WebSocketConnection) {
 		Chokidar.watch(getLayoutPath()).on('change', (_, _) -> {
 			for (module in Require.cache)
-				if (module != null)
-					Decache.run(module.id);
+				if (module != null && StringTools.endsWith(module.id, '.js'))
+					Require.cache.remove(module.id);
 
 			load();
-			MsgManager.send(connection, LayoutManager.currentFolderForClient());
+			MsgManager.sendToAll(LayoutManager.currentFolderForClient());
 		});
 	}
 
@@ -146,7 +147,7 @@ class LayoutManager {
 		};
 	}
 
-	public static function getSwitchFolderId(itemId:ItemId) {
+	public static function getSwitchFolderName(itemId:ItemId) {
 		var item = getItem(itemId);
 
 		return switch item.kind {
@@ -161,29 +162,29 @@ class LayoutManager {
 		return getCurrentItems().filter(item -> item.id == itemId).length > 0;
 	}
 
-	public static function switchFolder(folderId:FolderId) {
+	public static function switchFolder(folderName:FolderName) {
 		if (layout == null) {
 			throw new haxe.Exception('There is no loaded layout. First call LayoutManager.load().');
 		}
 
-		Log.info('Switching folder to [$folderId]');
-		var folderUInt = folderId.toUInt();
-		if (folderUInt >= layout.folders.length) {
-			Log.error('Incorrect id for folder [$folderId]');
+		Log.info('Switching folder to [$folderName]');
+		var foundFolders = layout.folders.filter(f -> f.name == folderName);
+		var foundLength = foundFolders.length;
+		if (foundLength == 0) {
+			Log.error('Could not find folder with name [$folderName]');
+			return;
+		} else if (foundLength > 1) {
+			Log.error('Found $foundLength folders with name [$folderName]');
+		}
+
+		if (currentFolder != null && folderName == currentFolder.name) {
 			return;
 		}
 
-		if (folderUInt == layout.folders.indexOf(currentFolder)) {
-			return;
-		}
-
-		currentFolder = layout.folders[folderUInt];
-		Log.info('Folder switched');
+		currentFolder = foundFolders[0];
 	}
 
 	static function addIds() {
-		// folder IDs
-		setFolderIds(layout.folders);
 		// item IDs
 		setItemIds(getAllItems());
 		// action IDs
@@ -203,9 +204,6 @@ class LayoutManager {
 	public static function exportLayout() {
 		// Clone the current layout
 		var expLayout:Layout = tinkJsonParse(tinkJsonStringify(layout));
-
-		// Remove folder IDs
-		setFolderIds(expLayout.folders, true);
 
 		// Remove item IDs
 		setItemIds([
@@ -227,19 +225,6 @@ class LayoutManager {
 		setActionIds(actions.filter(action -> action != null), true);
 
 		return tinkJsonStringify(expLayout);
-	}
-
-	static function setFolderIds(folders:Array<Folder>, toNull:Bool = false) {
-		var id = 0;
-		for (f in folders) {
-			if (toNull) {
-				if (f.rows == layout.rows && f.columns == layout.columns) {
-					f.rows = null;
-					f.columns = null;
-				}
-			}
-			f.id = toNull ? null : new FolderId(id++);
-		}
 	}
 
 	static function setItemIds(items:Array<ServerItem>, toNull:Bool = false) {
