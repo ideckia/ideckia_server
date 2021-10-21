@@ -55,8 +55,8 @@ class LayoutManager {
 	public static function watchForChanges(connection:WebSocketConnection) {
 		Chokidar.watch(getLayoutPath()).on('change', (_, _) -> {
 			for (module in Require.cache)
-				if (module != null)
-					Decache.run(module.id);
+				if (module != null && StringTools.endsWith(module.id, '.js'))
+					Require.cache.remove(module.id);
 
 			load();
 			MsgManager.sendToAll(LayoutManager.currentFolderForClient());
