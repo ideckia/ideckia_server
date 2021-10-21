@@ -6,11 +6,7 @@ using api.IdeckiaApi;
 using api.internal.ServerApi;
 
 class ClientManager {
-	public static var wsConnection:WebSocketConnection;
-
-	public static function handleMsg(connection:WebSocketConnection, msg:ClientMsg) {
-		wsConnection = connection;
-
+	public static function handleMsg(msg:ClientMsg) {
 		switch msg.type {
 			case click | longPress:
 				onItemClick(new ItemId(msg.itemId), msg.type == longPress);
@@ -26,7 +22,7 @@ class ClientManager {
 			var toFolder = LayoutManager.getSwitchFolderName(clickedId);
 			if (toFolder != null) {
 				LayoutManager.switchFolder(toFolder);
-				MsgManager.send(wsConnection, LayoutManager.currentFolderForClient());
+				MsgManager.sendToAll(LayoutManager.currentFolderForClient());
 				return;
 			}
 		} catch (e:ItemNotFoundException) {
@@ -55,7 +51,7 @@ class ClientManager {
 							currentState.bgColor = newState.bgColor;
 						}
 
-						MsgManager.send(wsConnection, LayoutManager.currentFolderForClient());
+						MsgManager.sendToAll(LayoutManager.currentFolderForClient());
 					};
 					var promiseError = (error) -> {
 						Log.error('Error executing actions of the state [${currentState.id}]: $error');
@@ -74,7 +70,7 @@ class ClientManager {
 			}
 		}
 
-		MsgManager.send(wsConnection, LayoutManager.currentFolderForClient());
+		MsgManager.sendToAll(LayoutManager.currentFolderForClient());
 	}
 
 	public static function fromActionToClient(itemId:ItemId, actionName:String, newState:ItemState) {
@@ -100,6 +96,6 @@ class ClientManager {
 		if (bgc != null)
 			currentState.bgColor = bgc;
 
-		MsgManager.send(wsConnection, LayoutManager.currentFolderForClient());
+		MsgManager.sendToAll(LayoutManager.currentFolderForClient());
 	}
 }

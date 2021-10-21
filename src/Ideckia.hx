@@ -105,14 +105,14 @@ class Ideckia {
 		LayoutManager.load();
 		// WebSocket server
 		wsServer.on('request', function(request) {
-			Log.info('Request received [origin=${request.origin}]');
+			Log.info('Connection request received [origin=${request.origin}]');
 			var connection = new WebSocketConnection(request.accept(null, request.origin));
 
 			MsgManager.send(connection, LayoutManager.currentFolderForClient());
 			LayoutManager.watchForChanges(connection);
 
 			connection.on('message', function(msg:{type:String, utf8Data:String}) {
-				Log.info('Message received: $msg');
+				Log.debug('Message received: $msg');
 				if (msg.type == 'utf8') {
 					MsgManager.route(connection, msg.utf8Data);
 				}
