@@ -5,8 +5,6 @@ import exceptions.ItemNotFoundException;
 using api.IdeckiaApi;
 using api.internal.ServerApi;
 
-import websocket.WebSocketConnection;
-
 class ClientManager {
 	public static var wsConnection:WebSocketConnection;
 
@@ -22,10 +20,10 @@ class ClientManager {
 	}
 
 	static function onItemClick(clickedId:ItemId, isLongPress:Bool) {
-		Log.info('[$clickedId] item clicked');
+		Log.debug('[$clickedId] item clicked');
 
 		try {
-			var toFolder = LayoutManager.getSwitchFolderId(clickedId);
+			var toFolder = LayoutManager.getSwitchFolderName(clickedId);
 			if (toFolder != null) {
 				LayoutManager.switchFolder(toFolder);
 				MsgManager.send(wsConnection, LayoutManager.currentFolderForClient());
