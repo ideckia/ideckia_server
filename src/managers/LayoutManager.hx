@@ -5,6 +5,7 @@ import js.node.Require;
 import tink.Json.parse as tinkJsonParse;
 import tink.Json.stringify as tinkJsonStringify;
 import websocket.WebSocketConnection;
+import haxe.ds.Option;
 
 using api.IdeckiaApi;
 using api.internal.ServerApi;
@@ -20,7 +21,7 @@ class LayoutManager {
 	static inline var DEFAULT_TEXT_SIZE = 15;
 	static inline var MAIN_DIR_ID = "_main_";
 
-	static function getLayoutPath() {
+	public static function getLayoutPath() {
 		return Ideckia.getAppPath() + '/' + layoutFilePath;
 	}
 
@@ -147,14 +148,14 @@ class LayoutManager {
 		};
 	}
 
-	public static function getChangeDirName(itemId:ItemId) {
+	public static function checkChangeDir(itemId:ItemId) {
 		var item = getItem(itemId);
 
 		return switch item.kind {
 			case ChangeDir(toDir, _):
-				toDir;
+				Some(toDir);
 			default:
-				null;
+				None;
 		}
 	}
 
@@ -201,10 +202,27 @@ class LayoutManager {
 		setActionIds(actions.filter(action -> action != null));
 	}
 
-	public static function exportLayout() {
-		// Clone the current layout
-		var expLayout:Layout = tinkJsonParse(tinkJsonStringify(layout));
+	public static function appendLayout(newLayout:Layout) {
+		for (newDir in newLayout.dirs) {
+			var setFolderRowColums = (newDir.rows == null || newDir == null)
+				&& (newLayout.rows != layout.rows || newLayout.columns != layout.columns);
 
+			if (setFolderRowColums) {
+				newDir.rows = newLayout.rows;
+				newDir.columns = newLayout.columns;
+			}
+
+			layout.dirs.push(newDir);
+		}
+
+		for (ic in newLayout.icons) {
+			if (layout.icons.filter(li -> li.key == ic.key).length == 0)
+				layout.icons.push(ic);
+		}
+	}
+
+	public static function exportLayout() {
+		var expLayout = Reflect.copy(layout);
 		// Remove item IDs
 		setItemIds([
 			for (f in expLayout.dirs)
@@ -225,6 +243,36 @@ class LayoutManager {
 		setActionIds(actions.filter(action -> action != null), true);
 
 		return tinkJsonStringify(expLayout);
+	}
+
+	public static function exportDirs(dirNames:Array<String>):Option<{processedDirNames:Array<String>, layout:String}> {
+		var foundDirs = layout.dirs.filter(d -> dirNames.indexOf(d.name.toString()) != -1);
+		if (foundDirs.length == 0)
+			return None;
+
+		var dirIconNames = [];
+		for (dir in foundDirs) {
+			for (i in dir.items) {
+				switch i.kind {
+					case ChangeDir(_, state) if (state.icon != null && !dirIconNames.contains(state.icon)):
+						dirIconNames.push(state.icon);
+					case States(_, list):
+						dirIconNames.concat(list.map(s -> s.icon).filter(i -> i != null && !dirIconNames.contains(i)));
+
+					case _:
+				}
+			}
+		}
+
+		return Some({
+			processedDirNames: foundDirs.map(f -> f.name.toString()),
+			layout: tinkJsonStringify({
+				rows: layout.rows,
+				columns: layout.columns,
+				dirs: foundDirs,
+				icons: layout.icons.filter(ic -> dirIconNames.indexOf(ic.key) != -1)
+			})
+		});
 	}
 
 	static function setItemIds(items:Array<ServerItem>, toNull:Bool = false) {
