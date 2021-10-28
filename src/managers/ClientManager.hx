@@ -19,10 +19,10 @@ class ClientManager {
 		Log.debug('[$clickedId] item clicked');
 
 		try {
-			var toFolder = LayoutManager.getSwitchFolderName(clickedId);
-			if (toFolder != null) {
-				LayoutManager.switchFolder(toFolder);
-				MsgManager.sendToAll(LayoutManager.currentFolderForClient());
+			var toDir = LayoutManager.getChangeDirName(clickedId);
+			if (toDir != null) {
+				LayoutManager.changeDir(toDir);
+				MsgManager.sendToAll(LayoutManager.currentDirForClient());
 				return;
 			}
 		} catch (e:ItemNotFoundException) {
@@ -51,7 +51,7 @@ class ClientManager {
 							currentState.bgColor = newState.bgColor;
 						}
 
-						MsgManager.sendToAll(LayoutManager.currentFolderForClient());
+						MsgManager.sendToAll(LayoutManager.currentDirForClient());
 					};
 					var promiseError = (error) -> {
 						Log.error('Error executing actions of the state [${currentState.id}]: $error');
@@ -70,7 +70,7 @@ class ClientManager {
 			}
 		}
 
-		MsgManager.sendToAll(LayoutManager.currentFolderForClient());
+		MsgManager.sendToAll(LayoutManager.currentDirForClient());
 	}
 
 	public static function fromActionToClient(itemId:ItemId, actionName:String, newState:ItemState) {
@@ -96,6 +96,6 @@ class ClientManager {
 		if (bgc != null)
 			currentState.bgColor = bgc;
 
-		MsgManager.sendToAll(LayoutManager.currentFolderForClient());
+		MsgManager.sendToAll(LayoutManager.currentDirForClient());
 	}
 }

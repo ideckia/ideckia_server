@@ -11,7 +11,8 @@ class ActionManager {
 	static var actionsPath:String;
 
 	static var clientActions:Map<StateId, Array<IdeckiaAction>>;
-	static var editorActions:Map<ActionId, IdeckiaAction>;
+
+	static var actionDescriptors:Array<ActionDescriptor>;
 
 	static function loadAndInitAction(itemId:ItemId, state:ServerState):Option<Array<IdeckiaAction>> {
 		var actions = state.actions;
@@ -32,7 +33,16 @@ class ActionManager {
 				};
 				var ideckiaAction:IdeckiaAction = js.Syntax.code('new requiredAction.IdeckiaAction()');
 				ideckiaAction.setup(action.props, idkServer);
-				ideckiaAction.init(state);
+				ideckiaAction.init(state).then(newState -> {
+					if (newState != null) {
+						state.text = newState.text;
+						state.textColor = newState.textColor;
+						state.icon = newState.icon;
+						state.bgColor = newState.bgColor;
+					}
+				}).catchError((error) -> {
+					Log.error('Error initializing [${name}] action of the state [${state.id}]: $error');
+				});
 
 				retActions.push(ideckiaAction);
 			} catch (e:haxe.Exception) {
@@ -70,8 +80,9 @@ class ActionManager {
 	}
 
 	public static function getEditorActionDescriptors() {
-		if (editorActions == null) {
-			editorActions = new Map();
+		if (actionDescriptors == null) {
+			actionDescriptors = [];
+			var desc:ActionDescriptor;
 			var cId = 0, action:IdeckiaAction;
 			var actionPath = Ideckia.getAppPath() + '/${actionsPath}/';
 			for (c in sys.FileSystem.readDirectory(actionPath)) {
@@ -80,20 +91,17 @@ class ActionManager {
 
 				js.Syntax.code("var requiredAction = require({0})", '$actionPath/$c');
 				action = js.Syntax.code('new requiredAction.IdeckiaAction()');
-				editorActions.set(new ActionId(cId++), action);
+				try {
+					desc = action.getActionDescriptor();
+					desc.id = cId++;
+					actionDescriptors.push(desc);
+				} catch (e:haxe.Exception) {
+					Log.error('Error reading action descriptor of $c: $e');
+				}
 			}
 		}
 
-		var descriptors:Array<ActionDescriptor> = [];
-		var desc:ActionDescriptor;
-
-		for (index => action in editorActions) {
-			desc = action.getActionDescriptor();
-			desc.id = index.toUInt();
-			descriptors.push(desc);
-		}
-
-		return descriptors;
+		return actionDescriptors;
 	}
 
 	public static function getActionByStateId(stateId:StateId) {

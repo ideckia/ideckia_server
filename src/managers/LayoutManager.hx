@@ -14,11 +14,11 @@ class LayoutManager {
 	static var layoutFilePath:String;
 
 	public static var layout:Layout;
-	public static var currentFolder:Folder;
-	static var currentFolderName:FolderName;
+	public static var currentDir:Dir;
+	static var currentDirName:DirName;
 
 	static inline var DEFAULT_TEXT_SIZE = 15;
-	static inline var MAIN_FOLDER_ID = "_main_";
+	static inline var MAIN_DIR_ID = "_main_";
 
 	static function getLayoutPath() {
 		return Ideckia.getAppPath() + '/' + layoutFilePath;
@@ -29,14 +29,14 @@ class LayoutManager {
 
 		Log.info('Loading layout from [$layoutFullPath]');
 		try {
-			currentFolderName = new FolderName(MAIN_FOLDER_ID);
+			currentDirName = new DirName(MAIN_DIR_ID);
 			layout = tinkJsonParse(sys.io.File.getContent(layoutFullPath));
 		} catch (e:haxe.Exception) {
 			Log.error(e);
 			layout = {
 				rows: 0,
 				columns: 0,
-				folders: [],
+				dirs: [],
 				icons: []
 			};
 		}
@@ -48,7 +48,7 @@ class LayoutManager {
 	public static function load() {
 		readLayout();
 		addIds();
-		switchFolder(currentFolderName);
+		changeDir(currentDirName);
 		ActionManager.initClientActions();
 	}
 
@@ -59,29 +59,29 @@ class LayoutManager {
 					Require.cache.remove(module.id);
 
 			load();
-			MsgManager.sendToAll(LayoutManager.currentFolderForClient());
+			MsgManager.sendToAll(LayoutManager.currentDirForClient());
 		});
 	}
 
 	public static function getCurrentItems() {
-		return [for (i in currentFolder.items) i];
+		return [for (i in currentDir.items) i];
 	}
 
 	public static function getAllItems() {
 		return [
-			for (f in layout.folders)
+			for (f in layout.dirs)
 				for (i in f.items)
 					i
 		];
 	}
 
 	public static function getItem(itemId:ItemId) {
-		for (f in layout.folders)
+		for (f in layout.dirs)
 			for (i in f.items)
 				if (i.id == itemId)
 					return i;
 
-		throw new ItemNotFoundException('Could not find [$itemId]');
+		throw new ItemNotFoundException('Could not find [$itemId] item');
 	}
 
 	public static function getItemCurrentState(itemId:ItemId, advanceMultiState:Bool = false) {
@@ -90,7 +90,7 @@ class LayoutManager {
 		var state:ServerState = switch item.kind {
 			case null:
 				{};
-			case SwitchFolder(_, state):
+			case ChangeDir(_, state):
 				state;
 			case States(index, list):
 				if (advanceMultiState) {
@@ -104,8 +104,8 @@ class LayoutManager {
 		return state;
 	}
 
-	public static inline function currentFolderForClient():ServerMsg<ClientLayout> {
-		Log.debug('Sending current folder to client.');
+	public static inline function currentDirForClient():ServerMsg<ClientLayout> {
+		Log.debug('Sending current directory to client.');
 
 		function getIconData(iconName:String) {
 			// Icon base64 directly in the state (from some action, for example)
@@ -119,8 +119,8 @@ class LayoutManager {
 			return null;
 		}
 
-		var rows = currentFolder.rows == null ? layout.rows : currentFolder.rows;
-		var columns = currentFolder.columns == null ? layout.columns : currentFolder.columns;
+		var rows = currentDir.rows == null ? layout.rows : currentDir.rows;
+		var columns = currentDir.columns == null ? layout.columns : currentDir.columns;
 
 		return {
 			type: ServerMsgType.layout,
@@ -147,12 +147,12 @@ class LayoutManager {
 		};
 	}
 
-	public static function getSwitchFolderName(itemId:ItemId) {
+	public static function getChangeDirName(itemId:ItemId) {
 		var item = getItem(itemId);
 
 		return switch item.kind {
-			case SwitchFolder(toFolder, _):
-				toFolder;
+			case ChangeDir(toDir, _):
+				toDir;
 			default:
 				null;
 		}
@@ -162,26 +162,26 @@ class LayoutManager {
 		return getCurrentItems().filter(item -> item.id == itemId).length > 0;
 	}
 
-	public static function switchFolder(folderName:FolderName) {
+	public static function changeDir(dirName:DirName) {
 		if (layout == null) {
 			throw new haxe.Exception('There is no loaded layout. First call LayoutManager.load().');
 		}
 
-		Log.info('Switching folder to [$folderName]');
-		var foundFolders = layout.folders.filter(f -> f.name == folderName);
-		var foundLength = foundFolders.length;
+		Log.info('Switching dir to [$dirName]');
+		var foundDirs = layout.dirs.filter(f -> f.name == dirName);
+		var foundLength = foundDirs.length;
 		if (foundLength == 0) {
-			Log.error('Could not find folder with name [$folderName]');
+			Log.error('Could not find dir with name [$dirName]');
 			return;
 		} else if (foundLength > 1) {
-			Log.error('Found $foundLength folders with name [$folderName]');
+			Log.error('Found $foundLength dirs with name [$dirName]');
 		}
 
-		if (currentFolder != null && folderName == currentFolder.name) {
+		if (currentDir != null && dirName == currentDir.name) {
 			return;
 		}
 
-		currentFolder = foundFolders[0];
+		currentDir = foundDirs[0];
 	}
 
 	static function addIds() {
@@ -207,7 +207,7 @@ class LayoutManager {
 
 		// Remove item IDs
 		setItemIds([
-			for (f in expLayout.folders)
+			for (f in expLayout.dirs)
 				for (i in f.items)
 					i
 		], true);
