@@ -1,15 +1,14 @@
 package;
 
+import api.internal.ServerApi;
 import dialog.Dialog;
-import api.internal.ServerApi.ServerState;
-import managers.ActionManager;
 import js.node.Os;
+import managers.ActionManager;
 import managers.LayoutManager;
 import managers.MsgManager;
+import websocket.*;
 
 using StringTools;
-
-import websocket.*;
 
 @:build(appropos.Appropos.generate())
 class Ideckia {
@@ -147,31 +146,51 @@ class Ideckia {
 
 		var args = Sys.args();
 		if (args.length > 0) {
-			if (args.indexOf('--new-action') != -1) {
-				api.action.creator.ActionCreator.create(actionsPath);
-			} else {
-				var runIndex = args.indexOf('--run-action');
-				if (runIndex != -1) {
-					var param = args[runIndex + 1];
-					var state:ServerState;
-					if (param.endsWith('.json')) {
-						Log.debug('Reading file: [$param]');
-						state = haxe.Json.parse(sys.io.File.getContent(param));
-					} else {
-						state = {
-							actions: [
-								{
-									name: param,
-									props: {}
-								}
-							]
-						};
-					}
+			var newActionIndex = args.indexOf('--new-action');
+			var runActionIndex = args.indexOf('--run-action');
+			var appendLayoutIndex = args.indexOf('--append-layout');
+			var exportDirsIndex = args.indexOf('--export-dirs');
 
-					ActionManager.runAction(state);
+			if (newActionIndex != -1) {
+				api.action.creator.ActionCreator.create(actionsPath);
+			} else if (runActionIndex != -1) {
+				var param = args[runActionIndex + 1];
+				var state:ServerState;
+				if (param.endsWith('.json')) {
+					Log.debug('Reading file: [$param]');
+					state = haxe.Json.parse(sys.io.File.getContent(param));
 				} else {
-					showHelp();
+					state = {
+						actions: [
+							{
+								name: param,
+								props: {}
+							}
+						]
+					};
 				}
+
+				ActionManager.runAction(state);
+			} else if (appendLayoutIndex != -1) {
+				var newLayoutFile = args[appendLayoutIndex + 1];
+				var newLayout:Layout = tink.Json.parse(sys.io.File.getContent(sys.FileSystem.absolutePath(Ideckia.getAppPath() + '/' + newLayoutFile)));
+				LayoutManager.readLayout();
+				LayoutManager.appendLayout(newLayout);
+				sys.io.File.saveContent(LayoutManager.getLayoutPath(), LayoutManager.exportLayout());
+			} else if (exportDirsIndex != -1) {
+				var dirNames = args[exportDirsIndex + 1];
+				var dirNamesArray = dirNames.split(',');
+				LayoutManager.readLayout();
+				switch LayoutManager.exportDirs(dirNamesArray) {
+					case Some(response):
+						var filename = Ideckia.getAppPath() + '/dirs.export.json';
+						sys.io.File.saveContent(filename, response.layout);
+						Log.info('[${response.processedDirNames.join(',')}] successfully exported to [$filename].');
+					case None:
+						Log.info('Could not find [$dirNames] directories in the layout file.');
+				};
+			} else {
+				showHelp();
 			}
 		} else {
 			new Ideckia();
@@ -184,6 +203,8 @@ class Ideckia {
 		trace("	Accepted arguments:");
 		trace("	--help: You are here.");
 		trace("	--new-action: Creates a new action from a template (Haxe or Javascript).");
+		trace("	--append-layout: Append a layout directories and icons from a given JSON file parameter.");
+		trace("	--export-dirs: Export the directories named given by parameters (separated by commas).");
 		trace("	--run-action: Executes an action from actions path. The parameter can be the action name *or* an action properties Json file, only one. The argument type will be evaluated from the extension of the parameter.");
 		trace("		action-name: Name of the action to run.");
 		trace("		action-props.json: Json file path with the action properties");

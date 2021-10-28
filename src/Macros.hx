@@ -29,7 +29,7 @@ class Macros {
 	public static macro function getLastTagName():haxe.macro.Expr.ExprOf<String> {
 		#if !display
 		var process = new sys.io.Process('git tag --sort=taggerdate');
-		
+
 		if (process.exitCode() != 0) {
 			var message = process.stderr.readAll().toString();
 			var pos = haxe.macro.Context.currentPos();
@@ -39,11 +39,11 @@ class Macros {
 		// read the output of the process
 		var lastTagName = process.stdout.readLine();
 		while (lastTagName != null) {
-            try {
-                lastTagName = process.stdout.readLine();
-            } catch(e:Any) {
-                break;
-            }
+			try {
+				lastTagName = process.stdout.readLine();
+			} catch (e:Any) {
+				break;
+			}
 		}
 		#else
 		// `#if display` is used for code completion. In this case returning an
