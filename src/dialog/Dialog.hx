@@ -31,7 +31,7 @@ class Dialog {
 
 	/**
 		Since the OS can't access to the pkg virtual filesystem to access the dialogs files,
-		they must be in an accesible folder. I put them in the home directory of the current
+		they must be in an accesible directory. I put them in the home directory of the current
 		user. Then we can specify to the 'dialog-node' module where to look for those files.
 	**/
 	@:noCompletion

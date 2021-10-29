@@ -19,12 +19,13 @@ class ClientManager {
 		Log.debug('[$clickedId] item clicked');
 
 		try {
-			var toFolder = LayoutManager.getSwitchFolderName(clickedId);
-			if (toFolder != null) {
-				LayoutManager.switchFolder(toFolder);
-				MsgManager.sendToAll(LayoutManager.currentFolderForClient());
-				return;
-			}
+			switch LayoutManager.checkChangeDir(clickedId) {
+				case Some(toDir):
+					LayoutManager.changeDir(toDir);
+					MsgManager.sendToAll(LayoutManager.currentDirForClient());
+					return;
+				case None:
+			};
 		} catch (e:ItemNotFoundException) {
 			Log.debug(e);
 			return;
@@ -35,11 +36,7 @@ class ClientManager {
 			currentState = LayoutManager.getItemCurrentState(clickedId, true);
 			Log.info('Clicked state: [text=${currentState.text}], [icon=${(currentState.icon == null) ? null : currentState.icon.substring(0, 50) + "..."}]');
 			Log.debug('State of the item [id=$clickedId]: $currentState');
-		} catch (e:ItemNotFoundException) {
-			Log.error(e.message, e.posInfos);
-		}
 
-		if (currentState != null) {
 			switch ActionManager.getActionByStateId(currentState.id) {
 				case Some(actions):
 					var promiseThen = (newState:ItemState) -> {
@@ -51,7 +48,7 @@ class ClientManager {
 							currentState.bgColor = newState.bgColor;
 						}
 
-						MsgManager.sendToAll(LayoutManager.currentFolderForClient());
+						MsgManager.sendToAll(LayoutManager.currentDirForClient());
 					};
 					var promiseError = (error) -> {
 						Log.error('Error executing actions of the state [${currentState.id}]: $error');
@@ -68,9 +65,11 @@ class ClientManager {
 						js.lib.Promise.resolve(currentState)).then(promiseThen).catchError(promiseError);
 				case None:
 			}
+		} catch (e:ItemNotFoundException) {
+			Log.error(e.message, e.posInfos);
 		}
 
-		MsgManager.sendToAll(LayoutManager.currentFolderForClient());
+		MsgManager.sendToAll(LayoutManager.currentDirForClient());
 	}
 
 	public static function fromActionToClient(itemId:ItemId, actionName:String, newState:ItemState) {
@@ -96,6 +95,6 @@ class ClientManager {
 		if (bgc != null)
 			currentState.bgColor = bgc;
 
-		MsgManager.sendToAll(LayoutManager.currentFolderForClient());
+		MsgManager.sendToAll(LayoutManager.currentDirForClient());
 	}
 }

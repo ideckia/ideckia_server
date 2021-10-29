@@ -1,7 +1,6 @@
 package managers;
 
-import api.internal.ServerApi.ServerItem;
-import api.internal.ServerApi.ItemId;
+import api.internal.ServerApi;
 
 using api.IdeckiaApi;
 
@@ -10,12 +9,15 @@ import websocket.WebSocketConnection;
 class EditorManager {
 	public static function handleMsg(connection:WebSocketConnection, msg:ClientMsg) {
 		switch msg.type {
-			case getActions:
-				var descriptorsData:ServerMsg<Array<ActionDescriptor>> = {
-					type: ServerMsgType.actionDescriptors,
-					data: ActionManager.getEditorActionDescriptors()
+			case getEditorData:
+				var editorData:ServerMsg<EditorData> = {
+					type: ServerMsgType.editorData,
+					data: {
+						layout: LayoutManager.layout,
+						actionDescriptors: ActionManager.getEditorActionDescriptors()
+					}
 				};
-				MsgManager.send(connection, descriptorsData);
+				MsgManager.send(connection, editorData);
 			case getServerItem:
 				var data:ServerMsg<ServerItem> = {
 					type: ServerMsgType.serverItem,
