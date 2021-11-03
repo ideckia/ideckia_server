@@ -27,8 +27,18 @@ class ActionManager {
 				js.Syntax.code("var requiredAction = require({0})", actionPath);
 
 				var idkServer:IdeckiaServer = {
-					log: actionLog.bind(Log.debug, name),
-					dialog: (type:DialogType, text:String) -> Dialog.show(type, name, text),
+					log: {
+						error: actionLog.bind(Log.error, name),
+						debug: actionLog.bind(Log.debug, name),
+						info: actionLog.bind(Log.info, name)
+					},
+					dialog: {
+						info: (text:String) -> Dialog.show(Info, name, text),
+						error: (text:String) -> Dialog.show(Error, name, text),
+						question: (text:String) -> Dialog.show(Question, name, text),
+						entry: (text:String) -> Dialog.show(Entry, name, text),
+						fileselect: (text:String) -> Dialog.show(FileSelect, name, text)
+					},
 					updateClientState: ClientManager.fromActionToClient.bind(itemId, name)
 				};
 				var ideckiaAction:IdeckiaAction = js.Syntax.code('new requiredAction.IdeckiaAction()');

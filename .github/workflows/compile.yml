@@ -27,4 +27,4 @@ jobs:
             lix download
 
     - name: Compile project
-      run: haxe build.hxml
+      run: haxe deploy.hxml
