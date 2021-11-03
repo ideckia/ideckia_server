@@ -29,7 +29,7 @@ jobs:
             lix download
 
     - name: Compile project
-      run: haxe build.hxml
+      run: haxe deploy.hxml
 
     - name: Install node.js dependencies
       run: npm install

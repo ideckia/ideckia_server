@@ -2,4 +2,5 @@ actions/**
 node_modules/*
 bin/*
 ideckia-*
-props_table.md
+ideckia.exe
+gen.readme.md
