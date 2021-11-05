@@ -21,6 +21,6 @@ class MsgManager {
 	}
 
 	public static function send(connection:WebSocketConnection, data:Any) {
-		connection.sendUTF(Json.stringify(data));
+		connection.send(Json.stringify(data));
 	}
 }

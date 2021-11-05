@@ -3,4 +3,6 @@ node_modules/*
 bin/*
 ideckia-*
 ideckia.exe
+layout.json
+app.props
 gen.readme.md
