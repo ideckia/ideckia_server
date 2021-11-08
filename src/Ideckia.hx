@@ -2,23 +2,14 @@ package;
 
 import api.internal.ServerApi;
 import dialog.Dialog;
-import js.node.Os;
 import managers.ActionManager;
 import managers.LayoutManager;
 import managers.MsgManager;
-import websocket.*;
 
 using StringTools;
 
 @:build(appropos.Appropos.generate())
 class Ideckia {
-	public static inline var DISCOVER_ENDPOINT = '/ping';
-	public static inline var DISCOVER_RESPONSE = 'pong';
-	public static inline var NAME_ENDPOINT = '/name';
-
-	@:v('ideckia.port:8000')
-	static var port:Int;
-
 	@:v('ideckia.log-level:ERROR')
 	static var logLevel:String;
 
@@ -32,6 +23,16 @@ class Ideckia {
 		var autoLauncher = new AutoLaunch({
 			name: 'Ideckia',
 			path: js.Node.process.execPath
+		});
+
+		js.Node.process.on('uncaughtException', (error) -> {
+			Log.error('There was an uncaughtException: $error');
+			Log.error('Please restart the server.');
+		});
+		js.Node.process.on('unhandledRejection', (error, promise) -> {
+			Log.error('Rejection was not handled in the promise: $promise');
+			Log.error('The error was: ', error);
+			Log.error('Please restart the server.');
 		});
 
 		#if debug
@@ -53,86 +54,24 @@ class Ideckia {
 			Log.error('Error with AutoLaunch: $error');
 		});
 
-		var server = js.node.Http.createServer(function(request, response) {
-			final headers = {
-				'Access-Control-Allow-Origin': '*',
-				'Access-Control-Allow-Methods': 'OPTIONS, POST, GET',
-				'Access-Control-Max-Age': 2592000, // 30 days
-				"Access-Control-Allow-Headers": "Content-Type",
-				"Content-Type": "text/plain",
-				/** add other headers as per requirement */
-			};
-
-			if (request.method == 'OPTIONS') {
-				response.writeHead(204, headers);
-				response.end();
-				return;
-			}
-
-			if (['GET', 'POST'].indexOf(request.method) > -1) {
-				var code = 404;
-				var body = null;
-				if (request.url.indexOf(DISCOVER_ENDPOINT) != -1) {
-					code = 200;
-					body = DISCOVER_RESPONSE;
-				} else if (request.url.indexOf(NAME_ENDPOINT) != -1) {
-					code = 200;
-					body = Os.hostname();
-				}
-
-				response.writeHead(code, headers);
-				response.end(body);
-				return;
-			}
-
-			response.writeHead(405, headers);
-			response.end('${request.method} is not allowed for the request.');
-		});
-
-		server.listen(port, () -> {
-			var banner = haxe.Resource.getString('banner');
-			banner = banner.replace('::version::', Macros.getLastTagName());
-			banner = banner.replace('::buildDate::', Macros.buildDate().toString());
-			banner = banner.replace('::address::', '${getIPAddress()}:$port');
-			js.Node.console.log(banner);
-		});
-
-		var wsServer = new WebSocketServer({
-			httpServer: server
-		});
-
 		LayoutManager.load();
-		// WebSocket server
-		wsServer.on('request', function(request) {
-			Log.info('Connection request received [origin=${request.origin}]');
-			var connection = new WebSocketConnection(request.accept(null, request.origin));
 
+		var wsServer = new websocket.WebSocketServer();
+
+		wsServer.onConnect = (connection) -> {
 			MsgManager.send(connection, LayoutManager.currentDirForClient());
 			LayoutManager.watchForChanges(connection);
+		};
 
-			connection.on('message', function(msg:{type:String, utf8Data:String}) {
-				Log.debug('Message received: $msg');
-				if (msg.type == 'utf8') {
-					MsgManager.route(connection, msg.utf8Data);
-				}
-			});
-
-			connection.on('close', function(reasonCode, description) {
-				Log.info('Closing connection [code=$reasonCode]: $description');
-				connection.dispose();
-			});
-		});
-	}
-
-	function getIPAddress() {
-		var interfaces = Os.networkInterfaces();
-		for (iface in interfaces) {
-			for (alias in iface) {
-				if (alias.family == 'IPv4' && alias.address.startsWith('192'))
-					return alias.address;
-			}
+		wsServer.onMessage = (connection, msg) -> {
+			Log.debug('Message received: $msg');
+			MsgManager.route(connection, msg);
 		}
-		return '0.0.0.0';
+
+		wsServer.onClose = (connection, reasonCode, description) -> {
+			Log.info('Closing connection [code=$reasonCode]: $description');
+			connection.dispose();
+		}
 	}
 
 	public static function getAppPath() {

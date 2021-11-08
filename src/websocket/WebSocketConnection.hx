@@ -17,16 +17,16 @@ class WebSocketConnection {
 		connectionJs.on(event, fb);
 	}
 
-	public function sendUTF(data:String) {
+	public function send(data:String) {
 		if (connectionJs == null)
 			return;
 
-		connectionJs.sendUTF(data);
+		connectionJs.send(data);
 	}
 
 	public static function sendToAll(data:String) {
 		for (c in ALL)
-			c.sendUTF(data);
+			c.send(data);
 	}
 
 	public function dispose() {
@@ -35,8 +35,9 @@ class WebSocketConnection {
 	}
 }
 
-@:jsRequire("websocket", "connection")
+@:jsRequire("ws", "websocket")
 extern class WebSocketConnectionJs {
 	public function on(event:String, fb:Dynamic):Void;
-	public function sendUTF(data:String):Void;
+	public function send(data:String):Void;
+	public function terminate():Void;
 }
