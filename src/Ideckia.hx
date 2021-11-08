@@ -25,6 +25,16 @@ class Ideckia {
 			path: js.Node.process.execPath
 		});
 
+		js.Node.process.on('uncaughtException', (error) -> {
+			Log.error('There was an uncaughtException: $error');
+			Log.error('Please restart the server.');
+		});
+		js.Node.process.on('unhandledRejection', (error, promise) -> {
+			Log.error('Rejection was not handled in the promise: $promise');
+			Log.error('The error was: ', error);
+			Log.error('Please restart the server.');
+		});
+
 		#if debug
 		haxe.NativeStackTrace.wrapCallSite = js.Lib.require('source-map-support').wrapCallSite;
 		#end
