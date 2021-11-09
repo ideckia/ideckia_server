@@ -1,4 +1,4 @@
---class-path src
+--class-path src/server
 
 --library hxnodejs
 --library ideckia_api

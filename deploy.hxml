@@ -1,2 +1,2 @@
-build.hxml
+build_server.hxml
 -D --no-local-libs
