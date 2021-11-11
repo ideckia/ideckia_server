@@ -16,5 +16,8 @@
 		"dialog-node": "^0.2.1",
 		"source-map-support": "^0.5.19",
 		"ws": "^8.2.3"
+	},
+	"pkg": {
+		"assets": "bin/editor/*"
 	}
 }

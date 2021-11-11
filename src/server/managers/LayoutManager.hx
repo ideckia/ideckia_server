@@ -221,8 +221,8 @@ class LayoutManager {
 		}
 	}
 
-	public static function exportLayout() {
-		var expLayout = Reflect.copy(layout);
+	public static function exportLayout(?_layout:Layout) {
+		var expLayout = (_layout != null) ? Reflect.copy(_layout) : Reflect.copy(layout);
 		// Remove item IDs
 		setItemIds([
 			for (f in expLayout.dirs)

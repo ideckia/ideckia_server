@@ -44,14 +44,18 @@ class WebSocketServer {
 					body = Os.hostname();
 				} else if (request.url.indexOf(EDITOR_ENDPOINT) != -1 || request.url.endsWith('.js') || request.url.endsWith('.css')) {
 					code = 200;
-					var path = 'bin/${EDITOR_ENDPOINT}';
+					var relativePath = '${EDITOR_ENDPOINT}';
 					if (request.url.endsWith(EDITOR_ENDPOINT)) {
-						path += '/index.html';
+						relativePath += '/index.html';
 					} else {
-						path += '/${request.url}';
+						relativePath += '/${request.url}';
 					}
-					headers = {"Content-Type": "text/" + haxe.io.Path.extension(path)};
-					body = sys.io.File.getContent(path);
+					var absolutePath = '${Ideckia.getAppPath()}/$relativePath';
+					if (!sys.FileSystem.exists(absolutePath)) {
+						absolutePath = './$relativePath';
+					}
+					headers = {"Content-Type": "text/" + haxe.io.Path.extension(absolutePath)};
+					body = sys.io.File.getContent(absolutePath);
 				}
 
 				response.writeHead(code, headers);

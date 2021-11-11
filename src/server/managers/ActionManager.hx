@@ -65,6 +65,7 @@ class ActionManager {
 
 	public static function initClientActions() {
 		clientActions = new Map();
+		actionDescriptors = null;
 
 		inline function getActionFromState(itemId:ItemId, state:ServerState) {
 			Log.debug('item [$itemId] / state [id=${state.id}] [text=${state.text}], [icon=${state.icon}]');

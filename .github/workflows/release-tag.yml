@@ -28,8 +28,11 @@ jobs:
             lix install haxe ${{ env.HAXE_VERSION }}
             lix download
 
-    - name: Compile project
-      run: haxe deploy.hxml
+    - name: Compile server
+      run: haxe deploy_server.hxml
+
+    - name: Compile editor
+      run: haxe deploy_editor.hxml
 
     - name: Install node.js dependencies
       run: npm install
