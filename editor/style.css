@@ -1,0 +1,74 @@
+body {
+    font-size: 0.8em;
+}
+
+#main-container {
+    width: 1000px;
+}
+
+#execute-actions-lbl {
+    float: right;
+}
+
+#layout-container {
+    width: 50%;
+    float: left;
+}
+
+#icon-preview {
+    width: 40px;
+    top: 15px;
+    position: relative;
+}
+
+#properties-container {
+    width: 50%;
+    float: right;
+}
+
+#dir-content {
+    border: gray;
+    border-style: dotted;
+    width: 80%;
+    margin-bottom: 1em;
+    padding: 1em;
+}
+
+#dir-content ul, li {
+    margin-top: .5em;
+}
+
+.edit-property-container {
+    border: gray;
+    border-style: dotted;
+    width: 93%;
+    margin-bottom: 1em;
+    padding: 1em;
+}
+
+.edit-property-container div {
+    margin-bottom: 1em;
+}
+
+.edit-property-container label {
+    width: 25%;
+    display: inline-block;
+}
+
+.edit-property-container .props-buttons {
+    left: 70%;
+    position: relative;
+}
+
+.selected {
+    background-color: gainsboro;
+}
+
+.hidden {
+    display: none;
+}
+
+.prop-value,
+.prop-possible-values {
+    width: 100%;
+}

@@ -1,0 +1,15 @@
+--class-path src/editor
+
+-lib hx_selectors
+-lib ideckia_api
+-lib tink_json
+
+-D indexPath=editor/index.html,editor/style.css
+-D no-deprecation-warnings
+-D analyzer-optimize
+-D js-es=6
+--dce full
+
+--main App
+
+--js editor/app.js
