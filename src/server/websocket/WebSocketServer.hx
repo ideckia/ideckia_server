@@ -44,7 +44,7 @@ class WebSocketServer {
 					body = Os.hostname();
 				} else if (request.url.indexOf(EDITOR_ENDPOINT) != -1 || request.url.endsWith('.js') || request.url.endsWith('.css')) {
 					code = 200;
-					var relativePath = '${EDITOR_ENDPOINT}';
+					var relativePath = '/${EDITOR_ENDPOINT}';
 					if (request.url.endsWith(EDITOR_ENDPOINT)) {
 						relativePath += '/index.html';
 					} else {
@@ -52,7 +52,7 @@ class WebSocketServer {
 					}
 					var absolutePath = '${Ideckia.getAppPath()}/$relativePath';
 					if (!sys.FileSystem.exists(absolutePath)) {
-						absolutePath = './$relativePath';
+						absolutePath = js.Node.__dirname + '$relativePath';
 					}
 					headers = {"Content-Type": "text/" + haxe.io.Path.extension(absolutePath)};
 					body = sys.io.File.getContent(absolutePath);
