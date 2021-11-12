@@ -1,9 +1,9 @@
 actions/**
 node_modules/*
-bin/*
+bin/ideckia.js
 ideckia-*
 ideckia.exe
 layout.json
 app.props
 gen.readme.md
-editor/app.js
+bin/editor/app.js
