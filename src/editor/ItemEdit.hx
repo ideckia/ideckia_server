@@ -14,9 +14,12 @@ class ItemEdit {
 	static var originalItem:ServerItem;
 	static var editableItem:ServerItem;
 
+	static var listeners:Array<Utils.Listener> = [];
+
 	public static function show(item:ServerItem) {
 		var tplDiv = cast Id.item_list_item_tpl.get().cloneNode(true);
 		var parentLi:LIElement = cast tplDiv.children[0];
+		parentLi.dataset.item_id = Std.string(item.id.toUInt());
 		var callback = (item) -> {};
 		var text;
 		switch item.kind {
@@ -62,6 +65,8 @@ class ItemEdit {
 						item.kind = States(0, [{}]);
 					}
 
+					item.id = Utils.getNextItemId();
+
 					DirEdit.refresh();
 				});
 		}
@@ -77,6 +82,7 @@ class ItemEdit {
 
 		parentLi.getElementsByClassName(Cls.add_state_btn)[0].addEventListener('click', (event) -> {
 			event.stopImmediatePropagation();
+			js.Browser.alert('TODO');
 			// var actionNames = [for (a in App.editorData.actionDescriptors) a.name];
 			// var actionName = js.Browser.window.prompt('What type of action do you want to add?\n- ${actionNames.join('\n- ')}');
 
@@ -95,14 +101,17 @@ class ItemEdit {
 		});
 		parentLi.getElementsByClassName(Cls.delete_btn)[0].addEventListener('click', (event) -> {
 			event.stopImmediatePropagation();
-			if (js.Browser.window.confirm('Do you want to remove the item?'))
+			if (js.Browser.window.confirm('Do you want to remove the item?')) {
+				js.Browser.alert('TODO');
 				trace('delete item');
+			}
 		});
 
 		return parentLi;
 	}
 
 	static function edit(item:ServerItem) {
+		Utils.removeListeners(listeners);
 		originalItem = item;
 		editableItem = Reflect.copy(item);
 		switch editableItem.kind {
@@ -118,17 +127,17 @@ class ItemEdit {
 				StateEdit.edit(state, false);
 				Id.change_dir_properties.get().classList.remove(Cls.hidden);
 
-				select.addEventListener('change', onToDirChange);
+				Utils.addListener(listeners, select, 'change', onToDirChange);
 
-				Id.change_dir_save_btn.get().addEventListener('click', onSaveClick, {once: true});
-				Id.change_dir_cancel_btn.get().addEventListener('click', (_) -> hide(), {once: true});
+				Utils.addListener(listeners, Id.change_dir_save_btn.get(), 'click', onSaveClick, true);
+				Utils.addListener(listeners, Id.change_dir_cancel_btn.get(), 'click', (_) -> hide(), true);
 			case _:
 		}
 	}
 
 	public static function hide() {
 		editableItem = null;
-		Id.change_dir_save_btn.get().removeEventListener('click', onSaveClick);
+		Utils.removeListeners(listeners);
 		Id.change_dir_properties.get().classList.add(Cls.hidden);
 	}
 
@@ -145,9 +154,8 @@ class ItemEdit {
 	static function onSaveClick(_) {
 		if (editableItem == null)
 			return;
-		trace('onsaveclick: ' + originalItem);
 		originalItem.kind = Reflect.copy(editableItem.kind);
-		Id.to_dir_select.get().removeEventListener('change', onToDirChange);
+		hide();
 		Utils.hideProps();
 		DirEdit.refresh();
 	}

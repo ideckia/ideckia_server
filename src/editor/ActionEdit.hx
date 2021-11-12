@@ -15,6 +15,7 @@ class ActionEdit {
 	static var originalAction:Action;
 	static var editableActionProps:Any;
 	static var changeListeners:Array<{element:Element, changeListener:Event->Void}> = [];
+	static var listeners:Array<Utils.Listener> = [];
 
 	public static function show(parentState:ServerState, action:Action) {
 		var tplDiv = cast Id.action_list_item_tpl.get().cloneNode(true);
@@ -38,6 +39,7 @@ class ActionEdit {
 	}
 
 	public static function edit(action:Action) {
+		Utils.removeListeners(listeners);
 		switch getActionDescriptorByName(action.name) {
 			case None:
 				trace('Descriptor not found for [${action.name}]');
@@ -55,17 +57,14 @@ class ActionEdit {
 					var valueInput:InputElement = cast div.querySelector(Cls.prop_value.selector());
 					var possibleValuesSelect:SelectElement = cast div.querySelector(Cls.prop_possible_values.selector());
 					var booleanValueInput:InputElement = cast div.querySelector(Cls.prop_bool_value.selector());
-					var onChange;
 					fieldValue = Reflect.field(editableActionProps, div.id);
 					if (!valueInput.classList.contains(Cls.hidden)) {
 						valueInput.value = haxe.Json.stringify(fieldValue);
 
-						onChange = (_) -> {
+						Utils.addListener(listeners, valueInput, 'change', (_) -> {
 							var value = valueInput.value;
 							Reflect.setField(editableActionProps, div.id, (valueInput.type == 'number') ? Std.parseFloat(value) : value);
-						};
-						changeListeners.push({element: valueInput, changeListener: onChange});
-						valueInput.addEventListener('change', onChange);
+						});
 					} else if (!possibleValuesSelect.classList.contains(Cls.hidden)) {
 						var children = possibleValuesSelect.children;
 						for (cind in 0...children.length) {
@@ -74,35 +73,27 @@ class ActionEdit {
 							}
 						}
 
-						onChange = (_) -> {
+						Utils.addListener(listeners, possibleValuesSelect, 'change', (_) -> {
 							Reflect.setField(editableActionProps, div.id, children[possibleValuesSelect.selectedIndex].textContent);
-						};
-						changeListeners.push({element: possibleValuesSelect, changeListener: onChange});
-
-						possibleValuesSelect.addEventListener('change', onChange);
+						});
 					} else {
 						booleanValueInput.checked = Std.string(fieldValue) == 'true';
-						onChange = (_) -> {
+						Utils.addListener(listeners, booleanValueInput, 'change', (_) -> {
 							Reflect.setField(editableActionProps, div.id, booleanValueInput.checked);
-						};
-						changeListeners.push({element: booleanValueInput, changeListener: onChange});
-						booleanValueInput.addEventListener('change', onChange);
+						});
 					}
 
 					Id.action_props.get().appendChild(div);
 				}
-				Id.action_save_btn.get().addEventListener('click', onSaveClick, {once: true});
-				Id.action_cancel_btn.get().addEventListener('click', (_) -> hide(), {once: true});
+
+				Utils.addListener(listeners, Id.action_save_btn.get(), 'click', onSaveClick, true);
+				Utils.addListener(listeners, Id.action_cancel_btn.get(), 'click', (_) -> hide(), true);
 		}
 	}
 
 	public static function hide() {
 		editableActionProps = null;
-		for (listener in changeListeners) {
-			listener.element.removeEventListener('change', listener.changeListener);
-		}
-		changeListeners = [];
-		Id.action_save_btn.get().removeEventListener('click', onSaveClick);
+		Utils.removeListeners(listeners);
 		Id.action_properties.get().classList.add(Cls.hidden);
 	}
 
@@ -110,7 +101,7 @@ class ActionEdit {
 		if (editableActionProps == null)
 			return;
 		originalAction.props = Reflect.copy(editableActionProps);
-		trace(originalAction);
+		hide();
 		Utils.hideProps();
 		DirEdit.refresh();
 	}

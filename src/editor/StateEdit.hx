@@ -19,6 +19,8 @@ class StateEdit {
 	static var editableState:ServerState;
 	static var icons:Array<IconData>;
 
+	static var listeners:Array<Utils.Listener> = [];
+
 	public static function show(state:ServerState) {
 		var tplDiv = cast Id.state_list_item_tpl.get().cloneNode(true);
 		var parentLi:LIElement = cast tplDiv.children[0];
@@ -60,7 +62,9 @@ class StateEdit {
 			}
 			state.actions.push({
 				name: actionName,
-				props: {}
+				props: {
+					id: Utils.getNextStateId()
+				}
 			});
 
 			DirEdit.refresh();
@@ -82,6 +86,8 @@ class StateEdit {
 
 		if (hideProps)
 			Utils.hideProps();
+
+		Utils.removeListeners(listeners);
 		originalState = state;
 		editableState = Reflect.copy(originalState);
 
@@ -108,18 +114,18 @@ class StateEdit {
 		}
 		setIconPreview(icons[index]);
 
-		Id.text.get().addEventListener('change', onTextChange);
-		Id.text_color.get().addEventListener('change', onTextColorChange);
-		Id.bg_color.get().addEventListener('change', onBgColorChange);
-		Id.icons.get().addEventListener('change', onIconChange);
+		Utils.addListener(listeners, Id.text.get(), 'change', onTextChange);
+		Utils.addListener(listeners, Id.text_color.get(), 'change', onTextColorChange);
+		Utils.addListener(listeners, Id.bg_color.get(), 'change', onBgColorChange);
+		Utils.addListener(listeners, Id.icons.get(), 'change', onIconChange);
 
-		Id.state_save_btn.get().addEventListener('click', onSaveClick, {once: true});
-		Id.state_cancel_btn.get().addEventListener('click', (_) -> hide(), {once: true});
+		Utils.addListener(listeners, Id.state_save_btn.get(), 'click', onSaveClick, true);
+		Utils.addListener(listeners, Id.state_cancel_btn.get(), 'click', (_) -> hide(), true);
 	}
 
 	public static function hide() {
 		editableState = null;
-		Id.state_save_btn.get().removeEventListener('click', onSaveClick);
+		Utils.removeListeners(listeners);
 		Id.state_properties.get().classList.add(Cls.hidden);
 	}
 
@@ -161,8 +167,6 @@ class StateEdit {
 	static function onSaveClick(_) {
 		if (editableState == null)
 			return;
-		// originalState = Reflect.copy(editableState);
-		// trace('onsaveclick: ' + originalState);
 		var dirs = App.editorData.layout.dirs;
 		for (d in dirs) {
 			for (i in d.items) {
@@ -179,10 +183,7 @@ class StateEdit {
 				}
 			}
 		}
-		Id.text.get().removeEventListener('change', onTextChange);
-		Id.text_color.get().removeEventListener('change', onTextColorChange);
-		Id.bg_color.get().removeEventListener('change', onBgColorChange);
-		Id.icons.get().removeEventListener('change', onIconChange);
+		hide();
 		Utils.hideProps();
 		DirEdit.refresh();
 	}
