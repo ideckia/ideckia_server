@@ -18,6 +18,35 @@ class App {
 	}
 
 	function onLoad() {
+		initWebsocketServer();
+
+		Id.add_dir_btn.get().addEventListener('click', (_) -> {
+			var dirName = js.Browser.window.prompt('Tell me the name of the new directory');
+
+			if (dirName == null)
+				return;
+
+			var dirs = editorData.layout.dirs;
+			dirs.push({
+				name: new DirName(dirName),
+				items: []
+			});
+
+			updateDirsSelect();
+			DirEdit.show(dirs[dirs.length - 1]);
+		});
+
+		Id.add_item_btn.get().addEventListener('click', (_) -> {
+			switch Utils.createNewItem() {
+				case Some(item):
+					@:privateAccess DirEdit.currentDir.items.push(item);
+					DirEdit.refresh();
+				case None:
+			}
+		});
+
+		Id.add_icon_btn.get().addEventListener('click', (_) -> js.Browser.alert('TODO'));
+
 		Id.save_btn.get().addEventListener('click', (_) -> {
 			var msg:EditorMsg = {
 				type: EditorMsgType.saveLayout,
@@ -26,7 +55,16 @@ class App {
 			};
 			websocket.send(tink.Json.stringify(msg));
 		});
+	}
 
+	static function updateDirsSelect() {
+		var dirs = editorData.layout.dirs;
+		for (selElement in Cls.dir_select.get()) {
+			Utils.fillSelectElement(cast(selElement, SelectElement), [for (i in 0...dirs.length) {value: i, text: dirs[i].name.toString()}]);
+		}
+	}
+
+	static function initWebsocketServer() {
 		final port = js.Browser.location.port;
 		websocket = new js.html.WebSocket('ws://127.0.0.1:${port}');
 
@@ -44,12 +82,8 @@ class App {
 				case ServerMsgType.editorData:
 					editorData = serverData.data;
 
+					updateDirsSelect();
 					var dirs = editorData.layout.dirs;
-					for (element in Cls.dir_select.get()) {
-						Utils.clearElement(element);
-						Utils.fillSelectElement(cast(element, SelectElement), [for (i in 0...dirs.length) {value: i, text: dirs[i].name.toString()}]);
-					}
-
 					Id.dir_select.get().addEventListener('change', (event) -> {
 						var selectedIndex = Std.parseInt(Id.dir_select.as(SelectElement).value);
 						DirEdit.show(dirs[selectedIndex]);
