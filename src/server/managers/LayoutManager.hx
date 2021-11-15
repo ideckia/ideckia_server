@@ -188,7 +188,7 @@ class LayoutManager {
 
 	static function addIds() {
 		// item IDs
-		setItemIds(getAllItems());
+		setItemAndStateIds(getAllItems());
 		// action IDs
 		var actions = [];
 		for (i in getAllItems())
@@ -225,7 +225,7 @@ class LayoutManager {
 	public static function exportLayout(?_layout:Layout) {
 		var expLayout = (_layout != null) ? Reflect.copy(_layout) : Reflect.copy(layout);
 		// Remove item IDs
-		setItemIds([
+		setItemAndStateIds([
 			for (f in expLayout.dirs)
 				for (i in f.items)
 					i
@@ -276,7 +276,7 @@ class LayoutManager {
 		});
 	}
 
-	static function setItemIds(items:Array<ServerItem>, toNull:Bool = false) {
+	static function setItemAndStateIds(items:Array<ServerItem>, toNull:Bool = false) {
 		var itemId = 0;
 		var stateId = 0;
 		for (i in items) {
@@ -286,6 +286,9 @@ class LayoutManager {
 					for (state in list)
 						state.id = toNull ? null : new StateId(stateId++);
 					States(null, list);
+				case ChangeDir(toDir, state):
+					state.id = toNull ? null : new StateId(stateId++);
+					ChangeDir(toDir, state);
 				case k:
 					k;
 			}
