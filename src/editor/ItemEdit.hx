@@ -17,18 +17,23 @@ class ItemEdit {
 	static var listeners:Array<Utils.Listener> = [];
 
 	public static function show(item:ServerItem) {
-		var tplDiv = cast Id.item_list_item_tpl.get().cloneNode(true);
-		var parentLi:LIElement = cast tplDiv.children[0];
+		var parentLi:LIElement = cast Id.item_list_item_tpl.get().cloneNode(true);
+		parentLi.removeAttribute('id');
 		parentLi.dataset.item_id = Std.string(item.id.toUInt());
 		var callback = (item) -> {};
 		var text;
 		switch item.kind {
 			case ChangeDir(toDir, state):
 				var ulItems = document.createUListElement();
-				var li = StateEdit.show(state);
+				var li = StateEdit.show(state, false);
 				ulItems.append(li);
 				parentLi.append(ulItems);
-				parentLi.getElementsByClassName(Cls.add_state_btn)[0].classList.add(Cls.hidden);
+				switch Cls.add_state_btn.firstFrom(parentLi) {
+					case Some(v):
+						v.classList.add(Cls.hidden);
+					case None:
+						trace('No [${Cls.add_state_btn.selector()}] found in [${Id.item_list_item_tpl.selector()}]');
+				}
 				text = 'DIR --to_dir--> ' + toDir.toString();
 
 				callback = edit;
@@ -36,8 +41,9 @@ class ItemEdit {
 				var ulItems = document.createUListElement();
 				var li;
 				text = 'ITEM: ';
+				var deletable = list.length > 1;
 				for (state in list) {
-					li = StateEdit.show(state);
+					li = StateEdit.show(state, deletable);
 					ulItems.append(li);
 				}
 				parentLi.append(ulItems);
@@ -46,32 +52,41 @@ class ItemEdit {
 
 			case null:
 				text = 'Empty item';
-				var createItemBtn = parentLi.getElementsByClassName(Cls.create_item_btn)[0];
-				createItemBtn.classList.remove(Cls.hidden);
-				createItemBtn.addEventListener('click', (_) -> {
-					var changeDirType = 'changedir';
-					var statesType = 'states';
-					var itemType = js.Browser.window.prompt('What type of item do you want to create?\n-$changeDirType\n-$statesType');
+				switch Cls.create_item_btn.firstFrom(parentLi) {
+					case Some(v):
+						v.classList.remove(Cls.hidden);
+						v.addEventListener('click', (_) -> {
+							var changeDirType = 'changedir';
+							var statesType = 'states';
+							var itemType = js.Browser.window.prompt('What type of item do you want to create?\n-$changeDirType\n-$statesType');
 
-					if (itemType != changeDirType && itemType != statesType) {
-						js.Browser.window.alert('$itemType is not a correct item type.');
-						return;
-					}
+							if (itemType != changeDirType && itemType != statesType) {
+								js.Browser.window.alert('$itemType is not a correct item type.');
+								return;
+							}
 
-					if (itemType == changeDirType) {
-						var mainDir = App.editorData.layout.dirs[0];
-						item.kind = ChangeDir(mainDir.name, {});
-					} else {
-						item.kind = States(0, [{}]);
-					}
+							if (itemType == changeDirType) {
+								var mainDir = App.editorData.layout.dirs[0];
+								item.kind = ChangeDir(mainDir.name, Utils.createNewState());
+							} else {
+								item.kind = States(0, [Utils.createNewState()]);
+							}
 
-					item.id = Utils.getNextItemId();
+							item.id = Utils.getNextItemId();
 
-					DirEdit.refresh();
-				});
+							DirEdit.refresh();
+						});
+					case None:
+						trace('No [${Cls.create_item_btn.selector()}] found in [${Id.item_list_item_tpl.selector()}]');
+				}
 		}
 
-		parentLi.getElementsByTagName(Tag.span)[0].innerText = text;
+		switch Tag.span.firstFrom(parentLi) {
+			case Some(v):
+				v.innerText = text;
+			case None:
+				trace('No [${Tag.span.selector()}] found in [${Id.item_list_item_tpl.selector()}]');
+		}
 		parentLi.addEventListener('click', (event:Event) -> {
 			event.stopImmediatePropagation();
 			Utils.selectElement(parentLi);
@@ -80,33 +95,34 @@ class ItemEdit {
 			callback(item);
 		});
 
-		parentLi.getElementsByClassName(Cls.add_state_btn)[0].addEventListener('click', (event) -> {
-			event.stopImmediatePropagation();
-			js.Browser.alert('TODO');
-			// var actionNames = [for (a in App.editorData.actionDescriptors) a.name];
-			// var actionName = js.Browser.window.prompt('What type of action do you want to add?\n- ${actionNames.join('\n- ')}');
+		switch Cls.add_state_btn.firstFrom(parentLi) {
+			case Some(v):
+				v.addEventListener('click', (event) -> {
+					event.stopImmediatePropagation();
 
-			// if (actionName == null)
-			// 	return;
-			// if (actionNames.indexOf(actionName) == -1) {
-			// 	js.Browser.window.alert('$actionName is not a correct name.');
-			// 	return;
-			// }
-			// state.actions.push({
-			// 	name: actionName,
-			// 	props: {}
-			// });
+					switch item.kind {
+						case States(_, list):
+							list.push(Utils.createNewState());
+						default:
+					}
 
-			DirEdit.refresh();
-		});
-		parentLi.getElementsByClassName(Cls.delete_btn)[0].addEventListener('click', (event) -> {
-			event.stopImmediatePropagation();
-			if (js.Browser.window.confirm('Do you want to remove the item?')) {
-				js.Browser.alert('TODO');
-				trace('delete item');
-			}
-		});
-
+					DirEdit.refresh();
+				});
+			case None:
+				trace('No [${Cls.add_state_btn.selector()}] found in [${Id.item_list_item_tpl.selector()}]');
+		}
+		switch Cls.delete_btn.firstFrom(parentLi) {
+			case Some(v):
+				v.addEventListener('click', (event) -> {
+					event.stopImmediatePropagation();
+					if (js.Browser.window.confirm('Do you want to remove the item?')) {
+						js.Browser.alert('TODO');
+						trace('delete item');
+					}
+				});
+			case None:
+				trace('No [${Cls.delete_btn.selector()}] found in [${Id.item_list_item_tpl.selector()}]');
+		}
 		return parentLi;
 	}
 

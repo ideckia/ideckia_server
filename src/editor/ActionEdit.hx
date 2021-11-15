@@ -18,22 +18,32 @@ class ActionEdit {
 	static var listeners:Array<Utils.Listener> = [];
 
 	public static function show(parentState:ServerState, action:Action) {
-		var tplDiv = cast Id.action_list_item_tpl.get().cloneNode(true);
-		var li:LIElement = cast tplDiv.children[0];
-		li.getElementsByTagName(Tag.span)[0].innerText = 'ACTION: ' + action.name;
+		var li:LIElement = cast Id.action_list_item_tpl.get().cloneNode(true);
+		li.removeAttribute('id');
+		switch Tag.span.firstFrom(li) {
+			case Some(v):
+				v.innerText = 'ACTION: ' + action.name;
+			case None:
+				trace('No [${Tag.span.selector()}] found in [${Id.action_list_item_tpl.selector()}]');
+		}
 		li.addEventListener('click', (event:Event) -> {
 			event.stopImmediatePropagation();
 			Utils.selectElement(li);
 			edit(action);
 		});
 
-		li.getElementsByClassName(Cls.delete_btn)[0].addEventListener('click', (event) -> {
-			event.stopImmediatePropagation();
-			if (js.Browser.window.confirm('Do you want to remove the action [${action.name}]?')) {
-				parentState.actions.remove(action);
-				DirEdit.refresh();
-			}
-		});
+		switch Cls.delete_btn.firstFrom(li) {
+			case Some(v):
+				v.addEventListener('click', (event) -> {
+					event.stopImmediatePropagation();
+					if (js.Browser.window.confirm('Do you want to remove the action [${action.name}]?')) {
+						parentState.actions.remove(action);
+						DirEdit.refresh();
+					}
+				});
+			case None:
+				trace('No [${Cls.delete_btn.selector()}] found in [${Id.action_list_item_tpl.selector()}]');
+		}
 
 		return li;
 	}

@@ -59,6 +59,7 @@ class LayoutManager {
 				if (module != null && StringTools.endsWith(module.id, '.js'))
 					Require.cache.remove(module.id);
 
+			Log.info('Layout file changed, reloading...');
 			load();
 			MsgManager.sendToAll(LayoutManager.currentDirForClient());
 		});

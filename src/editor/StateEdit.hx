@@ -21,10 +21,23 @@ class StateEdit {
 
 	static var listeners:Array<Utils.Listener> = [];
 
-	public static function show(state:ServerState) {
-		var tplDiv = cast Id.state_list_item_tpl.get().cloneNode(true);
-		var parentLi:LIElement = cast tplDiv.children[0];
-		parentLi.getElementsByTagName(Tag.span)[0].innerText = 'STATE: ' + state.text;
+	public static function show(state:ServerState, deletable:Bool) {
+		var parentLi:LIElement = cast Id.state_list_item_tpl.get().cloneNode(true);
+		parentLi.removeAttribute('id');
+		switch Tag.span.firstFrom(parentLi) {
+			case Some(v):
+				v.innerText = 'STATE: ' + state.text;
+			case None:
+				trace('No [${Tag.span.selector()}] found in [${Id.state_list_item_tpl.selector()}]');
+		}
+
+		if (!deletable)
+			switch Cls.delete_btn.firstFrom(parentLi) {
+				case Some(v):
+					v.classList.add(Cls.hidden);
+				case None:
+					trace('No [${Cls.delete_btn.selector()}] found in [${Id.state_list_item_tpl.selector()}]');
+			};
 
 		if (state.actions != null) {
 			var ulActions = document.createUListElement();
@@ -49,32 +62,57 @@ class StateEdit {
 		];
 		icons.insert(0, {name: '', base64: ''});
 
-		parentLi.getElementsByClassName(Cls.add_action_btn)[0].addEventListener('click', (event) -> {
-			event.stopImmediatePropagation();
-			var actionNames = [for (a in App.editorData.actionDescriptors) a.name];
-			var actionName = js.Browser.window.prompt('What type of action do you want to add?\n- ${actionNames.join('\n- ')}');
+		switch Cls.add_action_btn.firstFrom(parentLi) {
+			case Some(v):
+				v.addEventListener('click', (event) -> {
+					event.stopImmediatePropagation();
+					var actionNames = [for (a in App.editorData.actionDescriptors) a.name];
+					var actionName = js.Browser.window.prompt('What type of action do you want to add?\n- ${actionNames.join('\n- ')}');
 
-			if (actionName == null)
-				return;
-			if (actionNames.indexOf(actionName) == -1) {
-				js.Browser.window.alert('$actionName is not a correct name.');
-				return;
-			}
-			state.actions.push({
-				name: actionName,
-				props: {
-					id: Utils.getNextStateId()
-				}
-			});
+					if (actionName == null)
+						return;
+					if (actionNames.indexOf(actionName) == -1) {
+						js.Browser.window.alert('$actionName is not a correct name.');
+						return;
+					}
+					state.actions.push({
+						name: actionName,
+						props: {
+							id: Utils.getNextStateId()
+						}
+					});
 
-			DirEdit.refresh();
-		});
-		parentLi.getElementsByClassName(Cls.delete_btn)[0].addEventListener('click', (event) -> {
-			event.stopImmediatePropagation();
-			if (js.Browser.window.confirm('Do you want to remove the state [${state.text}]?'))
-				trace('delete state ${state.text}');
-		});
+					DirEdit.refresh();
+				});
+			case None:
+				trace('No [${Cls.add_action_btn.selector()}] found in [${Id.state_list_item_tpl.selector()}]');
+		}
 
+		switch Cls.delete_btn.firstFrom(parentLi) {
+			case Some(v):
+				v.addEventListener('click', (event) -> {
+					event.stopImmediatePropagation();
+
+					if (js.Browser.window.confirm('Do you want to remove the state [${state.text}]?')) {
+						trace('delete state ${state.id}');
+						for (d in App.editorData.layout.dirs) {
+							for (i in d.items) {
+								switch i.kind {
+									case States(_, list):
+										for (sind in 0...list.length)
+											if (list[sind].id == state.id)
+												list.remove(state);
+									default:
+								}
+							}
+						}
+					}
+
+					DirEdit.refresh();
+				});
+			case None:
+				trace('No [${Cls.delete_btn.selector()}] found in [${Id.state_list_item_tpl.selector()}]');
+		}
 		return parentLi;
 	}
 
@@ -167,8 +205,7 @@ class StateEdit {
 	static function onSaveClick(_) {
 		if (editableState == null)
 			return;
-		var dirs = App.editorData.layout.dirs;
-		for (d in dirs) {
+		for (d in App.editorData.layout.dirs) {
 			for (i in d.items) {
 				switch i.kind {
 					case null:

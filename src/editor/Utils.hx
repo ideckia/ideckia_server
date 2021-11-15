@@ -13,8 +13,8 @@ typedef Listener = {
 }
 
 class Utils {
-	static var lastItemId:Int = -1;
-	static var lastStateId:Int = -1;
+	static var lastItemId:UInt = 0;
+	static var lastStateId:UInt = 0;
 
 	public static inline function clearElement(e:Element) {
 		while (e.hasChildNodes())
@@ -49,6 +49,12 @@ class Utils {
 		listeners = [];
 	}
 
+	public static function createNewState():ServerState {
+		return {
+			id: getNextStateId()
+		};
+	}
+
 	public static function createNewItem() {
 		var changeDirType = 'changedir';
 		var statesType = 'states';
@@ -59,9 +65,8 @@ class Utils {
 			return None;
 		}
 
-		var state:ServerState = {
-			id: getNextStateId()
-		}
+		var state = createNewState();
+
 		var item:ServerItem = {
 			id: Utils.getNextItemId(),
 			kind: if (itemType == changeDirType) {
@@ -75,19 +80,20 @@ class Utils {
 	}
 
 	public static function getNextItemId() {
-		if (lastStateId == -1) {
+		if (lastItemId == 0) {
 			for (d in App.editorData.layout.dirs) {
 				for (i in d.items) {
-					if (i.id.toUInt() > lastStateId)
-						lastStateId = i.id.toUInt();
+					if (i.id.toUInt() > lastItemId)
+						lastItemId = i.id.toUInt();
 				}
 			}
 		}
-		return new ItemId(lastStateId++);
+
+		return new ItemId(lastItemId++);
 	}
 
 	public static function getNextStateId() {
-		if (lastStateId == -1) {
+		if (lastStateId == 0) {
 			for (d in App.editorData.layout.dirs) {
 				for (i in d.items) {
 					switch i.kind {
@@ -103,6 +109,7 @@ class Utils {
 				}
 			}
 		}
+
 		return new StateId(lastStateId++);
 	}
 
