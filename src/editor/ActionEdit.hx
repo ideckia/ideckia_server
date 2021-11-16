@@ -11,6 +11,8 @@ import hx.Selectors.Cls;
 import hx.Selectors.Id;
 import hx.Selectors.Tag;
 
+using StringTools;
+
 class ActionEdit {
 	static var originalAction:Action;
 	static var editableActionProps:Any;
@@ -141,13 +143,16 @@ class ActionEdit {
 			if (prop.values != null && prop.values.length != 0) {
 				possibleValuesSelect.classList.remove(Cls.hidden);
 				Utils.fillSelectElement(possibleValuesSelect, [for (i in 0...prop.values.length) {value: i, text: prop.values[i]}]);
-			} else if (prop.type == "Bool") {
-				booleanValueInput.classList.remove(Cls.hidden);
 			} else {
-				if (prop.type == "Int" || prop.type == "UInt" || prop.type == "Float") {
-					valueInput.type = 'number';
+				var notNullType = prop.type.replace('Null<', '');
+				if (notNullType.startsWith("Bool")) {
+					booleanValueInput.classList.remove(Cls.hidden);
+				} else {
+					if (notNullType.startsWith("Int") || notNullType.startsWith("UInt") || notNullType.startsWith("Float")) {
+						valueInput.type = 'number';
+					}
+					valueInput.classList.remove(Cls.hidden);
 				}
-				valueInput.classList.remove(Cls.hidden);
 			}
 			nameSpan.innerText = prop.name;
 			var tooltipText = 'Property name : ${prop.name}\n';
