@@ -11,27 +11,29 @@
     </head>
 
     <body>
-        <div id="main-container">
+        <nav>
+            <select name="dir-select" class="dir-select" id="dir-select"></select>
+            <input type="button" value="add directory" id="add-dir-btn">
+            <input type="button" value="add item" id="add-item-btn">
+            <input type="button" value="add icon" id="add-icon-btn">
+            <input type="button" value="x" id="delete-dir-btn" title="delete directory">
             <label id="execute-actions-lbl" for="execute-actions-cb"
                 title="If activated, clicked states will be executed.">
                 Use as app
                 <input type="checkbox" name="execute-actions" id="execute-actions-cb">
             </label>
+        </nav>
+        <div id="main-container">
             <div id="layout-container">
-                <select name="dir-select" class="dir-select" id="dir-select"></select>
-                <input type="button" value="add directory" id="add-dir-btn">
-                <input type="button" value="add item" id="add-item-btn">
-                <input type="button" value="add icon" id="add-icon-btn">
-                <input type="button" value="x" id="delete-dir-btn" title="delete directory">
                 <div id="dir-content"></div>
                 <div id="buttons">
-                    <input type="button" value="Cancel" id="cancel-btn">
                     <input type="button" value="Save layout" id="save-btn">
                 </div>
             </div>
 
-            <div id="properties-container">
-                <div id="change-dir-properties" class="hidden edit-property-container">
+            <div id="item-container" class="hidden">
+                <h3>Item properties</h3>
+                <div id="item-kind-changedir-properties" class="hidden edit-property-container">
                     <h4>ChangeDir properties</h4>
                     <div>
                         <label for="text">Go to directory</label>
@@ -42,58 +44,67 @@
                         <input type="button" value="Save directory" id="change-dir-save-btn">
                     </div>
                 </div>
-                <div id="state-properties" class="hidden edit-property-container">
-                    <h4>State properties</h4>
-                    <div>
-                        <label for="text">Text</label>
-                        <input type="text" name="text" id="text">
-                    </div>
-
-                    <div>
-                        <label for="text-color">Text color</label>
-                        <input type="color" name="text-color" id="text-color">
-                    </div>
-
-                    <div>
-                        <label for="bg-color">Background color</label>
-                        <input type="color" name="bg-color" id="bg-color">
-                    </div>
-
-                    <div>
-                        <label for="icon">Icon</label>
-                        <select name="icon-select" id="icons"></select>
-                        <img id="icon-preview" alt="This is the selected icon preview" src="" class="hidden" />
-                    </div>
-                    <div id="state-props-buttons" class="props-buttons">
-                        <input type="button" value="Cancel" id="state-cancel-btn">
-                        <input type="button" value="Save state" id="state-save-btn">
-                    </div>
+                <div id="item-kind-states-properties" class="edit-property-container"></div>
+                <div id="item-buttons" class="edit-property-container">
+                    <input type="button" value="+item kind" id="add-item-kind-btn" title="add item">
+                    <input type="button" value="+state" id="add-state-btn" title="add state">
+                    <input type="button" value="clear item" id="clear-item-btn" title="clear item">
+                </div>
+            </div>
+            <div id="state-properties" class="hidden edit-property-container">
+                <h3>State properties</h3>
+                <div>
+                    <label for="text">Text</label>
+                    <input type="text" name="text" id="text">
                 </div>
 
-                <div id="action-properties" class="hidden edit-property-container">
+                <div>
+                    <label for="text-color">Text color</label>
+                    <input type="color" name="text-color" id="text-color">
+                </div>
 
-                    <h4>Action properties</h4>
-                    <div id="action-props"></div>
+                <div>
+                    <label for="bg-color">Background color</label>
+                    <input type="color" name="bg-color" id="bg-color">
+                </div>
 
-                    <div id="action-props-buttons" class="props-buttons">
-                        <input type="button" value="Cancel" id="action-cancel-btn">
-                        <input type="button" value="Save action" id="action-save-btn">
-                    </div>
+                <div>
+                    <label for="icon">Icon</label>
+                    <select name="icon-select" id="icons"></select>
+                    <img id="icon-preview" alt="This is the selected icon preview" src="" class="hidden" />
+                </div>
+                <div id="state-props-buttons" class="props-buttons">
+                    <input type="button" value="Cancel" id="state-cancel-btn">
+                    <input type="button" value="Save state" id="state-save-btn">
+                </div>
+            </div>
+
+            <div id="action-properties" class="hidden edit-property-container">
+
+                <h3>Action properties</h3>
+                <div id="action-props"></div>
+
+                <div id="action-props-buttons" class="props-buttons">
+                    <input type="button" value="Cancel" id="action-cancel-btn">
+                    <input type="button" value="Save action" id="action-save-btn">
                 </div>
             </div>
 
         </div>
 
         <div id="templates" class="hidden">
-            <li id="item-list-item-tpl" draggable="true" class="item-list-item draggable">
+            <div id="layout-grid-item-tpl" draggable="true" class="layout-grid-item draggable">
+                <span></span>
+            </div>
+            <li id="item-grid-item-tpl" draggable="true" class="item-list-item draggable">
                 <span></span>
                 <input type="button" value="create item" class="create-item-btn hidden">
-                <input type="button" value="add state" class="add-state-btn">
+                <input type="button" value="+" class="add-state-btn" title="add state">
                 <input type="button" value="x" class="delete-btn" title="delete state">
             </li>
             <li id="state-list-item-tpl" class="state-list-item">
                 <span></span>
-                <input type="button" value="add action" class="add-action-btn">
+                <input type="button" value="+" class="add-action-btn" title="add action">
                 <input type="button" value="x" class="delete-btn" title="delete state">
             </li>
             <li id="action-list-item-tpl" class="action-list-item">

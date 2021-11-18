@@ -60,6 +60,9 @@ class Utils {
 		var statesType = 'states';
 		var itemType = js.Browser.window.prompt('What type of item do you want to create?\n-$changeDirType\n-$statesType');
 
+		if (itemType == null)
+			return None;
+
 		if (itemType != changeDirType && itemType != statesType) {
 			js.Browser.window.alert('$itemType is not a correct item type.');
 			return None;

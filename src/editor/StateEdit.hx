@@ -9,24 +9,20 @@ import hx.Selectors.Cls;
 import hx.Selectors.Id;
 import hx.Selectors.Tag;
 
-typedef IconData = {
-	var name:String;
-	var base64:String;
-}
-
 class StateEdit {
 	static var originalState:ServerState;
 	static var editableState:ServerState;
-	static var icons:Array<IconData>;
 
 	static var listeners:Array<Utils.Listener> = [];
 
 	public static function show(state:ServerState, deletable:Bool) {
+		Id.item_kind_states_properties.get().classList.remove(Cls.hidden);
 		var parentLi:LIElement = cast Id.state_list_item_tpl.get().cloneNode(true);
 		parentLi.removeAttribute('id');
 		switch Tag.span.firstFrom(parentLi) {
 			case Some(v):
-				v.innerText = 'STATE: ' + state.text;
+				var iconText = (state.icon == null) ? '' : ' / icon: [${state.icon.substr(0, 30)}]';
+				v.innerText = 'text: [${state.text}]$iconText';
 			case None:
 				trace('No [${Tag.span.selector()}] found in [${Id.state_list_item_tpl.selector()}]');
 		}
@@ -53,15 +49,6 @@ class StateEdit {
 			edit(state);
 		});
 
-		icons = [
-			for (i in App.editorData.layout.icons)
-				{
-					name: i.key,
-					base64: i.value
-				}
-		];
-		icons.insert(0, {name: '', base64: ''});
-
 		switch Cls.add_action_btn.firstFrom(parentLi) {
 			case Some(v):
 				v.addEventListener('click', (event) -> {
@@ -74,6 +61,9 @@ class StateEdit {
 					if (actionNames.indexOf(actionName) == -1) {
 						js.Browser.window.alert('$actionName is not a correct name.');
 						return;
+					}
+					if (state.actions == null) {
+						state.actions = [];
 					}
 					state.actions.push({
 						name: actionName,
@@ -116,14 +106,13 @@ class StateEdit {
 		return parentLi;
 	}
 
-	public static function edit(state:ServerState, hideProps:Bool = true) {
+	public static function edit(state:ServerState) {
 		if (state == null) {
 			Id.state_properties.get().classList.add(Cls.hidden);
 			return;
 		}
 
-		if (hideProps)
-			Utils.hideProps();
+		ActionEdit.hide();
 
 		Utils.removeListeners(listeners);
 		originalState = state;
@@ -137,12 +126,12 @@ class StateEdit {
 		var bgColor = editableState.bgColor;
 		Id.bg_color.as(InputElement).value = bgColor == null ? '' : '#' + bgColor.substr(2);
 
-		Utils.fillSelectElement(Id.icons.as(SelectElement), [for (i in 0...icons.length) {value: i, text: icons[i].name}]);
+		Utils.fillSelectElement(Id.icons.as(SelectElement), [for (i in 0...App.icons.length) {value: i, text: App.icons[i].name}]);
 
 		var index = 0;
 		if (editableState.icon != null) {
-			for (i in 0...icons.length) {
-				if (icons[i].name == editableState.icon) {
+			for (i in 0...App.icons.length) {
+				if (App.icons[i].name == editableState.icon) {
 					index = i;
 					break;
 				}
@@ -150,7 +139,7 @@ class StateEdit {
 
 			Id.icons.as(SelectElement).selectedIndex = index;
 		}
-		setIconPreview(icons[index]);
+		setIconPreview(App.icons[index]);
 
 		Utils.addListener(listeners, Id.text.get(), 'change', onTextChange);
 		Utils.addListener(listeners, Id.text_color.get(), 'change', onTextColorChange);
@@ -167,7 +156,7 @@ class StateEdit {
 		Id.state_properties.get().classList.add(Cls.hidden);
 	}
 
-	static function setIconPreview(selectedIcon:IconData) {
+	static function setIconPreview(selectedIcon:App.IconData) {
 		if (selectedIcon.name != '') {
 			Id.icon_preview.get().classList.remove(Cls.hidden);
 			Id.icon_preview.as(ImageElement).src = 'data:image/jpeg;base64,' + selectedIcon.base64;
@@ -179,7 +168,7 @@ class StateEdit {
 	static function onIconChange(_) {
 		if (editableState == null)
 			return;
-		var selectedIcon = icons[Id.icons.as(SelectElement).selectedIndex];
+		var selectedIcon = App.icons[Id.icons.as(SelectElement).selectedIndex];
 		editableState.icon = selectedIcon.name;
 		setIconPreview(selectedIcon);
 	}

@@ -8,7 +8,7 @@ import js.Browser.document;
 
 class DirEdit {
 	static var currentDir:Dir;
-	static var dragginItemId:UInt;
+	static var draggingItemId:UInt;
 
 	static var listeners:Array<Utils.Listener> = [];
 
@@ -18,13 +18,22 @@ class DirEdit {
 		Id.dir_select.as(SelectElement).selectedIndex = App.editorData.layout.dirs.indexOf(dir);
 
 		Utils.clearElement(Id.dir_content.get());
+		@:privateAccess Utils.removeListeners(ItemEdit.cellListeners);
 
-		var ulItems = document.createUListElement();
-		for (item in currentDir.items) {
-			ulItems.append(ItemEdit.show(item));
+		var rows = dir.rows == null ? App.editorData.layout.rows : dir.rows;
+		var columns = dir.columns == null ? App.editorData.layout.columns : dir.columns;
+		for (rind in 0...rows) {
+			for (cind in 0...columns) {
+				var item = dir.items[rind * columns + cind];
+				switch ItemEdit.show(item) {
+					case Some(cell):
+						Id.dir_content.get().append(cell);
+					case None:
+				}
+			}
 		}
 
-		Id.dir_content.get().append(ulItems);
+		Id.dir_content.get().style.gridTemplateColumns = 'repeat($columns, auto)';
 
 		for (d in Cls.draggable.get()) {
 			Utils.addListener(listeners, d, 'dragstart', (_) -> onDragStart(d.dataset.item_id));
@@ -35,7 +44,7 @@ class DirEdit {
 	}
 
 	static function onDragStart(itemId:String) {
-		dragginItemId = Std.parseInt(itemId);
+		draggingItemId = Std.parseInt(itemId);
 	}
 
 	static function onDragOver(e:Event) {
@@ -65,7 +74,7 @@ class DirEdit {
 				continue;
 			if (item.id.toUInt() == targetItemId)
 				targetIndex = i;
-			if (item.id.toUInt() == dragginItemId)
+			if (item.id.toUInt() == draggingItemId)
 				itemToMove = currentDir.items.splice(i, 1)[0];
 		}
 
@@ -82,53 +91,4 @@ class DirEdit {
 	}
 
 	public static function edit(dir:Dir) {}
-	/*
-		function showInGrid(dirName:String) {
-			for (element in document.getElementsByClassName('is-active')) {
-				element.classList.remove('is-active');
-			}
-			Utils.clearElement(Id.container.get());
-
-			var layout = editorData.layout;
-			var found = layout.dirs.filter(f -> f.name.toString() == dirName);
-			if (found.length == 0)
-				return;
-
-			var dir = found[0];
-			var items = dir.items;
-			var rows = dir.rows == null ? layout.rows : dir.rows;
-			var columns = dir.columns == null ? layout.columns : dir.columns;
-			var gridTemplateColumns = '';
-			for (rind in 0...rows) {
-				gridTemplateColumns = '';
-				for (cind in 0...columns) {
-					gridTemplateColumns += 'auto ';
-					var item = items[rind * columns + cind];
-					var cell = document.createDivElement();
-					if (item != null) {
-						switch item.kind {
-							case null:
-								cell.innerText = 'empty';
-							case ChangeDir(toDir, _):
-								cell.innerText = 'dir: ${toDir.toString()}';
-								cell.classList.add('dir');
-							case States(_, list):
-								cell.innerText = 'states: ${list[0].text}';
-								cell.classList.add('states');
-						};
-						cell.id = Std.string(item.id);
-					}
-
-					cell.classList.add('grid-item');
-
-					cell.onclick = onItemSelected.bind(item);
-					cell.classList.add(Cls.clickable_item);
-					Id.container.get().append(cell);
-				}
-			}
-
-			Id.container.get().style.gridTemplateColumns = gridTemplateColumns;
-			document.getElementById(dirName).classList.add('is-active');
-		}
-	 */
 }

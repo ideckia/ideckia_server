@@ -24,7 +24,7 @@ class ActionEdit {
 		li.removeAttribute('id');
 		switch Tag.span.firstFrom(li) {
 			case Some(v):
-				v.innerText = 'ACTION: ' + action.name;
+				v.innerText = action.name;
 			case None:
 				trace('No [${Tag.span.selector()}] found in [${Id.action_list_item_tpl.selector()}]');
 		}
@@ -56,7 +56,6 @@ class ActionEdit {
 			case None:
 				trace('Descriptor not found for [${action.name}]');
 			case Some(actionDescriptor):
-				Utils.hideProps();
 				Utils.clearElement(Id.action_props.get());
 				originalAction = action;
 				editableActionProps = Reflect.copy(action.props);

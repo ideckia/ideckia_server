@@ -2,17 +2,8 @@ body {
     font-size: 0.8em;
 }
 
-#main-container {
-    width: 1000px;
-}
-
 #execute-actions-lbl {
     float: right;
-}
-
-#layout-container {
-    width: 50%;
-    float: left;
 }
 
 #icon-preview {
@@ -21,15 +12,9 @@ body {
     position: relative;
 }
 
-#properties-container {
-    width: 50%;
-    float: right;
-}
-
 #dir-content {
     border: gray;
     border-style: dotted;
-    width: 80%;
     margin-bottom: 1em;
     padding: 1em;
 }
@@ -38,10 +23,43 @@ body {
     margin-top: .5em;
 }
 
+#item-container {
+    border: gray;
+    border-style: dotted;
+    margin-bottom: 1em;
+    padding: 1em;
+}
+
+#main-container {
+    display: grid; 
+    grid-template-columns: 2fr 1fr 1fr; 
+    grid-template-rows: 1fr 1fr; 
+    gap: 0px 0px; 
+    grid-template-areas: 
+        "layout-container item-container state-properties"
+        "layout-container action-properties action-properties"; 
+}
+
+#item-container ul, li {
+    margin-top: .5em;
+}
+
+#layout-container {
+    grid-area: layout-container;
+}
+#item-container {
+    grid-area: item-container;
+}
+#state-properties {
+    grid-area: state-properties;
+}
+#action-properties {
+    grid-area: action-properties;
+}
+
 .edit-property-container {
     border: gray;
     border-style: dotted;
-    width: 93%;
     margin-bottom: 1em;
     padding: 1em;
 }
@@ -53,11 +71,6 @@ body {
 .edit-property-container label {
     width: 25%;
     display: inline-block;
-}
-
-.edit-property-container .props-buttons {
-    left: 70%;
-    position: relative;
 }
 
 .selected {
@@ -74,5 +87,39 @@ body {
 }
 
 .drag-over {
-    background-color: ghostwhite;
+    background-color: ghostwhite !important;
+}
+
+#dir-content {
+    display: grid;
+}
+
+.layout-grid-item {
+    background-color: orange;
+    border: 1px solid;
+    height: 100px;
+}
+
+.layout-grid-item.dir {
+    background-color: yellow;
+}
+
+.layout-grid-item.states {
+    background-color: skyblue;
+}
+
+#item-kind-changedir-properties {
+    background-color: bisque;
+}
+
+#item-kind-states-properties {
+    background-color: lavender;
+}
+
+#state-properties {
+    background-color: gold;
+}
+
+#action-properties {
+    background-color: lightblue;
 }

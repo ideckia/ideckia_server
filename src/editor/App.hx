@@ -8,10 +8,16 @@ import js.html.SelectElement;
 using api.IdeckiaApi;
 using hx.Selectors;
 
+typedef IconData = {
+	var name:String;
+	var base64:String;
+}
+
 class App {
 	static var websocket:js.html.WebSocket;
 
 	public static var editorData:EditorData;
+	public static var icons:Array<IconData>;
 
 	function new() {
 		js.Browser.window.onload = onLoad;
@@ -33,7 +39,6 @@ class App {
 			});
 
 			updateDirsSelect();
-			DirEdit.show(dirs[dirs.length - 1]);
 		});
 
 		Id.add_item_btn.get().addEventListener('click', (_) -> {
@@ -45,7 +50,38 @@ class App {
 			}
 		});
 
-		Id.add_icon_btn.get().addEventListener('click', (_) -> js.Browser.alert('TODO'));
+		Id.delete_dir_btn.get().addEventListener('click', (_) -> {
+			var currentDir = @:privateAccess DirEdit.currentDir;
+			if (js.Browser.window.confirm('Are you sure you want to delete the [${currentDir.name.toString()}] directory?')) {
+				var dirs = editorData.layout.dirs;
+				dirs.remove(currentDir);
+				updateDirsSelect();
+			}
+		});
+
+		Id.add_icon_btn.get().addEventListener('click', (_) -> {
+			var iconName = js.Browser.window.prompt('New icon name');
+
+			if (iconName == null)
+				return;
+
+			if (icons.filter(i -> i.name == iconName).length > 0) {
+				js.Browser.alert('Already exists $iconName icon in the current list. Select another name, please.');
+				return;
+			}
+
+			var iconData = js.Browser.window.prompt('The icon encoded in base64, please');
+
+			if (iconData == null)
+				return;
+
+			editorData.layout.icons.push({
+				key: iconName,
+				value: iconData
+			});
+
+			updateIcons();
+		});
 
 		Id.save_btn.get().addEventListener('click', (_) -> {
 			var msg:EditorMsg = {
@@ -57,11 +93,34 @@ class App {
 		});
 	}
 
-	static function updateDirsSelect() {
+	static function updateDirsSelect(?currentDirIndex:Int) {
 		var dirs = editorData.layout.dirs;
 		for (selElement in Cls.dir_select.get()) {
 			Utils.fillSelectElement(cast(selElement, SelectElement), [for (i in 0...dirs.length) {value: i, text: dirs[i].name.toString()}]);
 		}
+
+		if (dirs.length > 0) {
+			Id.layout_container.get().classList.remove(Cls.hidden);
+			Id.delete_dir_btn.get().classList.remove(Cls.hidden);
+			if (currentDirIndex == null)
+				DirEdit.show(dirs[0]);
+			else
+				DirEdit.show(dirs[dirs.length - 1]);
+		} else {
+			Id.layout_container.get().classList.add(Cls.hidden);
+			Id.delete_dir_btn.get().classList.add(Cls.hidden);
+		}
+	}
+
+	static function updateIcons() {
+		icons = [
+			for (i in App.editorData.layout.icons)
+				{
+					name: i.key,
+					base64: i.value
+				}
+		];
+		icons.insert(0, {name: '', base64: ''});
 	}
 
 	static function initWebsocketServer() {
@@ -82,14 +141,15 @@ class App {
 				case ServerMsgType.editorData:
 					editorData = serverData.data;
 
-					updateDirsSelect();
+					updateIcons();
+
 					var dirs = editorData.layout.dirs;
 					Id.dir_select.get().addEventListener('change', (event) -> {
 						var selectedIndex = Std.parseInt(Id.dir_select.as(SelectElement).value);
 						DirEdit.show(dirs[selectedIndex]);
 					});
 
-					DirEdit.show(dirs[0]);
+					updateDirsSelect();
 
 				case _:
 					trace('Unhandled message from server [${haxe.Json.stringify(event)}]');
