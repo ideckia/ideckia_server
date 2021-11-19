@@ -23,8 +23,6 @@ class ActionManager {
 		for (action in actions) {
 			try {
 				var name = action.name;
-				var actionPath = Ideckia.getAppPath() + '/${actionsPath}/$name';
-				js.Syntax.code("var requiredAction = require({0})", actionPath);
 
 				var idkServer:IdeckiaServer = {
 					log: {
@@ -41,7 +39,8 @@ class ActionManager {
 					},
 					updateClientState: ClientManager.fromActionToClient.bind(itemId, name)
 				};
-				var ideckiaAction:IdeckiaAction = js.Syntax.code('new requiredAction.IdeckiaAction()');
+				var actionPath = Ideckia.getAppPath() + '/${actionsPath}/$name';
+				var ideckiaAction:IdeckiaAction = requireAction(actionPath);
 				ideckiaAction.setup(action.props, idkServer);
 				ideckiaAction.init(state).then(newState -> {
 					if (newState != null) {
@@ -95,15 +94,17 @@ class ActionManager {
 			actionDescriptors = [];
 			var desc:ActionDescriptor;
 			var cId = 0, action:IdeckiaAction;
+			var presetsPath;
 			var actionPath = Ideckia.getAppPath() + '/${actionsPath}/';
 			for (c in sys.FileSystem.readDirectory(actionPath)) {
 				if (!sys.FileSystem.exists('$actionPath/$c/index.js'))
 					continue;
 
-				js.Syntax.code("var requiredAction = require({0})", '$actionPath/$c');
-				action = js.Syntax.code('new requiredAction.IdeckiaAction()');
+				action = requireAction('$actionPath/$c');
+				presetsPath = '$actionPath/$c/presets.json';
 				try {
 					desc = action.getActionDescriptor();
+					desc.presets = (sys.FileSystem.exists(presetsPath)) ? haxe.Json.parse(sys.io.File.getContent(presetsPath)) : [];
 					desc.id = cId++;
 					actionDescriptors.push(desc);
 				} catch (e:haxe.Exception) {
@@ -130,5 +131,10 @@ class ActionManager {
 			case None:
 				Log.error('the action is null');
 		};
+	}
+
+	static function requireAction(actionPath:String) {
+		js.Syntax.code("var requiredAction = require({0})", actionPath);
+		return js.Syntax.code('new requiredAction.IdeckiaAction()');
 	}
 }
