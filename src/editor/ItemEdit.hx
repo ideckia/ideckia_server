@@ -88,6 +88,9 @@ class ItemEdit {
 		Id.add_item_kind_btn.get().classList.add(Cls.hidden);
 		Id.add_state_btn.get().classList.add(Cls.hidden);
 		Id.clear_item_btn.get().classList.add(Cls.hidden);
+		Id.item_kind_changedir_properties.get().classList.add(Cls.hidden);
+		Id.item_kind_states_properties.get().classList.add(Cls.hidden);
+		Id.add_item_kind_btn.get().classList.add(Cls.hidden);
 		switch editableItem.kind {
 			case ChangeDir(toDir, state):
 				Id.add_state_btn.get().classList.add(Cls.hidden);
@@ -111,6 +114,7 @@ class ItemEdit {
 				Id.add_state_btn.get().classList.remove(Cls.hidden);
 				Id.clear_item_btn.get().classList.remove(Cls.hidden);
 				var parentDiv = Id.item_kind_states_properties.get();
+				parentDiv.classList.remove(Cls.hidden);
 				Utils.clearElement(parentDiv);
 				var ulLabel = document.createLabelElement();
 				ulLabel.textContent = "STATES";
@@ -128,16 +132,13 @@ class ItemEdit {
 			case null:
 				Id.add_item_kind_btn.get().classList.remove(Cls.hidden);
 				Utils.addListener(listeners, Id.add_item_kind_btn.get(), 'click', (_) -> {
-					switch Utils.createNewItem() {
-						case Some(newItem):
-							item.id = newItem.id;
-							item.kind = newItem.kind;
-
-							edit(item);
-
-						// DirEdit.refresh();
-						case None:
-					};
+					Utils.createNewItem().then((newItem) -> {
+						item.id = newItem.id;
+						item.kind = newItem.kind;
+						DirEdit.refresh();
+						edit(item);
+						return;
+					}).catchError(error -> trace(error));
 				});
 		}
 	}

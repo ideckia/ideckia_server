@@ -44,7 +44,7 @@ class StateEdit {
 		}
 
 		parentLi.addEventListener('click', (event:Event) -> {
-			event.stopImmediatePropagation();
+			Utils.stopPropagation(event);
 			Utils.selectElement(parentLi);
 			edit(state);
 		});
@@ -52,27 +52,62 @@ class StateEdit {
 		switch Cls.add_action_btn.firstFrom(parentLi) {
 			case Some(v):
 				v.addEventListener('click', (event) -> {
-					event.stopImmediatePropagation();
-					var actionNames = [for (a in App.editorData.actionDescriptors) a.name];
-					var actionName = js.Browser.window.prompt('What type of action do you want to add?\n- ${actionNames.join('\n- ')}');
+					Utils.stopPropagation(event);
 
-					if (actionName == null)
-						return;
-					if (actionNames.indexOf(actionName) == -1) {
-						js.Browser.window.alert('$actionName is not a correct name.');
-						return;
-					}
-					if (state.actions == null) {
-						state.actions = [];
-					}
-					state.actions.push({
-						name: actionName,
-						props: {
-							id: Utils.getNextStateId()
+					var actionDescriptors = App.editorData.actionDescriptors;
+					var emptyOption = [{value: 0, text: ''}];
+					Utils.fillSelectElement(Id.actions_select.as(SelectElement), emptyOption.concat([
+						for (i in 0...actionDescriptors.length)
+							{value: i, text: actionDescriptors[i].name}
+					]));
+					Utils.clearElement(Id.action_presets.get());
+					var selListener = [];
+					Utils.addListener(selListener, Id.actions_select.get(), 'change', (_) -> {
+						var selectedActionIndex = Id.actions_select.as(SelectElement).selectedIndex;
+						if (selectedActionIndex == 0)
+							return;
+						var actionPresets = actionDescriptors[selectedActionIndex - 1].presets;
+						if (actionPresets != null) {
+							Utils.fillSelectElement(Id.action_presets.as(SelectElement),
+								emptyOption.concat([for (i in 0...actionPresets.length) {value: i + 1, text: actionPresets[i].name}]));
 						}
 					});
+					Dialog.show("New action", Id.new_action.get(), () -> {
+						var selectedActionIndex = Id.actions_select.as(SelectElement).selectedIndex;
+						if (selectedActionIndex == 0)
+							return false;
 
-					DirEdit.refresh();
+						var actionName = actionDescriptors[selectedActionIndex - 1].name;
+						var actionPresets = actionDescriptors[selectedActionIndex - 1].presets;
+						var actionProps = {};
+						if (actionPresets != null) {
+							var selectedPresetIndex = Id.action_presets.as(SelectElement).selectedIndex;
+							if (selectedPresetIndex != 0) {
+								var preset = actionPresets[selectedPresetIndex - 1];
+								actionProps = preset.props;
+								if (actionProps == null) {
+									js.Browser.alert('The preset [${preset.name}] has not the mandatory [props] field.');
+									return false;
+								}
+							}
+						}
+
+						if (state.actions == null) {
+							state.actions = [];
+						}
+
+						state.actions.push({
+							name: actionName,
+							props: actionProps
+						});
+
+						Utils.removeListeners(selListener);
+
+						DirEdit.refresh();
+						return true;
+					}, () -> {
+						Utils.removeListeners(selListener);
+					});
 				});
 			case None:
 				trace('No [${Cls.add_action_btn.selector()}] found in [${Id.state_list_item_tpl.selector()}]');

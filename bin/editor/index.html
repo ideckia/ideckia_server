@@ -8,10 +8,13 @@
         <title>Ideckia editor</title>
         <script src="app.js"></script>
         <link rel="stylesheet" type="text/css" href="style.css">
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@300;400&display=swap" rel="stylesheet">
     </head>
 
     <body>
-        <nav>
+        <menu>
             <select name="dir-select" class="dir-select" id="dir-select"></select>
             <input type="button" value="add directory" id="add-dir-btn">
             <input type="button" value="add item" id="add-item-btn">
@@ -22,7 +25,7 @@
                 Use as app
                 <input type="checkbox" name="execute-actions" id="execute-actions-cb">
             </label>
-        </nav>
+        </menu>
         <div id="main-container">
             <div id="layout-container">
                 <div id="dir-content"></div>
@@ -116,6 +119,45 @@
                 <input type="text" class="hidden prop-value">
                 <select class="hidden prop-possible-values"></select>
                 <input type="checkbox" class="hidden prop-bool-value">
+            </div>
+
+            <div id="new-icon">
+                <label for="new-icon-name">Name</label>
+                <input type="text" name="name" id="new-icon-name" />
+                <div name="drop-img" id="new-icon-drop-img">
+                    <span>DROP IMAGE HERE</span>
+                </div>
+                <label for="new-icon-base64">Or put the base64 text here</label>
+                <textarea name="base64" id="new-icon-base64"></textarea>
+            </div>
+
+            <div id="new-action">
+                <label for="actions-select">Action</label>
+                <select name="actions-select" id="actions-select"></select>
+                <label for="action-presets">Preset</label>
+                <select name="action-presets" id="action-presets"></select>
+            </div>
+
+            <div id="new-item-kind">
+                <label for="item-kind-changedir-radio">
+                    ChangeDir
+                    <input type="radio" name="item-kind" id="item-kind-changedir-radio">
+                </label>
+                <label for="item-kind-states-radio">
+                    States
+                    <input type="radio" name="item-kind" id="item-kind-states-radio">
+                </label>
+            </div>
+        </div>
+
+        <div id="modal-window" class="hidden">
+            <div id="dialog-window">
+                <h2 id="dialog-title">title</h2>
+                <div id="dialog-content"></div>
+                <div id="dialog-buttons">
+                    <input id="cancel-dialog-btn" type="button" value="Cancel">
+                    <input id="accept-dialog-btn" type="button" value="Accept">
+                </div>
             </div>
         </div>
     </body>

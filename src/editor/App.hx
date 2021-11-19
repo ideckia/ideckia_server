@@ -1,9 +1,11 @@
 package;
 
-import js.html.InputElement;
 import api.internal.ServerApi;
-import js.html.MouseEvent;
+import js.html.DragEvent;
+import js.html.FileReader;
+import js.html.InputElement;
 import js.html.SelectElement;
+import js.html.TextAreaElement;
 
 using api.IdeckiaApi;
 using hx.Selectors;
@@ -15,7 +17,6 @@ typedef IconData = {
 
 class App {
 	static var websocket:js.html.WebSocket;
-
 	public static var editorData:EditorData;
 	public static var icons:Array<IconData>;
 
@@ -27,10 +28,12 @@ class App {
 		initWebsocketServer();
 
 		Id.add_dir_btn.get().addEventListener('click', (_) -> {
-			var dirName = js.Browser.window.prompt('Tell me the name of the new directory');
+			var dirName = StringTools.trim(js.Browser.window.prompt('Tell me the name of the new directory'));
 
-			if (dirName == null)
+			if (dirName == null || dirName == '') {
+				js.Browser.alert('Cannot create a directory with empty name.');
 				return;
+			}
 
 			var dirs = editorData.layout.dirs;
 			dirs.push({
@@ -42,12 +45,10 @@ class App {
 		});
 
 		Id.add_item_btn.get().addEventListener('click', (_) -> {
-			switch Utils.createNewItem() {
-				case Some(item):
-					@:privateAccess DirEdit.currentDir.items.push(item);
-					DirEdit.refresh();
-				case None:
-			}
+			Utils.createNewItem().then(item -> {
+				@:privateAccess DirEdit.currentDir.items.push(item);
+				DirEdit.refresh();
+			}).catchError(error -> trace(error));
 		});
 
 		Id.delete_dir_btn.get().addEventListener('click', (_) -> {
@@ -59,28 +60,79 @@ class App {
 			}
 		});
 
+		var reader = new FileReader();
+		reader.onload = function(e) {
+			var cleanResult = new EReg("data:image/.*;base64,", "").replace(reader.result, '');
+			Id.new_icon_base64.as(TextAreaElement).value = cleanResult;
+		};
+		reader.onerror = function(e) {
+			trace('Error loading image: ' + e.type);
+		};
+
 		Id.add_icon_btn.get().addEventListener('click', (_) -> {
-			var iconName = js.Browser.window.prompt('New icon name');
+			Id.new_icon_name.as(InputElement).value = '';
+			Id.new_icon_base64.as(TextAreaElement).value = '';
 
-			if (iconName == null)
-				return;
+			Id.new_icon_drop_img.get().addEventListener('drop', (e:DragEvent) -> {
+				Utils.stopPropagation(e);
 
-			if (icons.filter(i -> i.name == iconName).length > 0) {
-				js.Browser.alert('Already exists $iconName icon in the current list. Select another name, please.');
-				return;
-			}
+				var dataTransfer = e.dataTransfer;
 
-			var iconData = js.Browser.window.prompt('The icon encoded in base64, please');
+				if (dataTransfer.files.length > 0) {
+					var image = dataTransfer.files.item(0);
+					var validTypes = ['image/jpeg', 'image/png', 'image/gif'];
 
-			if (iconData == null)
-				return;
+					if (validTypes.indexOf(image.type) == -1) {
+						js.Browser.alert('Invalid file type. Must be one of [${validTypes.join(', ')}].');
+						return;
+					}
 
-			editorData.layout.icons.push({
-				key: iconName,
-				value: iconData
+					var maxSizeInBytes = 10e6; // 10MB
+					if (image.size > maxSizeInBytes) {
+						js.Browser.alert("File too large");
+						return;
+					}
+
+					reader.readAsDataURL(image);
+				}
 			});
+			Id.new_icon_drop_img.get().addEventListener('dragover', (e) -> Utils.stopPropagation(e));
+			Id.new_icon_drop_img.get().addEventListener('dragenter', (e) -> {
+				Utils.stopPropagation(e);
+				Id.new_icon_drop_img.get().classList.add(Cls.icon_drag_over);
+			});
+			Id.new_icon_drop_img.get().addEventListener('dragleave', (e) -> {
+				Utils.stopPropagation(e);
+				Id.new_icon_drop_img.get().classList.remove(Cls.icon_drag_over);
+			});
+			Dialog.show('New icon', Id.new_icon.get(), () -> {
+				var iconName = Id.new_icon_name.as(InputElement).value;
+				var iconData = Id.new_icon_base64.as(TextAreaElement).value;
 
-			updateIcons();
+				if (iconName == null || iconName == '') {
+					js.Browser.alert('The name of the icon can not be empty.');
+					return false;
+				}
+
+				if (icons.filter(i -> i.name == iconName).length > 0) {
+					js.Browser.alert('Already exists [$iconName] icon in the current list. Select another name, please.');
+					return false;
+				}
+
+				if (iconData == null || iconData == '') {
+					js.Browser.alert('The base64 of the icon can not be empty. Drag&Drop an image to the area or paste the base64 in the textarea.');
+					return false;
+				}
+
+				editorData.layout.icons.push({
+					key: iconName,
+					value: iconData
+				});
+
+				updateIcons();
+
+				return true;
+			});
 		});
 
 		Id.save_btn.get().addEventListener('click', (_) -> {

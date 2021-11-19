@@ -1,5 +1,6 @@
 body {
     font-size: 0.8em;
+    font-family: 'Ubuntu', sans-serif;
 }
 
 #execute-actions-lbl {
@@ -31,13 +32,13 @@ body {
 }
 
 #main-container {
-    display: grid; 
-    grid-template-columns: 2fr 1fr 1fr; 
-    grid-template-rows: 1fr 1fr; 
-    gap: 0px 0px; 
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    gap: 0px 0px;
     grid-template-areas: 
         "layout-container item-container state-properties"
-        "layout-container action-properties action-properties"; 
+        "layout-container action-properties action-properties";
 }
 
 #item-container ul, li {
@@ -78,7 +79,7 @@ body {
 }
 
 .hidden {
-    display: none;
+    display: none !important;
 }
 
 .prop-value,
@@ -98,6 +99,7 @@ body {
     background-color: orange;
     border: 1px solid;
     height: 100px;
+    cursor: pointer;
 }
 
 .layout-grid-item.dir {
@@ -122,4 +124,90 @@ body {
 
 #action-properties {
     background-color: lightblue;
+}
+
+#modal-window {
+    position: fixed;
+    font-family: arial;
+    font-size:80%;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    background: rgba(0,0,0,0.2);
+    z-index: 99999;
+    pointer-events: auto;
+    display: grid;
+    grid-template: 1fr 1fr 1fr / 1fr 1fr 1fr;
+    gap: 0px 0px;
+    grid-template-areas: 
+        ". . ."
+        ". dialog ."
+        ". . .";
+}
+
+#dialog-window {
+    grid-area: dialog;
+    background-color: gray;
+    padding: 1em;
+    border: 2px solid;
+    display: grid;
+    grid-template-rows: 1fr 4fr 1fr;
+    grid-template-areas: 
+    "dialog-title"
+    "dialog-content"
+    "dialog-buttons";
+}
+
+#dialog-title {
+    grid-area: dialog-title;
+    border-bottom: 1px solid;
+}
+
+#dialog-content {
+    grid-area: dialog-content;
+    border-bottom: 1px solid;
+    padding: 1em;
+}
+
+#dialog-content > * > input,
+#dialog-content > * > textarea,
+#dialog-content > * > label,
+#dialog-content > * > select {
+    width: 100%;
+    margin-bottom: 1em;
+    display: block;
+    font-size: 2em;
+}
+
+#new-icon-drop-img {
+    height: 10em;
+    background-color: lightseagreen;
+    margin-bottom: 1em;
+    border: 3px dashed darkslategray;
+}
+
+.icon_drag_over {
+    background-color: lightgreen !important;
+}
+
+#new-icon-drop-img > span {
+    top: 4em;
+    position: relative;
+    left: 24em;
+}
+
+#dialog-buttons {
+    grid-area: dialog-buttons;
+    padding-top: 1.5em;
+}
+
+#cancel-dialog-btn {
+    position: relative;
+    left: 35%;
+}
+
+#accept-dialog-btn {
+    position: relative;
+    left: 50%;
 }

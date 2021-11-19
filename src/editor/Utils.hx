@@ -1,10 +1,11 @@
 import api.internal.ServerApi;
 import hx.Selectors.Cls;
+import hx.Selectors.Id;
 import js.html.Element;
 import js.html.Event;
+import js.html.InputElement;
 import js.html.OptionElement;
 import js.html.SelectElement;
-import haxe.ds.Option;
 
 typedef Listener = {
 	var element:Element;
@@ -49,37 +50,37 @@ class Utils {
 		listeners = [];
 	}
 
+	public static function stopPropagation(e:Event) {
+		e.preventDefault();
+		e.stopPropagation();
+	}
+
 	public static function createNewState():ServerState {
 		return {
 			id: getNextStateId()
 		};
 	}
 
-	public static function createNewItem() {
-		var changeDirType = 'changedir';
-		var statesType = 'states';
-		var itemType = js.Browser.window.prompt('What type of item do you want to create?\n-$changeDirType\n-$statesType');
+	public static function createNewItem():js.lib.Promise<ServerItem> {
+		Id.item_kind_changedir_radio.as(InputElement).checked = false;
+		Id.item_kind_states_radio.as(InputElement).checked = false;
+		return new js.lib.Promise((resolve, reject) -> Dialog.show("New item kind", Id.new_item_kind.get(), () -> {
+			var isChangedir = Id.item_kind_changedir_radio.as(InputElement).checked;
+			var state = createNewState();
 
-		if (itemType == null)
-			return None;
-
-		if (itemType != changeDirType && itemType != statesType) {
-			js.Browser.window.alert('$itemType is not a correct item type.');
-			return None;
-		}
-
-		var state = createNewState();
-
-		var item:ServerItem = {
-			id: Utils.getNextItemId(),
-			kind: if (itemType == changeDirType) {
-				ChangeDir(App.editorData.layout.dirs[0].name, state);
-			} else {
-				States(0, [state]);
+			var item:ServerItem = {
+				id: Utils.getNextItemId(),
+				kind: if (isChangedir) {
+					ChangeDir(App.editorData.layout.dirs[0].name, state);
+				} else {
+					States(0, [state]);
+				}
 			}
-		}
 
-		return Some(item);
+			resolve(item);
+
+			return true;
+		}));
 	}
 
 	public static function getNextItemId() {
