@@ -17,6 +17,7 @@ class LayoutManager {
 	public static var layout:Layout;
 	public static var currentDir:Dir;
 	static var currentDirName:DirName;
+	static var isWatching:Bool = false;
 
 	static inline var DEFAULT_TEXT_SIZE = 15;
 	static inline var MAIN_DIR_ID = "_main_";
@@ -54,6 +55,9 @@ class LayoutManager {
 	}
 
 	public static function watchForChanges(connection:WebSocketConnection) {
+		if (isWatching)
+			return;
+
 		Chokidar.watch(getLayoutPath()).on('change', (_, _) -> {
 			for (module in Require.cache)
 				if (module != null && StringTools.endsWith(module.id, '.js'))
@@ -63,6 +67,8 @@ class LayoutManager {
 			load();
 			MsgManager.sendToAll(LayoutManager.currentDirForClient());
 		});
+
+		isWatching = true;
 	}
 
 	public static function getCurrentItems() {
