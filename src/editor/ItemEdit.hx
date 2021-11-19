@@ -51,7 +51,7 @@ class ItemEdit {
 		Utils.addListener(cellListeners, cell, 'click', (event:Event) -> {
 			event.stopImmediatePropagation();
 			Utils.selectElement(cell);
-			Utils.hideProps();
+			Utils.hideAllProps();
 
 			callback(item);
 			edit(item);
@@ -60,8 +60,7 @@ class ItemEdit {
 		return Some(cell);
 	}
 
-	static function edit(item:ServerItem) {
-		hide();
+	public static function edit(item:ServerItem) {
 		originalItem = item;
 		editableItem = Reflect.copy(item);
 
@@ -70,11 +69,12 @@ class ItemEdit {
 
 			switch item.kind {
 				case States(_, list):
-					list.push(Utils.createNewState());
+					var state = Utils.createNewState();
+					list.push(state);
+					edit(item);
+					StateEdit.edit(state);
 				default:
 			}
-
-			edit(item);
 		});
 
 		Utils.addListener(listeners, Id.clear_item_btn.get(), 'click', (event) -> {
@@ -123,7 +123,7 @@ class ItemEdit {
 				var li;
 				var deletable = list.length > 1;
 				for (state in list) {
-					li = StateEdit.show(state, deletable);
+					li = StateEdit.show(state, deletable, item);
 					uList.append(li);
 				}
 				parentDiv.append(uList);
@@ -164,8 +164,6 @@ class ItemEdit {
 		if (editableItem == null)
 			return;
 		originalItem.kind = Reflect.copy(editableItem.kind);
-		hide();
-		Utils.hideProps();
 		DirEdit.refresh();
 	}
 }

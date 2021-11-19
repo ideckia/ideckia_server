@@ -85,7 +85,6 @@ class DirEdit {
 	}
 
 	public static function refresh() {
-		Utils.hideProps();
 		Utils.removeListeners(listeners);
 		show(currentDir);
 	}

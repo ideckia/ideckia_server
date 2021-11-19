@@ -29,7 +29,7 @@ class Utils {
 		e.classList.add(Cls.selected);
 	}
 
-	public static function hideProps() {
+	public static function hideAllProps() {
 		ItemEdit.hide();
 		StateEdit.hide();
 		ActionEdit.hide();

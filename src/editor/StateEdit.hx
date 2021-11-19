@@ -15,7 +15,7 @@ class StateEdit {
 
 	static var listeners:Array<Utils.Listener> = [];
 
-	public static function show(state:ServerState, deletable:Bool) {
+	public static function show(state:ServerState, deletable:Bool, parentItem:ServerItem) {
 		Id.item_kind_states_properties.get().classList.remove(Cls.hidden);
 		var parentLi:LIElement = cast Id.state_list_item_tpl.get().cloneNode(true);
 		parentLi.removeAttribute('id');
@@ -38,7 +38,7 @@ class StateEdit {
 		if (state.actions != null) {
 			var ulActions = document.createUListElement();
 			for (action in state.actions) {
-				ulActions.append(ActionEdit.show(state, action));
+				ulActions.append(ActionEdit.show(action, state));
 			}
 			parentLi.append(ulActions);
 		}
@@ -96,14 +96,17 @@ class StateEdit {
 							state.actions = [];
 						}
 
-						state.actions.push({
+						var action = {
 							name: actionName,
 							props: actionProps
-						});
+						};
+						state.actions.push(action);
 
 						Utils.removeListeners(selListener);
 
 						DirEdit.refresh();
+						ItemEdit.edit(parentItem);
+						ActionEdit.edit(action);
 						return true;
 					}, () -> {
 						Utils.removeListeners(selListener);
@@ -134,6 +137,7 @@ class StateEdit {
 					}
 
 					DirEdit.refresh();
+					ItemEdit.edit(parentItem);
 				});
 			case None:
 				trace('No [${Cls.delete_btn.selector()}] found in [${Id.state_list_item_tpl.selector()}]');
@@ -245,7 +249,6 @@ class StateEdit {
 			}
 		}
 		hide();
-		Utils.hideProps();
 		DirEdit.refresh();
 	}
 }

@@ -19,7 +19,7 @@ class ActionEdit {
 	static var changeListeners:Array<{element:Element, changeListener:Event->Void}> = [];
 	static var listeners:Array<Utils.Listener> = [];
 
-	public static function show(parentState:ServerState, action:Action) {
+	public static function show(action:Action, parentState:ServerState) {
 		var li:LIElement = cast Id.action_list_item_tpl.get().cloneNode(true);
 		li.removeAttribute('id');
 		switch Tag.span.firstFrom(li) {
@@ -70,7 +70,10 @@ class ActionEdit {
 					var booleanValueInput:InputElement = cast div.querySelector(Cls.prop_bool_value.selector());
 					fieldValue = Reflect.field(editableActionProps, div.id);
 					if (!valueInput.classList.contains(Cls.hidden)) {
-						valueInput.value = haxe.Json.stringify(fieldValue);
+						if (Std.string(fieldValue) == '[object Object]')
+							valueInput.value = haxe.Json.stringify(fieldValue);
+						else
+							valueInput.value = fieldValue;
 
 						Utils.addListener(listeners, valueInput, 'change', (_) -> {
 							var value = valueInput.value;
@@ -113,7 +116,6 @@ class ActionEdit {
 			return;
 		originalAction.props = Reflect.copy(editableActionProps);
 		hide();
-		Utils.hideProps();
 		DirEdit.refresh();
 	}
 
