@@ -40,6 +40,7 @@ class ActionEdit {
 					event.stopImmediatePropagation();
 					if (js.Browser.window.confirm('Do you want to remove the action [${action.name}]?')) {
 						parentState.actions.remove(action);
+						Utils.hideAllProps();
 						DirEdit.refresh();
 					}
 				});

@@ -64,22 +64,24 @@ class Utils {
 	public static function createNewItem():js.lib.Promise<ServerItem> {
 		Id.item_kind_changedir_radio.as(InputElement).checked = false;
 		Id.item_kind_states_radio.as(InputElement).checked = false;
-		return new js.lib.Promise((resolve, reject) -> Dialog.show("New item kind", Id.new_item_kind.get(), () -> {
-			var isChangedir = Id.item_kind_changedir_radio.as(InputElement).checked;
-			var state = createNewState();
+		return new js.lib.Promise((resolveNewItem, _) -> Dialog.show("New item kind", Id.new_item_kind.get(), () -> {
+			return new js.lib.Promise((resolveDialog, _) -> {
+				var isChangedir = Id.item_kind_changedir_radio.as(InputElement).checked;
+				var state = createNewState();
 
-			var item:ServerItem = {
-				id: Utils.getNextItemId(),
-				kind: if (isChangedir) {
-					ChangeDir(App.editorData.layout.dirs[0].name, state);
-				} else {
-					States(0, [state]);
+				var item:ServerItem = {
+					id: Utils.getNextItemId(),
+					kind: if (isChangedir) {
+						ChangeDir(App.editorData.layout.dirs[0].name, state);
+					} else {
+						States(0, [state]);
+					}
 				}
-			}
 
-			resolve(item);
+				resolveNewItem(item);
 
-			return true;
+				resolveDialog(true);
+			});
 		}));
 	}
 

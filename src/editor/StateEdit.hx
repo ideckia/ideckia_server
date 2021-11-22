@@ -73,41 +73,55 @@ class StateEdit {
 						}
 					});
 					Dialog.show("New action", Id.new_action.get(), () -> {
-						var selectedActionIndex = Id.actions_select.as(SelectElement).selectedIndex;
-						if (selectedActionIndex == 0)
-							return false;
+						return new js.lib.Promise((resolve, reject) -> {
+							var selectedActionIndex = Id.actions_select.as(SelectElement).selectedIndex;
+							if (selectedActionIndex == 0) {
+								resolve(false);
+								return;
+							}
 
-						var actionName = actionDescriptors[selectedActionIndex - 1].name;
-						var actionPresets = actionDescriptors[selectedActionIndex - 1].presets;
-						var actionProps = {};
-						if (actionPresets != null) {
-							var selectedPresetIndex = Id.action_presets.as(SelectElement).selectedIndex;
-							if (selectedPresetIndex != 0) {
-								var preset = actionPresets[selectedPresetIndex - 1];
-								actionProps = preset.props;
-								if (actionProps == null) {
-									js.Browser.alert('The preset [${preset.name}] has not the mandatory [props] field.');
-									return false;
+							var actionName = actionDescriptors[selectedActionIndex - 1].name;
+
+							function createAction(props:Any) {
+								if (state.actions == null) {
+									state.actions = [];
+								}
+
+								var action = {
+									name: actionName,
+									props: props
+								};
+								state.actions.push(action);
+
+								Utils.removeListeners(selListener);
+
+								DirEdit.refresh();
+								ItemEdit.edit(parentItem);
+								ActionEdit.edit(action);
+								resolve(true);
+							}
+
+							var actionPresets = actionDescriptors[selectedActionIndex - 1].presets;
+							if (actionPresets != null) {
+								var selectedPresetIndex = Id.action_presets.as(SelectElement).selectedIndex;
+								if (selectedPresetIndex != 0) {
+									var preset = actionPresets[selectedPresetIndex - 1];
+									var actionProps = preset.props;
+									if (actionProps == null) {
+										js.Browser.alert('The preset [${preset.name}] has not the mandatory [props] field.');
+										resolve(false);
+										return;
+									}
+
+									PresetEdit.edit(actionName, preset).then(newProps -> {
+										createAction(newProps);
+									}).catchError(e -> trace(e));
+									return;
 								}
 							}
-						}
 
-						if (state.actions == null) {
-							state.actions = [];
-						}
-
-						var action = {
-							name: actionName,
-							props: actionProps
-						};
-						state.actions.push(action);
-
-						Utils.removeListeners(selListener);
-
-						DirEdit.refresh();
-						ItemEdit.edit(parentItem);
-						ActionEdit.edit(action);
-						return true;
+							createAction({});
+						});
 					}, () -> {
 						Utils.removeListeners(selListener);
 					});

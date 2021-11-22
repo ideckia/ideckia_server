@@ -106,32 +106,37 @@ class App {
 				Id.new_icon_drop_img.get().classList.remove(Cls.icon_drag_over);
 			});
 			Dialog.show('New icon', Id.new_icon.get(), () -> {
-				var iconName = Id.new_icon_name.as(InputElement).value;
-				var iconData = Id.new_icon_base64.as(TextAreaElement).value;
+				return new js.lib.Promise((resolve, reject) -> {
+					var iconName = Id.new_icon_name.as(InputElement).value;
+					var iconData = Id.new_icon_base64.as(TextAreaElement).value;
 
-				if (iconName == null || iconName == '') {
-					js.Browser.alert('The name of the icon can not be empty.');
-					return false;
-				}
+					if (iconName == null || iconName == '') {
+						js.Browser.alert('The name of the icon can not be empty.');
+						resolve(false);
+						return;
+					}
 
-				if (icons.filter(i -> i.name == iconName).length > 0) {
-					js.Browser.alert('Already exists [$iconName] icon in the current list. Select another name, please.');
-					return false;
-				}
+					if (icons.filter(i -> i.name == iconName).length > 0) {
+						js.Browser.alert('Already exists [$iconName] icon in the current list. Select another name, please.');
+						resolve(false);
+						return;
+					}
 
-				if (iconData == null || iconData == '') {
-					js.Browser.alert('The base64 of the icon can not be empty. Drag&Drop an image to the area or paste the base64 in the textarea.');
-					return false;
-				}
+					if (iconData == null || iconData == '') {
+						js.Browser.alert('The base64 of the icon can not be empty. Drag&Drop an image to the area or paste the base64 in the textarea.');
+						resolve(false);
+						return;
+					}
 
-				editorData.layout.icons.push({
-					key: iconName,
-					value: iconData
+					editorData.layout.icons.push({
+						key: iconName,
+						value: iconData
+					});
+
+					updateIcons();
+
+					resolve(true);
 				});
-
-				updateIcons();
-
-				return true;
 			});
 		});
 
