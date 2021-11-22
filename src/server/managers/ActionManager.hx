@@ -90,27 +90,30 @@ class ActionManager {
 	}
 
 	public static function getEditorActionDescriptors() {
+		var actionPath = Ideckia.getAppPath() + '/${actionsPath}/';
 		if (actionDescriptors == null) {
 			actionDescriptors = [];
 			var desc:ActionDescriptor;
 			var cId = 0, action:IdeckiaAction;
-			var presetsPath;
-			var actionPath = Ideckia.getAppPath() + '/${actionsPath}/';
 			for (c in sys.FileSystem.readDirectory(actionPath)) {
 				if (!sys.FileSystem.exists('$actionPath/$c/index.js'))
 					continue;
 
 				action = requireAction('$actionPath/$c');
-				presetsPath = '$actionPath/$c/presets.json';
 				try {
 					desc = action.getActionDescriptor();
-					desc.presets = (sys.FileSystem.exists(presetsPath)) ? haxe.Json.parse(sys.io.File.getContent(presetsPath)) : [];
 					desc.id = cId++;
 					actionDescriptors.push(desc);
 				} catch (e:haxe.Exception) {
 					Log.error('Error reading action descriptor of $c: $e');
 				}
 			}
+		}
+
+		var presetsPath;
+		for (desc in actionDescriptors) {
+			presetsPath = '$actionPath/${desc.name}/presets.json';
+			desc.presets = (sys.FileSystem.exists(presetsPath)) ? haxe.Json.parse(sys.io.File.getContent(presetsPath)) : [];
 		}
 
 		return actionDescriptors;
