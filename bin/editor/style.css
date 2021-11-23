@@ -7,10 +7,11 @@ body {
     float: right;
 }
 
-#icon-preview {
-    width: 40px;
-    top: 15px;
+.icon {
+    width: 3em;
+    top: 1em;
     position: relative;
+    margin-left: 1em;
 }
 
 #dir-content {
@@ -100,6 +101,7 @@ body {
     border: 1px solid;
     height: 100px;
     cursor: pointer;
+    text-align: center;
 }
 
 .layout-grid-item.dir {

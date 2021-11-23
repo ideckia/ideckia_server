@@ -1,3 +1,4 @@
+import js.html.ImageElement;
 import api.internal.ServerApi;
 import hx.Selectors.Cls;
 import hx.Selectors.Id;
@@ -28,14 +29,42 @@ class ItemEdit {
 			switch item.kind {
 				case null:
 					text = 'empty';
-				case ChangeDir(toDir, state):
-					var iconText = (state.icon == null) ? '' : ' / icon: [${state.icon.substr(0, 15)}]';
-					text = 'text: [${state.text}]$iconText\ntoDir: ${toDir.toString()}';
+				case ChangeDir(_, state):
+					switch Cls.item_icon.firstFrom(cell) {
+						case Some(cell_icon):
+							if (state.icon != null) {
+								cell_icon.classList.remove(Cls.hidden);
+								switch Utils.getIconIndexByName(state.icon) {
+									case Some(index):
+										cast(cell_icon, ImageElement).src = 'data:image/jpeg;base64,' + App.icons[index].base64;
+									case None:
+										cast(cell_icon, ImageElement).src = 'data:image/jpeg;base64,' + state.icon;
+								};
+							} else {
+								cell_icon.classList.add(Cls.hidden);
+							}
+						case None:
+					}
+					text = state.text;
 					cell.classList.add('dir');
 				case States(_, list):
 					var state = list[0];
-					var iconText = (state.icon == null) ? '' : ' / icon: [${state.icon.substr(0, 15)}]';
-					text = 'text: [${state.text}]$iconText';
+					switch Cls.item_icon.firstFrom(cell) {
+						case Some(cell_icon):
+							if (state.icon != null) {
+								cell_icon.classList.remove(Cls.hidden);
+								switch Utils.getIconIndexByName(state.icon) {
+									case Some(index):
+										cast(cell_icon, ImageElement).src = 'data:image/jpeg;base64,' + App.icons[index].base64;
+									case None:
+										cast(cell_icon, ImageElement).src = 'data:image/jpeg;base64,' + state.icon;
+								};
+							} else {
+								cell_icon.classList.add(Cls.hidden);
+							}
+						case None:
+					}
+					text = state.text;
 					cell.classList.add('states');
 					callback = (item) -> App.onItemClick(item.id.toUInt());
 			};

@@ -6,6 +6,7 @@ import js.html.Event;
 import js.html.InputElement;
 import js.html.OptionElement;
 import js.html.SelectElement;
+import haxe.ds.Option;
 
 typedef Listener = {
 	var element:Element;
@@ -53,6 +54,13 @@ class Utils {
 	public static function stopPropagation(e:Event) {
 		e.preventDefault();
 		e.stopPropagation();
+	}
+
+	public static function getIconIndexByName(iconName:String) {
+		for (i in 0...App.icons.length)
+			if (App.icons[i].name == iconName)
+				return Some(i);
+		return None;
 	}
 
 	public static function createNewState():ServerState {

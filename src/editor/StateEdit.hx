@@ -181,18 +181,14 @@ class StateEdit {
 
 		Utils.fillSelectElement(Id.icons.as(SelectElement), [for (i in 0...App.icons.length) {value: i, text: App.icons[i].name}]);
 
-		var index = 0;
 		if (editableState.icon != null) {
-			for (i in 0...App.icons.length) {
-				if (App.icons[i].name == editableState.icon) {
-					index = i;
-					break;
-				}
-			}
-
-			Id.icons.as(SelectElement).selectedIndex = index;
+			switch Utils.getIconIndexByName(editableState.icon) {
+				case Some(index):
+					Id.icons.as(SelectElement).selectedIndex = index;
+					setIconPreview(App.icons[index]);
+				case None:
+			};
 		}
-		setIconPreview(App.icons[index]);
 
 		Utils.addListener(listeners, Id.text.get(), 'change', onTextChange);
 		Utils.addListener(listeners, Id.text_color.get(), 'change', onTextColorChange);
