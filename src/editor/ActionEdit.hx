@@ -41,6 +41,7 @@ class ActionEdit {
 					if (js.Browser.window.confirm('Do you want to remove the action [${action.name}]?')) {
 						parentState.actions.remove(action);
 						Utils.hideAllProps();
+						App.dirtyData = true;
 						DirEdit.refresh();
 					}
 				});
@@ -57,6 +58,8 @@ class ActionEdit {
 			case None:
 				trace('Descriptor not found for [${action.name}]');
 			case Some(actionDescriptor):
+				Id.action_cancel_btn.get().classList.add(Cls.hidden);
+				Id.action_accept_btn.get().classList.add(Cls.hidden);
 				Utils.clearElement(Id.action_props.get());
 				originalAction = action;
 				editableActionProps = Reflect.copy(action.props);
@@ -77,6 +80,7 @@ class ActionEdit {
 							valueInput.value = fieldValue;
 
 						Utils.addListener(listeners, valueInput, 'change', (_) -> {
+							showCancelAccept();
 							var value = valueInput.value;
 							Reflect.setField(editableActionProps, div.id, (valueInput.type == 'number') ? Std.parseFloat(value) : value);
 						});
@@ -89,11 +93,13 @@ class ActionEdit {
 						}
 
 						Utils.addListener(listeners, possibleValuesSelect, 'change', (_) -> {
+							showCancelAccept();
 							Reflect.setField(editableActionProps, div.id, children[possibleValuesSelect.selectedIndex].textContent);
 						});
 					} else {
 						booleanValueInput.checked = Std.string(fieldValue) == 'true';
 						Utils.addListener(listeners, booleanValueInput, 'change', (_) -> {
+							showCancelAccept();
 							Reflect.setField(editableActionProps, div.id, booleanValueInput.checked);
 						});
 					}
@@ -101,7 +107,7 @@ class ActionEdit {
 					Id.action_props.get().appendChild(div);
 				}
 
-				Utils.addListener(listeners, Id.action_save_btn.get(), 'click', onSaveClick, true);
+				Utils.addListener(listeners, Id.action_accept_btn.get(), 'click', onSaveClick, true);
 				Utils.addListener(listeners, Id.action_cancel_btn.get(), 'click', (_) -> hide(), true);
 		}
 	}
@@ -112,11 +118,17 @@ class ActionEdit {
 		Id.action_properties.get().classList.add(Cls.hidden);
 	}
 
+	static function showCancelAccept() {
+		Id.change_dir_cancel_btn.get().classList.remove(Cls.hidden);
+		Id.change_dir_accept_btn.get().classList.remove(Cls.hidden);
+	}
+
 	static function onSaveClick(_) {
 		if (editableActionProps == null)
 			return;
 		originalAction.props = Reflect.copy(editableActionProps);
 		hide();
+		App.dirtyData = true;
 		DirEdit.refresh();
 	}
 

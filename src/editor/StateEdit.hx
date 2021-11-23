@@ -95,6 +95,7 @@ class StateEdit {
 
 								Utils.removeListeners(selListener);
 
+								App.dirtyData = true;
 								DirEdit.refresh();
 								ItemEdit.edit(parentItem);
 								ActionEdit.edit(action);
@@ -150,6 +151,7 @@ class StateEdit {
 						}
 					}
 
+					App.dirtyData = true;
 					DirEdit.refresh();
 					ItemEdit.edit(parentItem);
 				});
@@ -195,7 +197,7 @@ class StateEdit {
 		Utils.addListener(listeners, Id.bg_color.get(), 'change', onBgColorChange);
 		Utils.addListener(listeners, Id.icons.get(), 'change', onIconChange);
 
-		Utils.addListener(listeners, Id.state_save_btn.get(), 'click', onSaveClick, true);
+		Utils.addListener(listeners, Id.state_accept_btn.get(), 'click', onSaveClick, true);
 		Utils.addListener(listeners, Id.state_cancel_btn.get(), 'click', (_) -> hide(), true);
 	}
 
@@ -222,21 +224,29 @@ class StateEdit {
 		setIconPreview(selectedIcon);
 	}
 
+	static function showCancelAccept() {
+		Id.change_dir_cancel_btn.get().classList.remove(Cls.hidden);
+		Id.change_dir_accept_btn.get().classList.remove(Cls.hidden);
+	}
+
 	static function onTextChange(_) {
 		if (editableState == null)
 			return;
+		showCancelAccept();
 		editableState.text = Id.text.as(InputElement).value;
 	}
 
 	static function onTextColorChange(_) {
 		if (editableState == null)
 			return;
+		showCancelAccept();
 		editableState.textColor = Id.text_color.as(InputElement).value;
 	}
 
 	static function onBgColorChange(_) {
 		if (editableState == null)
 			return;
+		showCancelAccept();
 		editableState.bgColor = Id.bg_color.as(InputElement).value;
 	}
 
@@ -259,6 +269,7 @@ class StateEdit {
 			}
 		}
 		hide();
+		App.dirtyData = true;
 		DirEdit.refresh();
 	}
 }

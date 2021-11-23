@@ -93,6 +93,9 @@ class ItemEdit {
 		originalItem = item;
 		editableItem = Reflect.copy(item);
 
+		Id.change_dir_cancel_btn.get().classList.add(Cls.hidden);
+		Id.change_dir_accept_btn.get().classList.add(Cls.hidden);
+
 		Utils.addListener(listeners, Id.add_state_btn.get(), 'click', (event) -> {
 			event.stopImmediatePropagation();
 
@@ -110,6 +113,7 @@ class ItemEdit {
 			event.stopImmediatePropagation();
 			if (js.Browser.window.confirm('Do you want to clear the item?')) {
 				item.kind = null;
+				App.dirtyData = true;
 				DirEdit.refresh();
 			}
 		});
@@ -137,7 +141,7 @@ class ItemEdit {
 
 				Utils.addListener(listeners, select, 'change', onToDirChange);
 
-				Utils.addListener(listeners, Id.change_dir_save_btn.get(), 'click', onSaveClick, true);
+				Utils.addListener(listeners, Id.change_dir_accept_btn.get(), 'click', onSaveClick, true);
 				Utils.addListener(listeners, Id.change_dir_cancel_btn.get(), 'click', (_) -> hide(), true);
 			case States(_, list):
 				Id.add_state_btn.get().classList.remove(Cls.hidden);
@@ -164,6 +168,7 @@ class ItemEdit {
 					Utils.createNewItem().then((newItem) -> {
 						item.id = newItem.id;
 						item.kind = newItem.kind;
+						App.dirtyData = true;
 						DirEdit.refresh();
 						edit(item);
 						return;
@@ -185,6 +190,9 @@ class ItemEdit {
 				var select = Id.to_dir_select.as(SelectElement);
 				var children = select.children;
 				editableItem.kind = ChangeDir(new DirName(children[select.selectedIndex].textContent), state);
+
+				Id.change_dir_cancel_btn.get().classList.remove(Cls.hidden);
+				Id.change_dir_accept_btn.get().classList.remove(Cls.hidden);
 			case _:
 		}
 	}
@@ -192,6 +200,7 @@ class ItemEdit {
 	static function onSaveClick(_) {
 		if (editableItem == null)
 			return;
+		App.dirtyData = true;
 		originalItem.kind = Reflect.copy(editableItem.kind);
 		DirEdit.refresh();
 	}

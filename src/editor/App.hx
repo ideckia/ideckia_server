@@ -1,5 +1,6 @@
 package;
 
+import js.html.Event;
 import api.internal.ServerApi;
 import js.html.DragEvent;
 import js.html.FileReader;
@@ -17,6 +18,7 @@ typedef IconData = {
 
 class App {
 	static var websocket:js.html.WebSocket;
+	public static var dirtyData:Bool = false;
 	public static var editorData:EditorData;
 	public static var icons:Array<IconData>;
 
@@ -26,6 +28,13 @@ class App {
 
 	function onLoad() {
 		initWebsocketServer();
+
+		js.Browser.window.addEventListener('beforeunload', (e:Event) -> {
+			if (dirtyData) {
+				e.preventDefault();
+				e.returnValue = false;
+			}
+		});
 
 		Id.add_dir_btn.get().addEventListener('click', (_) -> {
 			var dirName = StringTools.trim(js.Browser.window.prompt('Tell me the name of the new directory'));
@@ -47,6 +56,7 @@ class App {
 		Id.add_item_btn.get().addEventListener('click', (_) -> {
 			Utils.createNewItem().then(item -> {
 				@:privateAccess DirEdit.currentDir.items.push(item);
+				App.dirtyData = true;
 				DirEdit.refresh();
 			}).catchError(error -> trace(error));
 		});
@@ -56,6 +66,7 @@ class App {
 			if (js.Browser.window.confirm('Are you sure you want to delete the [${currentDir.name.toString()}] directory?')) {
 				var dirs = editorData.layout.dirs;
 				dirs.remove(currentDir);
+				App.dirtyData = true;
 				updateDirsSelect();
 			}
 		});
@@ -135,18 +146,20 @@ class App {
 
 					updateIcons();
 
+					App.dirtyData = true;
 					resolve(true);
 				});
 			});
 		});
 
-		Id.save_btn.get().addEventListener('click', (_) -> {
+		Id.update_server_layout_btn.get().addEventListener('click', (_) -> {
 			var msg:EditorMsg = {
 				type: EditorMsgType.saveLayout,
 				whoami: editor,
 				layout: editorData.layout
 			};
 			websocket.send(tink.Json.stringify(msg));
+			dirtyData = false;
 		});
 	}
 
