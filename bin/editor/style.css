@@ -3,6 +3,12 @@ body {
     font-family: 'Ubuntu', sans-serif;
 }
 
+input,
+textarea,
+select {
+    font-family: 'Ubuntu', sans-serif;
+}
+
 #execute-actions-lbl {
     float: right;
 }
