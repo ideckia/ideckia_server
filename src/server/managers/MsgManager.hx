@@ -1,18 +1,18 @@
 package managers;
 
+import api.IdeckiaApi;
 import api.IdeckiaApi.ClientMsg;
 import haxe.Json;
 import websocket.WebSocketConnection;
 
 class MsgManager {
 	public static function route(connection:WebSocketConnection, rawMsg:Any) {
-		var parsedMsg:ClientMsg = Json.parse(rawMsg);
-
+		var parsedMsg:{whoami:Caller} = Json.parse(rawMsg);
 		switch parsedMsg.whoami {
 			case client:
-				ClientManager.handleMsg(parsedMsg);
+				ClientManager.handleMsg(Json.parse(rawMsg));
 			case editor:
-				EditorManager.handleMsg(connection, parsedMsg);
+				EditorManager.handleMsg(connection, tink.Json.parse(Std.string(rawMsg)));
 		}
 	}
 

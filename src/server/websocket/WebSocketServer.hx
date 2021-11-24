@@ -9,6 +9,7 @@ class WebSocketServer {
 	public static inline var DISCOVER_ENDPOINT = '/ping';
 	public static inline var DISCOVER_RESPONSE = 'pong';
 	public static inline var NAME_ENDPOINT = '/name';
+	public static inline var EDITOR_ENDPOINT = '/editor';
 
 	@:v('ideckia.port:8888')
 	static var port:Int;
@@ -17,12 +18,12 @@ class WebSocketServer {
 
 	public function new() {
 		var server = js.node.Http.createServer(function(request, response) {
-			final headers = {
+			var headers = {
 				'Access-Control-Allow-Origin': '*',
 				'Access-Control-Allow-Methods': 'OPTIONS, POST, GET',
 				'Access-Control-Max-Age': 2592000, // 30 days
 				"Access-Control-Allow-Headers": "Content-Type",
-				"Content-Type": "text/plain",
+				"Content-Type": "text/html",
 				/** add other headers as per requirement */
 			};
 
@@ -41,6 +42,20 @@ class WebSocketServer {
 				} else if (request.url.indexOf(NAME_ENDPOINT) != -1) {
 					code = 200;
 					body = Os.hostname();
+				} else if (request.url.indexOf(EDITOR_ENDPOINT) != -1 || request.url.endsWith('.js') || request.url.endsWith('.css')) {
+					code = 200;
+					var relativePath = '/${EDITOR_ENDPOINT}';
+					if (request.url.endsWith(EDITOR_ENDPOINT)) {
+						relativePath += '/index.html';
+					} else {
+						relativePath += '/${request.url}';
+					}
+					var absolutePath = '${Ideckia.getAppPath()}/$relativePath';
+					if (!sys.FileSystem.exists(absolutePath)) {
+						absolutePath = js.Node.__dirname + '$relativePath';
+					}
+					headers = {"Content-Type": "text/" + haxe.io.Path.extension(absolutePath)};
+					body = sys.io.File.getContent(absolutePath);
 				}
 
 				response.writeHead(code, headers);

@@ -7,7 +7,7 @@ using api.IdeckiaApi;
 import websocket.WebSocketConnection;
 
 class EditorManager {
-	public static function handleMsg(connection:WebSocketConnection, msg:ClientMsg) {
+	public static function handleMsg(connection:WebSocketConnection, msg:EditorMsg) {
 		switch msg.type {
 			case getEditorData:
 				var editorData:ServerMsg<EditorData> = {
@@ -18,12 +18,9 @@ class EditorManager {
 					}
 				};
 				MsgManager.send(connection, editorData);
-			case getServerItem:
-				var data:ServerMsg<ServerItem> = {
-					type: ServerMsgType.serverItem,
-					data: LayoutManager.getItem(new ItemId(msg.itemId))
-				};
-				MsgManager.send(connection, data);
+			case saveLayout:
+				var layoutContent = LayoutManager.exportLayout(msg.layout);
+				sys.io.File.saveContent(LayoutManager.getLayoutPath(), layoutContent);
 			case t:
 				throw new haxe.Exception('[$t] type of message is not allowed for the editor.');
 		}

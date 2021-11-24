@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    <head>
+        <meta charset="UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Ideckia editor</title>
+        <script src="app.js"></script>
+        <link rel="stylesheet" type="text/css" href="style.css">
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@300;400&display=swap" rel="stylesheet">
+    </head>
+
+    <body>
+        <menu>
+            <select name="dir-select" class="dir-select" id="dir-select"></select>
+            <input type="button" value="add directory" id="add-dir-btn">
+            <input type="button" value="add item" id="add-item-btn">
+            <input type="button" value="add icon" id="add-icon-btn">
+            <input type="button" value="x" id="delete-dir-btn" title="delete directory">
+            <label id="execute-actions-lbl" for="execute-actions-cb"
+                title="If activated, clicked states will be executed.">
+                Use as app
+                <input type="checkbox" name="execute-actions" id="execute-actions-cb">
+            </label>
+        </menu>
+        <div id="main-container">
+            <div id="layout-container">
+                <div id="dir-content"></div>
+                <div id="buttons">
+                    <input type="button" value="Update server layout" id="update-server-layout-btn" class="hidden">
+                    <span id="layout-updated" class="hidden">Server layout updated!</span>
+                </div>
+            </div>
+
+            <div id="item-container" class="hidden">
+                <h3>Item properties</h3>
+                <div id="item-kind-changedir-properties" class="hidden edit-property-container">
+                    <h4>ChangeDir properties</h4>
+                    <div>
+                        <label for="text">Go to directory</label>
+                        <select name="dir-select" class="dir-select" id="to-dir-select"></select>
+                    </div>
+                </div>
+                <div id="item-kind-states-properties" class="edit-property-container"></div>
+                <div id="item-buttons" class="edit-property-container">
+                    <input type="button" value="+item kind" id="add-item-kind-btn" title="add item">
+                    <input type="button" value="+state" id="add-state-btn" title="add state">
+                    <input type="button" value="clear item" id="clear-item-btn" title="clear item">
+                </div>
+            </div>
+            <div id="state-properties" class="hidden edit-property-container">
+                <h3>State properties</h3>
+                <div>
+                    <label for="text">Text</label>
+                    <input type="text" name="text" id="text">
+                </div>
+
+                <div>
+                    <label for="text-color">Text color</label>
+                    <input type="color" name="text-color" id="text-color">
+                </div>
+
+                <div>
+                    <label for="bg-color">Background color</label>
+                    <input type="color" name="bg-color" id="bg-color">
+                </div>
+
+                <div>
+                    <label for="icon">Icon</label>
+                    <select name="icon-select" id="icons"></select>
+                    <img id="icon-preview" alt="This is the selected icon preview" src="" class="hidden icon" />
+                </div>
+            </div>
+
+            <div id="action-properties" class="hidden edit-property-container">
+                <h3 id="action-title"></h3>
+                <h5 id="action-description"></h5>
+                <div id="action-props"></div>
+            </div>
+
+        </div>
+
+        <div id="templates" class="hidden">
+            <div id="layout-grid-item-tpl" draggable="true" class="layout-grid-item draggable">
+                <span></span>
+                <img alt="This is the selected icon preview" src="" class="hidden item-icon icon" />
+            </div>
+            <li id="item-grid-item-tpl" draggable="true" class="item-list-item draggable">
+                <span></span>
+                <input type="button" value="create item" class="create-item-btn hidden">
+                <input type="button" value="+" class="add-state-btn" title="add state">
+                <input type="button" value="x" class="delete-btn" title="delete state">
+            </li>
+            <li id="state-list-item-tpl" class="state-list-item">
+                <span></span>
+                <input type="button" value="+" class="add-action-btn" title="add action">
+                <input type="button" value="x" class="delete-btn" title="delete state">
+            </li>
+            <li id="action-list-item-tpl" class="action-list-item">
+                <span></span>
+                <input type="button" value="x" class="delete-btn" title="delete action">
+            </li>
+            <div id="action-prop-tpl">
+                <span class="prop-name"></span>
+                <input type="text" class="hidden prop-value">
+                <select class="hidden prop-possible-values"></select>
+                <input type="checkbox" class="hidden prop-bool-value">
+            </div>
+
+            <div id="new-icon">
+                <div>
+                    <label for="new-icon-name">Name</label>
+                    <input type="text" name="name" id="new-icon-name" />
+                </div>
+                <div name="drop-img" id="new-icon-drop-img">
+                    <span>DROP IMAGE HERE</span>
+                </div>
+                <div>
+                    <label for="new-icon-base64">Or put the base64 text here</label>
+                    <textarea name="base64" id="new-icon-base64"></textarea>
+                </div>
+            </div>
+
+            <div id="new-action">
+                <div>
+                    <label for="actions-select">Action</label>
+                    <select name="actions-select" id="actions-select"></select>
+                    <span id="new-action-description"></span>
+                </div>
+                <div>
+                    <label for="action-presets">Preset</label>
+                    <select name="action-presets" id="action-presets"></select>
+                </div>
+            </div>
+
+            <div id="new-item-kind">
+                <div>
+                    <label for="item-kind-changedir-radio">ChangeDir</label>
+                    <input type="radio" name="item-kind" id="item-kind-changedir-radio">
+                </div>
+                <div>
+                    <label for="item-kind-states-radio">States</label>
+                    <input type="radio" name="item-kind" id="item-kind-states-radio">
+                </div>
+            </div>
+        </div>
+
+        <div id="modal-window" class="hidden">
+            <div id="dialog-window">
+                <h2 id="dialog-title">title</h2>
+                <div id="dialog-content"></div>
+                <div id="dialog-buttons">
+                    <input id="cancel-dialog-btn" type="button" value="Cancel">
+                    <input id="accept-dialog-btn" type="button" value="Accept">
+                </div>
+            </div>
+        </div>
+    </body>
+
+</html>

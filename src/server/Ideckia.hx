@@ -64,7 +64,7 @@ class Ideckia {
 		};
 
 		wsServer.onMessage = (connection, msg) -> {
-			Log.debug('Message received: $msg');
+			Log.debug('Message received: ${Std.string(msg).substring(0, 1000)}');
 			MsgManager.route(connection, msg);
 		}
 

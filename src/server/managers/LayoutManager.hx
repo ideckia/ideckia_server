@@ -17,6 +17,7 @@ class LayoutManager {
 	public static var layout:Layout;
 	public static var currentDir:Dir;
 	static var currentDirName:DirName;
+	static var isWatching:Bool = false;
 
 	static inline var DEFAULT_TEXT_SIZE = 15;
 	static inline var MAIN_DIR_ID = "_main_";
@@ -54,14 +55,20 @@ class LayoutManager {
 	}
 
 	public static function watchForChanges(connection:WebSocketConnection) {
+		if (isWatching)
+			return;
+
 		Chokidar.watch(getLayoutPath()).on('change', (_, _) -> {
 			for (module in Require.cache)
 				if (module != null && StringTools.endsWith(module.id, '.js'))
 					Require.cache.remove(module.id);
 
+			Log.info('Layout file changed, reloading...');
 			load();
 			MsgManager.sendToAll(LayoutManager.currentDirForClient());
 		});
+
+		isWatching = true;
 	}
 
 	public static function getCurrentItems() {
@@ -187,7 +194,7 @@ class LayoutManager {
 
 	static function addIds() {
 		// item IDs
-		setItemIds(getAllItems());
+		setItemAndStateIds(getAllItems());
 		// action IDs
 		var actions = [];
 		for (i in getAllItems())
@@ -221,10 +228,10 @@ class LayoutManager {
 		}
 	}
 
-	public static function exportLayout() {
-		var expLayout = Reflect.copy(layout);
+	public static function exportLayout(?_layout:Layout) {
+		var expLayout = (_layout != null) ? Reflect.copy(_layout) : Reflect.copy(layout);
 		// Remove item IDs
-		setItemIds([
+		setItemAndStateIds([
 			for (f in expLayout.dirs)
 				for (i in f.items)
 					i
@@ -275,7 +282,7 @@ class LayoutManager {
 		});
 	}
 
-	static function setItemIds(items:Array<ServerItem>, toNull:Bool = false) {
+	static function setItemAndStateIds(items:Array<ServerItem>, toNull:Bool = false) {
 		var itemId = 0;
 		var stateId = 0;
 		for (i in items) {
@@ -285,6 +292,9 @@ class LayoutManager {
 					for (state in list)
 						state.id = toNull ? null : new StateId(stateId++);
 					States(null, list);
+				case ChangeDir(toDir, state):
+					state.id = toNull ? null : new StateId(stateId++);
+					ChangeDir(toDir, state);
 				case k:
 					k;
 			}

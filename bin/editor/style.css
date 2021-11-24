@@ -1,0 +1,242 @@
+body {
+    font-size: 0.8em;
+    font-family: 'Ubuntu', sans-serif;
+}
+
+input,
+textarea,
+select {
+    font-family: 'Ubuntu', sans-serif;
+}
+
+#execute-actions-lbl {
+    float: right;
+}
+
+.icon {
+    width: 3em;
+    top: 1em;
+    position: relative;
+    margin-left: 1em;
+}
+
+#dir-content {
+    border: gray;
+    border-style: dotted;
+    margin-bottom: 1em;
+    padding: 1em;
+}
+
+#dir-content ul, li {
+    margin-top: .5em;
+}
+
+#item-container {
+    border: gray;
+    border-style: dotted;
+    margin-bottom: 1em;
+    padding: 1em;
+}
+
+#main-container {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    gap: 0px 0px;
+    grid-template-areas: 
+        "layout-container item-container state-properties"
+        "layout-container action-properties action-properties";
+}
+
+#item-container ul, li {
+    margin-top: .5em;
+}
+
+#layout-container {
+    grid-area: layout-container;
+}
+#item-container {
+    grid-area: item-container;
+}
+#state-properties {
+    grid-area: state-properties;
+}
+#action-properties {
+    grid-area: action-properties;
+}
+
+.edit-property-container {
+    border: gray;
+    border-style: dotted;
+    margin-bottom: 1em;
+    padding: 1em;
+}
+
+.edit-property-container div {
+    margin-bottom: 1em;
+}
+
+.edit-property-container label {
+    width: 25%;
+    display: inline-block;
+}
+
+.selected {
+    background-color: gainsboro;
+}
+
+.hidden {
+    display: none !important;
+}
+
+.prop-value,
+.prop-possible-values {
+    width: 100%;
+}
+
+.drag-over {
+    background-color: ghostwhite !important;
+}
+
+#dir-content {
+    display: grid;
+}
+
+.layout-grid-item {
+    background-color: orange;
+    border: 1px solid;
+    height: 100px;
+    cursor: pointer;
+    text-align: center;
+}
+
+.layout-grid-item.dir {
+    background-color: yellow;
+}
+
+.layout-grid-item.states {
+    background-color: skyblue;
+}
+
+#item-kind-changedir-properties {
+    background-color: bisque;
+}
+
+#item-kind-states-properties {
+    background-color: lavender;
+}
+
+#state-properties {
+    background-color: gold;
+}
+
+#action-properties {
+    background-color: lightblue;
+}
+
+#modal-window {
+    position: fixed;
+    font-family: arial;
+    font-size:80%;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    background: rgba(0,0,0,0.2);
+    z-index: 99999;
+    pointer-events: auto;
+    display: grid;
+    grid-template: 1fr 1fr 1fr / 1fr 1fr 1fr;
+    gap: 0px 0px;
+    grid-template-areas: 
+        ". . ."
+        ". dialog ."
+        ". . .";
+}
+
+#dialog-window {
+    grid-area: dialog;
+    background-color: gray;
+    padding: 1em;
+    border: 2px solid;
+    display: grid;
+    grid-template-rows: 1fr 4fr 1fr;
+    grid-template-areas: 
+    "dialog-title"
+    "dialog-content"
+    "dialog-buttons";
+}
+
+#dialog-title {
+    grid-area: dialog-title;
+    border-bottom: 1px solid;
+}
+
+#dialog-content {
+    grid-area: dialog-content;
+    border-bottom: 1px solid;
+    padding: 1em;
+}
+
+#dialog-content > * > * > input,
+#dialog-content > * > * > textarea,
+#dialog-content > * > * > label,
+#dialog-content > * > * > select {
+    width: 100%;
+    margin-bottom: .5em;
+    display: block;
+    font-size: 2em;
+}
+
+#dialog-content > * > div {
+    margin-bottom: 3em;
+}
+
+#action-description {
+    font-weight: normal;
+}
+
+#new-action-description {
+    width: 100%;
+    margin-bottom: 1em;
+    display: block;
+    font-size: 1em;
+    background-color: darkgray;
+}
+
+#new-icon-drop-img {
+    height: 10em;
+    background-color: lightseagreen;
+    margin-bottom: 1em;
+    border: 3px dashed darkslategray;
+}
+
+.icon_drag_over {
+    background-color: lightgreen !important;
+}
+
+#new-icon-drop-img > span {
+    top: 4em;
+    position: relative;
+    left: 24em;
+}
+
+#dialog-buttons {
+    grid-area: dialog-buttons;
+    padding-top: 1.5em;
+}
+
+#cancel-dialog-btn {
+    position: relative;
+    left: 35%;
+}
+
+#accept-dialog-btn {
+    position: relative;
+    left: 50%;
+}
+
+#layout-updated {
+    opacity: 1;
+    transition: opacity 3s;
+}

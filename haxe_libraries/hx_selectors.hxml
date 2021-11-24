@@ -1,0 +1,3 @@
+# @install: lix --silent download "gh://github.com/josuigoa/hx_selectors#225aa2cf00b07fbee2c8fd11e440bfda059e10fe" into hx_selectors/1.0.1/github/225aa2cf00b07fbee2c8fd11e440bfda059e10fe
+-cp ${HAXE_LIBCACHE}/hx_selectors/1.0.1/github/225aa2cf00b07fbee2c8fd11e440bfda059e10fe/src
+-D hx_selectors=1.0.1
