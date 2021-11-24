@@ -14,8 +14,7 @@ import hx.Selectors.Tag;
 using StringTools;
 
 class ActionEdit {
-	static var originalAction:Action;
-	static var editableActionProps:Any;
+	static var editingAction:Action;
 	static var changeListeners:Array<{element:Element, changeListener:Event->Void}> = [];
 	static var listeners:Array<Utils.Listener> = [];
 
@@ -58,21 +57,20 @@ class ActionEdit {
 			case None:
 				trace('Descriptor not found for [${action.name}]');
 			case Some(actionDescriptor):
-				Id.action_cancel_btn.get().classList.add(Cls.hidden);
-				Id.action_accept_btn.get().classList.add(Cls.hidden);
 				Utils.clearElement(Id.action_props.get());
-				originalAction = action;
-				editableActionProps = Reflect.copy(action.props);
+				editingAction = action;
 				var fieldValue;
+				Id.action_title.get().textContent = '[${actionDescriptor.name}] action properties';
+				Id.action_description.get().textContent = actionDescriptor.description;
 				Id.action_properties.get().classList.remove(Cls.hidden);
 				for (div in createFromDescriptor(actionDescriptor)) {
-					if (!Reflect.hasField(editableActionProps, div.id))
+					if (!Reflect.hasField(editingAction.props, div.id))
 						continue;
 
 					var valueInput:InputElement = cast div.querySelector(Cls.prop_value.selector());
 					var possibleValuesSelect:SelectElement = cast div.querySelector(Cls.prop_possible_values.selector());
 					var booleanValueInput:InputElement = cast div.querySelector(Cls.prop_bool_value.selector());
-					fieldValue = Reflect.field(editableActionProps, div.id);
+					fieldValue = Reflect.field(editingAction.props, div.id);
 					if (!valueInput.classList.contains(Cls.hidden)) {
 						if (Std.string(fieldValue) == '[object Object]')
 							valueInput.value = haxe.Json.stringify(fieldValue);
@@ -80,9 +78,9 @@ class ActionEdit {
 							valueInput.value = fieldValue;
 
 						Utils.addListener(listeners, valueInput, 'change', (_) -> {
-							showCancelAccept();
 							var value = valueInput.value;
-							Reflect.setField(editableActionProps, div.id, (valueInput.type == 'number') ? Std.parseFloat(value) : value);
+							Reflect.setField(editingAction.props, div.id, (valueInput.type == 'number') ? Std.parseFloat(value) : value);
+							App.dirtyData = true;
 						});
 					} else if (!possibleValuesSelect.classList.contains(Cls.hidden)) {
 						var children = possibleValuesSelect.children;
@@ -93,43 +91,26 @@ class ActionEdit {
 						}
 
 						Utils.addListener(listeners, possibleValuesSelect, 'change', (_) -> {
-							showCancelAccept();
-							Reflect.setField(editableActionProps, div.id, children[possibleValuesSelect.selectedIndex].textContent);
+							Reflect.setField(editingAction.props, div.id, children[possibleValuesSelect.selectedIndex].textContent);
+							App.dirtyData = true;
 						});
 					} else {
 						booleanValueInput.checked = Std.string(fieldValue) == 'true';
 						Utils.addListener(listeners, booleanValueInput, 'change', (_) -> {
-							showCancelAccept();
-							Reflect.setField(editableActionProps, div.id, booleanValueInput.checked);
+							Reflect.setField(editingAction.props, div.id, booleanValueInput.checked);
+							App.dirtyData = true;
 						});
 					}
 
 					Id.action_props.get().appendChild(div);
 				}
-
-				Utils.addListener(listeners, Id.action_accept_btn.get(), 'click', onSaveClick, true);
-				Utils.addListener(listeners, Id.action_cancel_btn.get(), 'click', (_) -> hide(), true);
 		}
 	}
 
 	public static function hide() {
-		editableActionProps = null;
+		editingAction = null;
 		Utils.removeListeners(listeners);
 		Id.action_properties.get().classList.add(Cls.hidden);
-	}
-
-	static function showCancelAccept() {
-		Id.change_dir_cancel_btn.get().classList.remove(Cls.hidden);
-		Id.change_dir_accept_btn.get().classList.remove(Cls.hidden);
-	}
-
-	static function onSaveClick(_) {
-		if (editableActionProps == null)
-			return;
-		originalAction.props = Reflect.copy(editableActionProps);
-		hide();
-		App.dirtyData = true;
-		DirEdit.refresh();
 	}
 
 	static function getActionDescriptorByName(actionName:String):haxe.ds.Option<ActionDescriptor> {

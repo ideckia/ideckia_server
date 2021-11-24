@@ -10,8 +10,8 @@ import hx.Selectors.Id;
 import hx.Selectors.Tag;
 
 class StateEdit {
-	static var originalState:ServerState;
-	static var editableState:ServerState;
+	static var editingState:ServerState;
+	static var editingParentItem:ServerItem;
 
 	static var listeners:Array<Utils.Listener> = [];
 
@@ -46,7 +46,7 @@ class StateEdit {
 		parentLi.addEventListener('click', (event:Event) -> {
 			Utils.stopPropagation(event);
 			Utils.selectElement(parentLi);
-			edit(state);
+			edit(state, parentItem);
 		});
 
 		switch Cls.add_action_btn.firstFrom(parentLi) {
@@ -55,6 +55,7 @@ class StateEdit {
 					Utils.stopPropagation(event);
 
 					var actionDescriptors = App.editorData.actionDescriptors;
+					Id.new_action_description.get().textContent = null;
 					var emptyOption = [{value: 0, text: ''}];
 					Utils.fillSelectElement(Id.actions_select.as(SelectElement), emptyOption.concat([
 						for (i in 0...actionDescriptors.length)
@@ -66,7 +67,10 @@ class StateEdit {
 						var selectedActionIndex = Id.actions_select.as(SelectElement).selectedIndex;
 						if (selectedActionIndex == 0)
 							return;
-						var actionPresets = actionDescriptors[selectedActionIndex - 1].presets;
+						var actionDescriptor = actionDescriptors[selectedActionIndex - 1];
+						var actionPresets = actionDescriptor.presets;
+						Id.new_action_description.get().textContent = actionDescriptor.description;
+						trace('desc: ${actionDescriptor.description}');
 						if (actionPresets != null) {
 							Utils.fillSelectElement(Id.action_presets.as(SelectElement),
 								emptyOption.concat([for (i in 0...actionPresets.length) {value: i + 1, text: actionPresets[i].name}]));
@@ -137,23 +141,22 @@ class StateEdit {
 					event.stopImmediatePropagation();
 
 					if (js.Browser.window.confirm('Do you want to remove the state [${state.text}]?')) {
-						trace('delete state ${state.id}');
 						for (d in App.editorData.layout.dirs) {
 							for (i in d.items) {
 								switch i.kind {
 									case States(_, list):
 										for (sind in 0...list.length)
-											if (list[sind].id == state.id)
+											if (list[sind].id == state.id) {
 												list.remove(state);
+												App.dirtyData = true;
+												DirEdit.refresh();
+												ItemEdit.edit(parentItem);
+											}
 									default:
 								}
 							}
 						}
 					}
-
-					App.dirtyData = true;
-					DirEdit.refresh();
-					ItemEdit.edit(parentItem);
 				});
 			case None:
 				trace('No [${Cls.delete_btn.selector()}] found in [${Id.state_list_item_tpl.selector()}]');
@@ -161,7 +164,7 @@ class StateEdit {
 		return parentLi;
 	}
 
-	public static function edit(state:ServerState) {
+	public static function edit(state:ServerState, parentItem:ServerItem) {
 		if (state == null) {
 			Id.state_properties.get().classList.add(Cls.hidden);
 			return;
@@ -170,21 +173,21 @@ class StateEdit {
 		ActionEdit.hide();
 
 		Utils.removeListeners(listeners);
-		originalState = state;
-		editableState = Reflect.copy(originalState);
+		editingState = state;
+		editingParentItem = parentItem;
 
 		Id.state_properties.get().classList.remove(Cls.hidden);
 
-		Id.text.as(InputElement).value = editableState.text;
-		var textColor = editableState.textColor;
+		Id.text.as(InputElement).value = editingState.text;
+		var textColor = editingState.textColor;
 		Id.text_color.as(InputElement).value = textColor == null ? '' : '#' + textColor.substr(2);
-		var bgColor = editableState.bgColor;
+		var bgColor = editingState.bgColor;
 		Id.bg_color.as(InputElement).value = bgColor == null ? '' : '#' + bgColor.substr(2);
 
 		Utils.fillSelectElement(Id.icons.as(SelectElement), [for (i in 0...App.icons.length) {value: i, text: App.icons[i].name}]);
 
-		if (editableState.icon != null) {
-			switch Utils.getIconIndexByName(editableState.icon) {
+		if (editingState.icon != null && editingState.icon != '') {
+			switch Utils.getIconIndexByName(editingState.icon) {
 				case Some(index):
 					Id.icons.as(SelectElement).selectedIndex = index;
 					setIconPreview(App.icons[index]);
@@ -196,13 +199,10 @@ class StateEdit {
 		Utils.addListener(listeners, Id.text_color.get(), 'change', onTextColorChange);
 		Utils.addListener(listeners, Id.bg_color.get(), 'change', onBgColorChange);
 		Utils.addListener(listeners, Id.icons.get(), 'change', onIconChange);
-
-		Utils.addListener(listeners, Id.state_accept_btn.get(), 'click', onSaveClick, true);
-		Utils.addListener(listeners, Id.state_cancel_btn.get(), 'click', (_) -> hide(), true);
 	}
 
 	public static function hide() {
-		editableState = null;
+		editingState = null;
 		Utils.removeListeners(listeners);
 		Id.state_properties.get().classList.add(Cls.hidden);
 	}
@@ -217,59 +217,57 @@ class StateEdit {
 	}
 
 	static function onIconChange(_) {
-		if (editableState == null)
+		if (editingState == null)
 			return;
 		var selectedIcon = App.icons[Id.icons.as(SelectElement).selectedIndex];
-		editableState.icon = selectedIcon.name;
+		editingState.icon = selectedIcon.name;
 		setIconPreview(selectedIcon);
-	}
-
-	static function showCancelAccept() {
-		Id.change_dir_cancel_btn.get().classList.remove(Cls.hidden);
-		Id.change_dir_accept_btn.get().classList.remove(Cls.hidden);
+		updateState();
 	}
 
 	static function onTextChange(_) {
-		if (editableState == null)
+		if (editingState == null)
 			return;
-		showCancelAccept();
-		editableState.text = Id.text.as(InputElement).value;
+		editingState.text = Id.text.as(InputElement).value;
+		updateState();
 	}
 
 	static function onTextColorChange(_) {
-		if (editableState == null)
+		if (editingState == null)
 			return;
-		showCancelAccept();
-		editableState.textColor = Id.text_color.as(InputElement).value;
+		editingState.textColor = Id.text_color.as(InputElement).value;
+		updateState();
 	}
 
 	static function onBgColorChange(_) {
-		if (editableState == null)
+		if (editingState == null)
 			return;
-		showCancelAccept();
-		editableState.bgColor = Id.bg_color.as(InputElement).value;
+		editingState.bgColor = Id.bg_color.as(InputElement).value;
+		updateState();
 	}
 
-	static function onSaveClick(_) {
-		if (editableState == null)
+	static function updateState() {
+		if (editingState == null)
 			return;
-		for (d in App.editorData.layout.dirs) {
-			for (i in d.items) {
-				switch i.kind {
-					case null:
-					case ChangeDir(toDir, state):
-						if (state.id == editableState.id)
-							i.kind = ChangeDir(toDir, editableState);
-					case States(_, list):
-						for (sind in 0...list.length) {
-							if (list[sind].id == editableState.id)
-								list[sind] = editableState;
-						}
+		// for (d in App.editorData.layout.dirs) {
+		// 	for (i in d.items) {
+		switch editingParentItem.kind {
+			case null:
+			case ChangeDir(toDir, state):
+				if (state.id == editingState.id)
+					editingParentItem.kind = ChangeDir(toDir, editingState);
+			case States(_, list):
+				for (sind in 0...list.length) {
+					if (list[sind].id == editingState.id)
+						list[sind] = editingState;
 				}
-			}
 		}
-		hide();
+		// }
+
+		// }
+		// hide();
 		App.dirtyData = true;
 		DirEdit.refresh();
+		ItemEdit.edit(editingParentItem);
 	}
 }

@@ -80,6 +80,7 @@ class DirEdit {
 
 		if (itemToMove != null && targetIndex != -1) {
 			currentDir.items.insert(targetIndex, itemToMove);
+			App.dirtyData = true;
 			refresh();
 		}
 	}

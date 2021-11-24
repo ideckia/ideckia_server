@@ -18,9 +18,18 @@ typedef IconData = {
 
 class App {
 	static var websocket:js.html.WebSocket;
-	public static var dirtyData:Bool = false;
 	public static var editorData:EditorData;
 	public static var icons:Array<IconData>;
+	public static var dirtyData(default, set):Bool = false;
+
+	public static function set_dirtyData(dd:Bool) {
+		dirtyData = dd;
+		if (dd)
+			Id.update_server_layout_btn.get().classList.remove(Cls.hidden);
+		else
+			Id.update_server_layout_btn.get().classList.add(Cls.hidden);
+		return dd;
+	}
 
 	function new() {
 		js.Browser.window.onload = onLoad;
@@ -160,6 +169,14 @@ class App {
 			};
 			websocket.send(tink.Json.stringify(msg));
 			dirtyData = false;
+			Id.layout_updated.get().classList.remove(Cls.hidden);
+			haxe.Timer.delay(() -> {
+				Id.layout_updated.get().style.opacity = '0';
+				haxe.Timer.delay(() -> {
+					Id.layout_updated.get().classList.add(Cls.hidden);
+					Id.layout_updated.get().style.opacity = '1';
+				}, 3000);
+			}, 10);
 		});
 	}
 

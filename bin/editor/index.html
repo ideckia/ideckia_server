@@ -30,7 +30,8 @@
             <div id="layout-container">
                 <div id="dir-content"></div>
                 <div id="buttons">
-                    <input type="button" value="Update server layout" id="update-server-layout-btn">
+                    <input type="button" value="Update server layout" id="update-server-layout-btn" class="hidden">
+                    <span id="layout-updated" class="hidden">Server layout updated!</span>
                 </div>
             </div>
 
@@ -41,10 +42,6 @@
                     <div>
                         <label for="text">Go to directory</label>
                         <select name="dir-select" class="dir-select" id="to-dir-select"></select>
-                    </div>
-                    <div id="change-dir-props-buttons" class="props-buttons">
-                        <input type="button" value="Cancel" id="change-dir-cancel-btn">
-                        <input type="button" value="Accept" id="change-dir-accept-btn">
                     </div>
                 </div>
                 <div id="item-kind-states-properties" class="edit-property-container"></div>
@@ -76,20 +73,12 @@
                     <select name="icon-select" id="icons"></select>
                     <img id="icon-preview" alt="This is the selected icon preview" src="" class="hidden icon" />
                 </div>
-                <div id="state-props-buttons" class="props-buttons">
-                    <input type="button" value="Cancel" id="state-cancel-btn">
-                    <input type="button" value="Accept" id="state-accept-btn">
-                </div>
             </div>
 
             <div id="action-properties" class="hidden edit-property-container">
-
-                <h3>Action properties</h3>
+                <h3 id="action-title"></h3>
+                <h5 id="action-description"></h5>
                 <div id="action-props"></div>
-                <div id="action-props-buttons" class="props-buttons">
-                    <input type="button" value="Cancel" id="action-cancel-btn">
-                    <input type="button" value="Accept" id="action-accept-btn">
-                </div>
             </div>
 
         </div>
@@ -122,31 +111,40 @@
             </div>
 
             <div id="new-icon">
-                <label for="new-icon-name">Name</label>
-                <input type="text" name="name" id="new-icon-name" />
+                <div>
+                    <label for="new-icon-name">Name</label>
+                    <input type="text" name="name" id="new-icon-name" />
+                </div>
                 <div name="drop-img" id="new-icon-drop-img">
                     <span>DROP IMAGE HERE</span>
                 </div>
-                <label for="new-icon-base64">Or put the base64 text here</label>
-                <textarea name="base64" id="new-icon-base64"></textarea>
+                <div>
+                    <label for="new-icon-base64">Or put the base64 text here</label>
+                    <textarea name="base64" id="new-icon-base64"></textarea>
+                </div>
             </div>
 
             <div id="new-action">
-                <label for="actions-select">Action</label>
-                <select name="actions-select" id="actions-select"></select>
-                <label for="action-presets">Preset</label>
-                <select name="action-presets" id="action-presets"></select>
+                <div>
+                    <label for="actions-select">Action</label>
+                    <select name="actions-select" id="actions-select"></select>
+                    <span id="new-action-description"></span>
+                </div>
+                <div>
+                    <label for="action-presets">Preset</label>
+                    <select name="action-presets" id="action-presets"></select>
+                </div>
             </div>
 
             <div id="new-item-kind">
-                <label for="item-kind-changedir-radio">
-                    ChangeDir
+                <div>
+                    <label for="item-kind-changedir-radio">ChangeDir</label>
                     <input type="radio" name="item-kind" id="item-kind-changedir-radio">
-                </label>
-                <label for="item-kind-states-radio">
-                    States
+                </div>
+                <div>
+                    <label for="item-kind-states-radio">States</label>
                     <input type="radio" name="item-kind" id="item-kind-states-radio">
-                </label>
+                </div>
             </div>
         </div>
 

@@ -24,10 +24,12 @@ class PresetEdit {
 				return resolvePreset(preset.props);
 
 			var container:Element = document.createDivElement();
+			var div;
 			var label:LabelElement;
 			var input:InputElement;
 			var i = 0;
 			for (key => value in editableFields) {
+				div = document.createDivElement();
 				input = document.createInputElement();
 				input.value = value;
 				input.dataset.tpl = '::$value::';
@@ -36,8 +38,9 @@ class PresetEdit {
 				label = document.createLabelElement();
 				label.textContent = key;
 				label.htmlFor = input.id;
-				container.appendChild(label);
-				container.appendChild(input);
+				div.appendChild(label);
+				div.appendChild(input);
+				container.appendChild(div);
 				i++;
 			}
 

@@ -10,8 +10,7 @@ import js.html.SelectElement;
 import haxe.ds.Option;
 
 class ItemEdit {
-	static var originalItem:ServerItem;
-	static var editableItem:ServerItem;
+	static var editingItem:ServerItem;
 
 	static var listeners:Array<Utils.Listener> = [];
 	static var cellListeners:Array<Utils.Listener> = [];
@@ -24,57 +23,56 @@ class ItemEdit {
 		cell.removeAttribute('id');
 		cell.dataset.item_id = Std.string(item.id.toUInt());
 		var callback:ServerItem->Void = (item) -> {};
-		if (item != null) {
-			var text = '';
-			switch item.kind {
-				case null:
-					text = 'empty';
-				case ChangeDir(_, state):
-					switch Cls.item_icon.firstFrom(cell) {
-						case Some(cell_icon):
-							if (state.icon != null) {
-								cell_icon.classList.remove(Cls.hidden);
-								switch Utils.getIconIndexByName(state.icon) {
-									case Some(index):
-										cast(cell_icon, ImageElement).src = 'data:image/jpeg;base64,' + App.icons[index].base64;
-									case None:
-										cast(cell_icon, ImageElement).src = 'data:image/jpeg;base64,' + state.icon;
-								};
-							} else {
-								cell_icon.classList.add(Cls.hidden);
-							}
-						case None:
-					}
-					text = state.text;
-					cell.classList.add('dir');
-				case States(_, list):
-					var state = list[0];
-					switch Cls.item_icon.firstFrom(cell) {
-						case Some(cell_icon):
-							if (state.icon != null) {
-								cell_icon.classList.remove(Cls.hidden);
-								switch Utils.getIconIndexByName(state.icon) {
-									case Some(index):
-										cast(cell_icon, ImageElement).src = 'data:image/jpeg;base64,' + App.icons[index].base64;
-									case None:
-										cast(cell_icon, ImageElement).src = 'data:image/jpeg;base64,' + state.icon;
-								};
-							} else {
-								cell_icon.classList.add(Cls.hidden);
-							}
-						case None:
-					}
-					text = state.text;
-					cell.classList.add('states');
-					callback = (item) -> App.onItemClick(item.id.toUInt());
-			};
 
-			switch Tag.span.firstFrom(cell) {
-				case Some(v):
-					v.innerText = text;
-				case None:
-					trace('No [${Tag.span.selector()}] found in [${Id.layout_grid_item_tpl.selector()}]');
-			}
+		var text = '';
+		switch item.kind {
+			case null:
+				text = 'empty';
+			case ChangeDir(_, state):
+				switch Cls.item_icon.firstFrom(cell) {
+					case Some(cell_icon):
+						if (state.icon != null && state.icon != '') {
+							cell_icon.classList.remove(Cls.hidden);
+							switch Utils.getIconIndexByName(state.icon) {
+								case Some(index):
+									cast(cell_icon, ImageElement).src = 'data:image/jpeg;base64,' + App.icons[index].base64;
+								case None:
+									cast(cell_icon, ImageElement).src = 'data:image/jpeg;base64,' + state.icon;
+							};
+						} else {
+							cell_icon.classList.add(Cls.hidden);
+						}
+					case None:
+				}
+				text = state.text;
+				cell.classList.add('dir');
+			case States(_, list):
+				var state = list[0];
+				switch Cls.item_icon.firstFrom(cell) {
+					case Some(cell_icon):
+						if (state.icon != null && state.icon != '') {
+							cell_icon.classList.remove(Cls.hidden);
+							switch Utils.getIconIndexByName(state.icon) {
+								case Some(index):
+									cast(cell_icon, ImageElement).src = 'data:image/jpeg;base64,' + App.icons[index].base64;
+								case None:
+									cast(cell_icon, ImageElement).src = 'data:image/jpeg;base64,' + state.icon;
+							};
+						} else {
+							cell_icon.classList.add(Cls.hidden);
+						}
+					case None:
+				}
+				text = state.text;
+				cell.classList.add('states');
+				callback = (item) -> App.onItemClick(item.id.toUInt());
+		};
+
+		switch Tag.span.firstFrom(cell) {
+			case Some(v):
+				v.innerText = text;
+			case None:
+				trace('No [${Tag.span.selector()}] found in [${Id.layout_grid_item_tpl.selector()}]');
 		}
 
 		Utils.addListener(cellListeners, cell, 'click', (event:Event) -> {
@@ -90,21 +88,17 @@ class ItemEdit {
 	}
 
 	public static function edit(item:ServerItem) {
-		originalItem = item;
-		editableItem = Reflect.copy(item);
-
-		Id.change_dir_cancel_btn.get().classList.add(Cls.hidden);
-		Id.change_dir_accept_btn.get().classList.add(Cls.hidden);
+		editingItem = item;
 
 		Utils.addListener(listeners, Id.add_state_btn.get(), 'click', (event) -> {
 			event.stopImmediatePropagation();
 
-			switch item.kind {
+			switch editingItem.kind {
 				case States(_, list):
 					var state = Utils.createNewState();
 					list.push(state);
-					edit(item);
-					StateEdit.edit(state);
+					edit(editingItem);
+					StateEdit.edit(state, editingItem);
 				default:
 			}
 		});
@@ -112,7 +106,7 @@ class ItemEdit {
 		Utils.addListener(listeners, Id.clear_item_btn.get(), 'click', (event) -> {
 			event.stopImmediatePropagation();
 			if (js.Browser.window.confirm('Do you want to clear the item?')) {
-				item.kind = null;
+				editingItem.kind = null;
 				App.dirtyData = true;
 				DirEdit.refresh();
 			}
@@ -124,7 +118,7 @@ class ItemEdit {
 		Id.item_kind_changedir_properties.get().classList.add(Cls.hidden);
 		Id.item_kind_states_properties.get().classList.add(Cls.hidden);
 		Id.add_item_kind_btn.get().classList.add(Cls.hidden);
-		switch editableItem.kind {
+		switch editingItem.kind {
 			case ChangeDir(toDir, state):
 				Id.add_state_btn.get().classList.add(Cls.hidden);
 				Id.clear_item_btn.get().classList.remove(Cls.hidden);
@@ -136,13 +130,10 @@ class ItemEdit {
 					}
 				}
 
-				StateEdit.edit(state);
+				StateEdit.edit(state, editingItem);
 				Id.item_kind_changedir_properties.get().classList.remove(Cls.hidden);
 
 				Utils.addListener(listeners, select, 'change', onToDirChange);
-
-				Utils.addListener(listeners, Id.change_dir_accept_btn.get(), 'click', onSaveClick, true);
-				Utils.addListener(listeners, Id.change_dir_cancel_btn.get(), 'click', (_) -> hide(), true);
 			case States(_, list):
 				Id.add_state_btn.get().classList.remove(Cls.hidden);
 				Id.clear_item_btn.get().classList.remove(Cls.hidden);
@@ -156,7 +147,7 @@ class ItemEdit {
 				var li;
 				var deletable = list.length > 1;
 				for (state in list) {
-					li = StateEdit.show(state, deletable, item);
+					li = StateEdit.show(state, deletable, editingItem);
 					uList.append(li);
 				}
 				parentDiv.append(uList);
@@ -166,11 +157,11 @@ class ItemEdit {
 				Id.add_item_kind_btn.get().classList.remove(Cls.hidden);
 				Utils.addListener(listeners, Id.add_item_kind_btn.get(), 'click', (_) -> {
 					Utils.createNewItem().then((newItem) -> {
-						item.id = newItem.id;
-						item.kind = newItem.kind;
+						editingItem.id = newItem.id;
+						editingItem.kind = newItem.kind;
 						App.dirtyData = true;
 						DirEdit.refresh();
-						edit(item);
+						edit(editingItem);
 						return;
 					}).catchError(error -> trace(error));
 				});
@@ -178,30 +169,19 @@ class ItemEdit {
 	}
 
 	public static function hide() {
-		editableItem = null;
+		editingItem = null;
 		Utils.removeListeners(listeners);
 		Id.item_container.get().classList.add(Cls.hidden);
 		Id.item_kind_changedir_properties.get().classList.add(Cls.hidden);
 	}
 
 	static function onToDirChange(_) {
-		switch editableItem.kind {
+		switch editingItem.kind {
 			case ChangeDir(_, state):
 				var select = Id.to_dir_select.as(SelectElement);
 				var children = select.children;
-				editableItem.kind = ChangeDir(new DirName(children[select.selectedIndex].textContent), state);
-
-				Id.change_dir_cancel_btn.get().classList.remove(Cls.hidden);
-				Id.change_dir_accept_btn.get().classList.remove(Cls.hidden);
+				editingItem.kind = ChangeDir(new DirName(children[select.selectedIndex].textContent), state);
 			case _:
 		}
-	}
-
-	static function onSaveClick(_) {
-		if (editableItem == null)
-			return;
-		App.dirtyData = true;
-		originalItem.kind = Reflect.copy(editableItem.kind);
-		DirEdit.refresh();
 	}
 }
