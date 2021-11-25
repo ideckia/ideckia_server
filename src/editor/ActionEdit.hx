@@ -64,22 +64,23 @@ class ActionEdit {
 				Id.action_description.get().textContent = actionDescriptor.description;
 				Id.action_properties.get().classList.remove(Cls.hidden);
 				for (div in createFromDescriptor(actionDescriptor)) {
-					if (!Reflect.hasField(editingAction.props, div.id))
-						continue;
-
 					var valueInput:InputElement = cast div.querySelector(Cls.prop_value.selector());
 					var possibleValuesSelect:SelectElement = cast div.querySelector(Cls.prop_possible_values.selector());
 					var booleanValueInput:InputElement = cast div.querySelector(Cls.prop_bool_value.selector());
-					fieldValue = Reflect.field(editingAction.props, div.id);
+					fieldValue = (Reflect.hasField(editingAction.props, div.id)) ? Reflect.field(editingAction.props, div.id) : '';
 					if (!valueInput.classList.contains(Cls.hidden)) {
-						if (Std.string(fieldValue) == '[object Object]')
-							valueInput.value = haxe.Json.stringify(fieldValue);
-						else
+						var notNullType = div.dataset.prop_type.replace('Null<', '');
+						var isPrimitive = notNullType.startsWith("Int") || notNullType.startsWith("UInt") || notNullType.startsWith("Float")
+							|| notNullType.startsWith("String");
+						if (isPrimitive)
 							valueInput.value = fieldValue;
+						else
+							valueInput.value = haxe.Json.stringify(fieldValue);
 
 						Utils.addListener(listeners, valueInput, 'change', (_) -> {
 							var value = valueInput.value;
-							Reflect.setField(editingAction.props, div.id, (valueInput.type == 'number') ? Std.parseFloat(value) : value);
+							var propValue:Dynamic = (valueInput.type == 'number') ? Std.parseFloat(value) : (isPrimitive || value == '') ? value : haxe.Json.parse(value);
+							Reflect.setField(editingAction.props, div.id, propValue);
 							App.dirtyData = true;
 						});
 					} else if (!possibleValuesSelect.classList.contains(Cls.hidden)) {
@@ -131,6 +132,7 @@ class ActionEdit {
 			div = cast Id.action_prop_tpl.get().cloneNode(true);
 			div.classList.remove(Cls.hidden);
 			div.id = prop.name;
+			div.dataset.prop_type = prop.type;
 			nameSpan = cast div.querySelector(Cls.prop_name.selector());
 			valueInput = cast div.querySelector(Cls.prop_value.selector());
 			possibleValuesSelect = cast div.querySelector(Cls.prop_possible_values.selector());
