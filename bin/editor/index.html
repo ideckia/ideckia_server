@@ -16,10 +16,15 @@
     <body>
         <menu>
             <select name="dir-select" class="dir-select" id="dir-select"></select>
+            <label for="current-dir-rows">rows</label>
+            <input type="number" id="current-dir-rows" class="row-column">
+            <label for="current-dir-columns">columns</label>
+            <input type="number" id="current-dir-columns" class="row-column">
             <input type="button" value="add directory" id="add-dir-btn">
             <input type="button" value="add item" id="add-item-btn">
-            <input type="button" value="add icon" id="add-icon-btn">
             <input type="button" value="x" id="delete-dir-btn" title="delete directory">
+            <!-- SEPARATOR -->
+            <input type="button" value="add icon" id="add-icon-btn">
             <label id="execute-actions-lbl" for="execute-actions-cb"
                 title="If activated, clicked states will be executed.">
                 Use as app
@@ -108,6 +113,21 @@
                 <input type="text" class="hidden prop-value">
                 <select class="hidden prop-possible-values"></select>
                 <input type="checkbox" class="hidden prop-bool-value">
+            </div>
+
+            <div id="new-dir">
+                <div>
+                    <label for="new-dir-name">Name</label>
+                    <input type="text" name="name" id="new-dir-name" />
+                </div>
+                <div>
+                    <label for="new-dir-rows">Rows</label>
+                    <input type="number" id="new-dir-rows" />
+                </div>
+                <div>
+                    <label for="new-dir-columns">Columns</label>
+                    <input type="number" id="new-dir-columns" />
+                </div>
             </div>
 
             <div id="new-icon">

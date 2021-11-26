@@ -9,9 +9,8 @@ import js.html.Event;
 import js.html.SelectElement;
 import haxe.ds.Option;
 
-class ItemEdit {
+class ItemEditor {
 	static var editingItem:ServerItem;
-
 	static var listeners:Array<Utils.Listener> = [];
 	static var cellListeners:Array<Utils.Listener> = [];
 
@@ -76,7 +75,7 @@ class ItemEdit {
 		}
 
 		Utils.addListener(cellListeners, cell, 'click', (event:Event) -> {
-			event.stopImmediatePropagation();
+			Utils.stopPropagation(event);
 			Utils.selectElement(cell);
 			Utils.hideAllProps();
 
@@ -87,28 +86,33 @@ class ItemEdit {
 		return Some(cell);
 	}
 
+	public static function refresh() {
+		edit(editingItem);
+	}
+
 	public static function edit(item:ServerItem) {
+		trace('editItem $item');
 		editingItem = item;
 
 		Utils.addListener(listeners, Id.add_state_btn.get(), 'click', (event) -> {
-			event.stopImmediatePropagation();
+			Utils.stopPropagation(event);
 
 			switch editingItem.kind {
 				case States(_, list):
 					var state = Utils.createNewState();
 					list.push(state);
 					edit(editingItem);
-					StateEdit.edit(state, editingItem);
+					StateEditor.edit(state);
 				default:
 			}
 		});
 
 		Utils.addListener(listeners, Id.clear_item_btn.get(), 'click', (event) -> {
-			event.stopImmediatePropagation();
+			Utils.stopPropagation(event);
 			if (js.Browser.window.confirm('Do you want to clear the item?')) {
 				editingItem.kind = null;
 				App.dirtyData = true;
-				DirEdit.refresh();
+				DirEditor.refresh();
 			}
 		});
 		Id.item_container.get().classList.remove(Cls.hidden);
@@ -130,7 +134,7 @@ class ItemEdit {
 					}
 				}
 
-				StateEdit.edit(state, editingItem);
+				StateEditor.edit(state);
 				Id.item_kind_changedir_properties.get().classList.remove(Cls.hidden);
 
 				Utils.addListener(listeners, select, 'change', onToDirChange);
@@ -147,7 +151,7 @@ class ItemEdit {
 				var li;
 				var deletable = list.length > 1;
 				for (state in list) {
-					li = StateEdit.show(state, deletable, editingItem);
+					li = StateEditor.show(state, deletable);
 					uList.append(li);
 				}
 				parentDiv.append(uList);
@@ -160,7 +164,7 @@ class ItemEdit {
 						editingItem.id = newItem.id;
 						editingItem.kind = newItem.kind;
 						App.dirtyData = true;
-						DirEdit.refresh();
+						DirEditor.refresh();
 						edit(editingItem);
 						return;
 					}).catchError(error -> trace(error));

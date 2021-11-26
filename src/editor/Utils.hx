@@ -31,9 +31,9 @@ class Utils {
 	}
 
 	public static function hideAllProps() {
-		ItemEdit.hide();
-		StateEdit.hide();
-		ActionEdit.hide();
+		ItemEditor.hide();
+		StateEditor.hide();
+		ActionEditor.hide();
 	}
 
 	public static function addListener(listeners:Array<Listener>, e:Element, t:String, cb:Event->Void, once:Bool = false) {
@@ -101,6 +101,8 @@ class Utils {
 						lastItemId = i.id.toUInt();
 				}
 			}
+
+			lastItemId++;
 		}
 
 		return new ItemId(lastItemId++);
@@ -122,6 +124,7 @@ class Utils {
 					}
 				}
 			}
+			lastStateId++;
 		}
 
 		return new StateId(lastStateId++);

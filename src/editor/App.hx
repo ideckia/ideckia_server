@@ -46,16 +46,56 @@ class App {
 		});
 
 		Id.add_dir_btn.get().addEventListener('click', (_) -> {
-			var dirName = StringTools.trim(js.Browser.window.prompt('Tell me the name of the new directory'));
+			var layoutRows = editorData.layout.rows;
+			var layoutColumns = editorData.layout.columns;
 
-			if (dirName == null || dirName == '') {
+			Id.new_dir_rows.as(InputElement).value = Std.string(layoutRows);
+			Id.new_dir_columns.as(InputElement).value = Std.string(layoutColumns);
+
+			Dialog.show('New directory', Id.new_dir.get(), () -> {
+				return new js.lib.Promise((resolve, reject) -> {
+					var newDirName = Id.new_dir_name.as(InputElement).value;
+					if (newDirName == null || newDirName == '') {
+						js.Browser.alert('Cannot create a directory with empty name.');
+						resolve(false);
+					}
+
+					var dirs = editorData.layout.dirs;
+					if (dirs.filter(d -> d.name.toString() == newDirName).length > 0) {
+						js.Browser.alert('Already exists a directory with [$newDirName] name.');
+						resolve(false);
+					}
+
+					var newDir:Dir = {
+						name: new DirName(newDirName),
+						items: []
+					};
+
+					var newRows = Std.parseInt(Id.new_dir_rows.as(InputElement).value);
+					var newColumns = Std.parseInt(Id.new_dir_columns.as(InputElement).value);
+
+					if (newRows != layoutRows)
+						newDir.rows = newRows;
+					if (newColumns != layoutColumns)
+						newDir.columns = newColumns;
+
+					dirs.push(newDir);
+
+					updateDirsSelect();
+					resolve(true);
+				});
+			});
+
+			var newDirName = StringTools.trim(js.Browser.window.prompt('Tell me the name of the new directory'));
+
+			if (newDirName == null || newDirName == '') {
 				js.Browser.alert('Cannot create a directory with empty name.');
 				return;
 			}
 
 			var dirs = editorData.layout.dirs;
 			dirs.push({
-				name: new DirName(dirName),
+				name: new DirName(newDirName),
 				items: []
 			});
 
@@ -64,14 +104,14 @@ class App {
 
 		Id.add_item_btn.get().addEventListener('click', (_) -> {
 			Utils.createNewItem().then(item -> {
-				@:privateAccess DirEdit.currentDir.items.push(item);
+				@:privateAccess DirEditor.currentDir.items.push(item);
 				App.dirtyData = true;
-				DirEdit.refresh();
+				DirEditor.refresh();
 			}).catchError(error -> trace(error));
 		});
 
 		Id.delete_dir_btn.get().addEventListener('click', (_) -> {
-			var currentDir = @:privateAccess DirEdit.currentDir;
+			var currentDir = @:privateAccess DirEditor.currentDir;
 			if (js.Browser.window.confirm('Are you sure you want to delete the [${currentDir.name.toString()}] directory?')) {
 				var dirs = editorData.layout.dirs;
 				dirs.remove(currentDir);
@@ -162,6 +202,14 @@ class App {
 		});
 
 		Id.update_server_layout_btn.get().addEventListener('click', (_) -> {
+			var rows, columns, maxLength;
+			for (dir in editorData.layout.dirs) {
+				rows = dir.rows == null ? App.editorData.layout.rows : dir.rows;
+				columns = dir.columns == null ? App.editorData.layout.columns : dir.columns;
+				maxLength = rows * columns;
+				dir.items.splice(maxLength, dir.items.length);
+			}
+
 			var msg:EditorMsg = {
 				type: EditorMsgType.saveLayout,
 				whoami: editor,
@@ -177,6 +225,12 @@ class App {
 					Id.layout_updated.get().style.opacity = '1';
 				}, 3000);
 			}, 10);
+
+			var msg:EditorMsg = {
+				type: EditorMsgType.getEditorData,
+				whoami: editor
+			};
+			websocket.send(haxe.Json.stringify(msg));
 		});
 	}
 
@@ -190,9 +244,9 @@ class App {
 			Id.layout_container.get().classList.remove(Cls.hidden);
 			Id.delete_dir_btn.get().classList.remove(Cls.hidden);
 			if (currentDirIndex == null)
-				DirEdit.show(dirs[0]);
+				DirEditor.show(dirs[0]);
 			else
-				DirEdit.show(dirs[dirs.length - 1]);
+				DirEditor.show(dirs[dirs.length - 1]);
 		} else {
 			Id.layout_container.get().classList.add(Cls.hidden);
 			Id.delete_dir_btn.get().classList.add(Cls.hidden);
@@ -233,7 +287,9 @@ class App {
 					var dirs = editorData.layout.dirs;
 					Id.dir_select.get().addEventListener('change', (event) -> {
 						var selectedIndex = Std.parseInt(Id.dir_select.as(SelectElement).value);
-						DirEdit.show(dirs[selectedIndex]);
+						var currentDir = dirs[selectedIndex];
+
+						DirEditor.show(currentDir);
 					});
 
 					updateDirsSelect();

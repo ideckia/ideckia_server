@@ -4,7 +4,7 @@ import js.html.InputElement;
 import js.html.LabelElement;
 import js.html.Element;
 
-class PresetEdit {
+class PresetEditor {
 	public static function edit(actionName:String, preset:{name:String, props:Any}):js.lib.Promise<Any> {
 		return new js.lib.Promise((resolvePreset, _) -> {
 			var presetString = haxe.Json.stringify(preset.props);
@@ -46,7 +46,7 @@ class PresetEdit {
 
 			Dialog.clear();
 
-			Dialog.show('Edit [$actionName.${preset.name}] preset', container, () -> {
+			Dialog.show('Editor [$actionName.${preset.name}] preset', container, () -> {
 				return new js.lib.Promise((resolveDialog, _) -> {
 					var inputs = Tag.input.from(container);
 					var fieldValue;
