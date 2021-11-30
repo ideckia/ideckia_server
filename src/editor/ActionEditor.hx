@@ -13,7 +13,7 @@ import hx.Selectors.Tag;
 
 using StringTools;
 
-class ActionEdit {
+class ActionEditor {
 	static var editingAction:Action;
 	static var changeListeners:Array<{element:Element, changeListener:Event->Void}> = [];
 	static var listeners:Array<Utils.Listener> = [];
@@ -41,7 +41,8 @@ class ActionEdit {
 						parentState.actions.remove(action);
 						Utils.hideAllProps();
 						App.dirtyData = true;
-						DirEdit.refresh();
+						DirEditor.refresh();
+						ItemEditor.refresh();
 					}
 				});
 			case None:
@@ -49,6 +50,10 @@ class ActionEdit {
 		}
 
 		return li;
+	}
+
+	public static function refresh() {
+		edit(editingAction);
 	}
 
 	public static function edit(action:Action) {

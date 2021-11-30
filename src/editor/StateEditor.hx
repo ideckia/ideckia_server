@@ -9,13 +9,12 @@ import hx.Selectors.Cls;
 import hx.Selectors.Id;
 import hx.Selectors.Tag;
 
-class StateEdit {
+class StateEditor {
 	static var editingState:ServerState;
-	static var editingParentItem:ServerItem;
 
 	static var listeners:Array<Utils.Listener> = [];
 
-	public static function show(state:ServerState, deletable:Bool, parentItem:ServerItem) {
+	public static function show(state:ServerState, deletable:Bool) {
 		Id.item_kind_states_properties.get().classList.remove(Cls.hidden);
 		var parentLi:LIElement = cast Id.state_list_item_tpl.get().cloneNode(true);
 		parentLi.removeAttribute('id');
@@ -38,7 +37,7 @@ class StateEdit {
 		if (state.actions != null) {
 			var ulActions = document.createUListElement();
 			for (action in state.actions) {
-				ulActions.append(ActionEdit.show(action, state));
+				ulActions.append(ActionEditor.show(action, state));
 			}
 			parentLi.append(ulActions);
 		}
@@ -46,7 +45,7 @@ class StateEdit {
 		parentLi.addEventListener('click', (event:Event) -> {
 			Utils.stopPropagation(event);
 			Utils.selectElement(parentLi);
-			edit(state, parentItem);
+			edit(state);
 		});
 
 		switch Cls.add_action_btn.firstFrom(parentLi) {
@@ -100,9 +99,9 @@ class StateEdit {
 								Utils.removeListeners(selListener);
 
 								App.dirtyData = true;
-								DirEdit.refresh();
-								ItemEdit.edit(parentItem);
-								ActionEdit.edit(action);
+								DirEditor.refresh();
+								ItemEditor.refresh();
+								ActionEditor.edit(action);
 								resolve(true);
 							}
 
@@ -118,7 +117,7 @@ class StateEdit {
 										return;
 									}
 
-									PresetEdit.edit(actionName, preset).then(newProps -> {
+									PresetEditor.edit(actionName, preset).then(newProps -> {
 										createAction(newProps);
 									}).catchError(e -> trace(e));
 									return;
@@ -149,8 +148,8 @@ class StateEdit {
 											if (list[sind].id == state.id) {
 												list.remove(state);
 												App.dirtyData = true;
-												DirEdit.refresh();
-												ItemEdit.edit(parentItem);
+												DirEditor.refresh();
+												ItemEditor.refresh();
 											}
 									default:
 								}
@@ -164,17 +163,20 @@ class StateEdit {
 		return parentLi;
 	}
 
-	public static function edit(state:ServerState, parentItem:ServerItem) {
+	public static function refresh() {
+		edit(editingState);
+	}
+
+	public static function edit(state:ServerState) {
 		if (state == null) {
 			Id.state_properties.get().classList.add(Cls.hidden);
 			return;
 		}
 
-		ActionEdit.hide();
+		ActionEditor.hide();
 
 		Utils.removeListeners(listeners);
 		editingState = state;
-		editingParentItem = parentItem;
 
 		Id.state_properties.get().classList.remove(Cls.hidden);
 
@@ -249,25 +251,23 @@ class StateEdit {
 	static function updateState() {
 		if (editingState == null)
 			return;
-		// for (d in App.editorData.layout.dirs) {
-		// 	for (i in d.items) {
-		switch editingParentItem.kind {
-			case null:
-			case ChangeDir(toDir, state):
-				if (state.id == editingState.id)
-					editingParentItem.kind = ChangeDir(toDir, editingState);
-			case States(_, list):
-				for (sind in 0...list.length) {
-					if (list[sind].id == editingState.id)
-						list[sind] = editingState;
+		for (d in App.editorData.layout.dirs) {
+			for (i in d.items) {
+				switch i.kind {
+					case null:
+					case ChangeDir(toDir, state):
+						if (state.id == editingState.id)
+							i.kind = ChangeDir(toDir, editingState);
+					case States(_, list):
+						for (sind in 0...list.length) {
+							if (list[sind].id == editingState.id)
+								list[sind] = editingState;
+						}
 				}
+			}
 		}
-		// }
-
-		// }
-		// hide();
 		App.dirtyData = true;
-		DirEdit.refresh();
-		ItemEdit.edit(editingParentItem);
+		DirEditor.refresh();
+		ItemEditor.refresh();
 	}
 }

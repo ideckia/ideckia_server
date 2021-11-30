@@ -9,6 +9,14 @@ select {
     font-family: 'Ubuntu', sans-serif;
 }
 
+menu {
+    width: 45%;
+}
+
+#delete-dir-btn {
+    border-right: ;
+}
+
 #execute-actions-lbl {
     float: right;
 }
@@ -239,4 +247,8 @@ select {
 #layout-updated {
     opacity: 1;
     transition: opacity 3s;
+}
+
+input.row-column {
+    width: 4%;
 }
