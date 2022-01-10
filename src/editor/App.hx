@@ -45,6 +45,15 @@ class App {
 			}
 		});
 
+		Id.dir_select.get().addEventListener('change', (event) -> {
+			if (editorData == null)
+				return;
+			var selectedIndex = Std.parseInt(Id.dir_select.as(SelectElement).value);
+			var currentDir = editorData.layout.dirs[selectedIndex];
+
+			DirEditor.show(currentDir);
+		});
+
 		Id.add_dir_btn.get().addEventListener('click', (_) -> {
 			var layoutRows = editorData.layout.rows;
 			var layoutColumns = editorData.layout.columns;
@@ -266,14 +275,6 @@ class App {
 					editorData = serverData.data;
 
 					updateIcons();
-
-					var dirs = editorData.layout.dirs;
-					Id.dir_select.get().addEventListener('change', (event) -> {
-						var selectedIndex = Std.parseInt(Id.dir_select.as(SelectElement).value);
-						var currentDir = dirs[selectedIndex];
-
-						DirEditor.show(currentDir);
-					});
 
 					updateDirsSelect();
 
