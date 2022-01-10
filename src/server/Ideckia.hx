@@ -55,12 +55,12 @@ class Ideckia {
 		});
 
 		LayoutManager.load();
+		LayoutManager.watchForChanges();
 
 		var wsServer = new websocket.WebSocketServer();
 
 		wsServer.onConnect = (connection) -> {
 			MsgManager.send(connection, LayoutManager.currentDirForClient());
-			LayoutManager.watchForChanges(connection);
 		};
 
 		wsServer.onMessage = (connection, msg) -> {
