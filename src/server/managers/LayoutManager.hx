@@ -54,7 +54,7 @@ class LayoutManager {
 		ActionManager.initClientActions();
 	}
 
-	public static function watchForChanges(connection:WebSocketConnection) {
+	public static function watchForChanges() {
 		if (isWatching)
 			return;
 
@@ -108,7 +108,7 @@ class LayoutManager {
 				list[index];
 		}
 
-		Log.debug('State of the item [id=$itemId]: [text=${state.text}], [icon=${state.icon}]');
+		Log.debug('State [id=${state.id}] of the item [id=$itemId]: [text=${state.text}], [icon=${state.icon}]');
 		return state;
 	}
 

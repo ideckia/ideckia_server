@@ -23,7 +23,7 @@ class Macros {
 		#end
 
 		// Generates a string expression
-		return macro $v{commitHash};
+		return macro $v{'Development build: commit $commitHash'};
 	}
 
 	public static macro function getLastTagName():haxe.macro.Expr.ExprOf<String> {

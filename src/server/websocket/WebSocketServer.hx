@@ -7,8 +7,6 @@ using StringTools;
 
 class WebSocketServer {
 	public static inline var DISCOVER_ENDPOINT = '/ping';
-	public static inline var DISCOVER_RESPONSE = 'pong';
-	public static inline var NAME_ENDPOINT = '/name';
 	public static inline var EDITOR_ENDPOINT = '/editor';
 
 	@:v('ideckia.port:8888')
@@ -38,10 +36,7 @@ class WebSocketServer {
 				var body = null;
 				if (request.url.indexOf(DISCOVER_ENDPOINT) != -1) {
 					code = 200;
-					body = DISCOVER_RESPONSE;
-				} else if (request.url.indexOf(NAME_ENDPOINT) != -1) {
-					code = 200;
-					body = Os.hostname();
+					body = haxe.Json.stringify({pong: Os.hostname()});
 				} else if (request.url.indexOf(EDITOR_ENDPOINT) != -1 || request.url.endsWith('.js') || request.url.endsWith('.css')) {
 					code = 200;
 					var relativePath = '/${EDITOR_ENDPOINT}';
@@ -69,7 +64,7 @@ class WebSocketServer {
 
 		server.listen(port, () -> {
 			var banner = haxe.Resource.getString('banner');
-			banner = banner.replace('::version::', Macros.getLastTagName());
+			banner = banner.replace('::version::', #if dev_build Macros.getGitCommitHash() #else Macros.getLastTagName() #end);
 			banner = banner.replace('::buildDate::', Macros.buildDate().toString());
 			banner = banner.replace('::address::', '${getIPAddress()}:$port');
 			js.Node.console.log(banner);

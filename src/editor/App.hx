@@ -45,10 +45,20 @@ class App {
 			}
 		});
 
+		Id.dir_select.get().addEventListener('change', (event) -> {
+			if (editorData == null)
+				return;
+			var selectedIndex = Std.parseInt(Id.dir_select.as(SelectElement).value);
+			var currentDir = editorData.layout.dirs[selectedIndex];
+
+			DirEditor.show(currentDir);
+		});
+
 		Id.add_dir_btn.get().addEventListener('click', (_) -> {
 			var layoutRows = editorData.layout.rows;
 			var layoutColumns = editorData.layout.columns;
 
+			Id.new_dir_name.as(InputElement).value = '';
 			Id.new_dir_rows.as(InputElement).value = Std.string(layoutRows);
 			Id.new_dir_columns.as(InputElement).value = Std.string(layoutColumns);
 
@@ -81,25 +91,12 @@ class App {
 
 					dirs.push(newDir);
 
-					updateDirsSelect();
+					App.dirtyData = true;
+
+					updateDirsSelect(true);
 					resolve(true);
 				});
 			});
-
-			var newDirName = StringTools.trim(js.Browser.window.prompt('Tell me the name of the new directory'));
-
-			if (newDirName == null || newDirName == '') {
-				js.Browser.alert('Cannot create a directory with empty name.');
-				return;
-			}
-
-			var dirs = editorData.layout.dirs;
-			dirs.push({
-				name: new DirName(newDirName),
-				items: []
-			});
-
-			updateDirsSelect();
 		});
 
 		Id.add_item_btn.get().addEventListener('click', (_) -> {
@@ -225,16 +222,10 @@ class App {
 					Id.layout_updated.get().style.opacity = '1';
 				}, 3000);
 			}, 10);
-
-			var msg:EditorMsg = {
-				type: EditorMsgType.getEditorData,
-				whoami: editor
-			};
-			websocket.send(haxe.Json.stringify(msg));
 		});
 	}
 
-	static function updateDirsSelect(?currentDirIndex:Int) {
+	static function updateDirsSelect(showLast:Bool = false) {
 		var dirs = editorData.layout.dirs;
 		for (selElement in Cls.dir_select.get()) {
 			Utils.fillSelectElement(cast(selElement, SelectElement), [for (i in 0...dirs.length) {value: i, text: dirs[i].name.toString()}]);
@@ -243,10 +234,10 @@ class App {
 		if (dirs.length > 0) {
 			Id.layout_container.get().classList.remove(Cls.hidden);
 			Id.delete_dir_btn.get().classList.remove(Cls.hidden);
-			if (currentDirIndex == null)
-				DirEditor.show(dirs[0]);
-			else
+			if (showLast)
 				DirEditor.show(dirs[dirs.length - 1]);
+			else
+				DirEditor.show(dirs[0]);
 		} else {
 			Id.layout_container.get().classList.add(Cls.hidden);
 			Id.delete_dir_btn.get().classList.add(Cls.hidden);
@@ -268,29 +259,25 @@ class App {
 		final port = js.Browser.location.port;
 		websocket = new js.html.WebSocket('ws://127.0.0.1:${port}');
 
-		websocket.onopen = () -> {
-			var msg:EditorMsg = {
-				type: EditorMsgType.getEditorData,
-				whoami: editor
-			};
-			websocket.send(haxe.Json.stringify(msg));
-		}
+		websocket.onopen = () -> {}
 
 		websocket.onmessage = (event:{data:Any}) -> {
 			var serverData:ServerMsg<Any> = haxe.Json.parse(event.data);
 			switch serverData.type {
+				case ServerMsgType.layout:
+					if (dirtyData)
+						return;
+
+					var msg:EditorMsg = {
+						type: EditorMsgType.getEditorData,
+						whoami: editor
+					};
+					websocket.send(haxe.Json.stringify(msg));
 				case ServerMsgType.editorData:
+					trace('Received editor data.');
 					editorData = serverData.data;
 
 					updateIcons();
-
-					var dirs = editorData.layout.dirs;
-					Id.dir_select.get().addEventListener('change', (event) -> {
-						var selectedIndex = Std.parseInt(Id.dir_select.as(SelectElement).value);
-						var currentDir = dirs[selectedIndex];
-
-						DirEditor.show(currentDir);
-					});
 
 					updateDirsSelect();
 

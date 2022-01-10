@@ -23,7 +23,6 @@ class ActionManager {
 		for (action in actions) {
 			try {
 				var name = action.name;
-
 				var idkServer:IdeckiaServer = {
 					log: {
 						error: actionLog.bind(Log.error, name),
@@ -50,7 +49,7 @@ class ActionManager {
 						state.bgColor = newState.bgColor;
 					}
 				}).catchError((error) -> {
-					Log.error('Error initializing [${name}] action of the state [${state.id}]: $error');
+					Log.error('Error initializing [${name}] action of the state [id=${state.id}]: $error');
 				});
 
 				retActions.push(ideckiaAction);

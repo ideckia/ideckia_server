@@ -91,7 +91,6 @@ class ItemEditor {
 	}
 
 	public static function edit(item:ServerItem) {
-		trace('editItem $item');
 		editingItem = item;
 
 		Utils.addListener(listeners, Id.add_state_btn.get(), 'click', (event) -> {
