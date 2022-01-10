@@ -265,6 +265,9 @@ class App {
 			var serverData:ServerMsg<Any> = haxe.Json.parse(event.data);
 			switch serverData.type {
 				case ServerMsgType.layout:
+					if (dirtyData)
+						return;
+
 					var msg:EditorMsg = {
 						type: EditorMsgType.getEditorData,
 						whoami: editor
