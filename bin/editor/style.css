@@ -200,6 +200,12 @@ menu {
     margin-bottom: 3em;
 }
 
+input[type="radio"],
+input[type="radio"]:parent {
+    display: initial;
+    width: auto;
+}
+
 #action-description {
     font-weight: normal;
 }
