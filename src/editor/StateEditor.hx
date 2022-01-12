@@ -244,7 +244,7 @@ class StateEditor {
 	static function onBgColorChange(_) {
 		if (editingState == null)
 			return;
-		editingState.bgColor = Id.bg_color.as(InputElement).value;
+		editingState.bgColor = 'ff' + Id.bg_color.as(InputElement).value.substr(1);
 		updateState();
 	}
 
