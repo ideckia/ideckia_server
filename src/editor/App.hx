@@ -277,6 +277,10 @@ class App {
 					trace('Received editor data.');
 					editorData = serverData.data;
 
+					ItemEditor.hide();
+					StateEditor.hide();
+					ActionEditor.hide();
+
 					updateIcons();
 
 					updateDirsSelect();
