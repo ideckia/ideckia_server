@@ -24,6 +24,7 @@ class ItemEditor {
 		var callback:ServerItem->Void = (item) -> {};
 
 		var text = '';
+		var textColor = 'white';
 		switch item.kind {
 			case null:
 				text = 'empty';
@@ -44,7 +45,14 @@ class ItemEditor {
 					case None:
 				}
 				text = state.text;
-				cell.classList.add('dir');
+				if (state.textColor != null) {
+					textColor = '#' + state.textColor.substr(2);
+				}
+				if (state.bgColor != null) {
+					cell.style.backgroundColor = '#' + state.bgColor.substr(2);
+				} else {
+					cell.classList.add('dir');
+				}
 			case States(_, list):
 				var state = list[0];
 				switch Cls.item_icon.firstFrom(cell) {
@@ -63,13 +71,21 @@ class ItemEditor {
 					case None:
 				}
 				text = state.text;
-				cell.classList.add('states');
+				if (state.textColor != null) {
+					textColor = '#' + state.textColor.substr(2);
+				}
+				if (state.bgColor != null) {
+					cell.style.backgroundColor = '#' + state.bgColor.substr(2);
+				} else {
+					cell.classList.add('states');
+				}
 				callback = (item) -> App.onItemClick(item.id.toUInt());
 		};
 
 		switch Tag.span.firstFrom(cell) {
 			case Some(v):
 				v.innerText = text;
+				v.style.color = textColor;
 			case None:
 				trace('No [${Tag.span.selector()}] found in [${Id.layout_grid_item_tpl.selector()}]');
 		}
