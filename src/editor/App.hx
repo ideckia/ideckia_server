@@ -51,6 +51,10 @@ class App {
 			var selectedIndex = Std.parseInt(Id.dir_select.as(SelectElement).value);
 			var currentDir = editorData.layout.dirs[selectedIndex];
 
+			ItemEditor.hide();
+			StateEditor.hide();
+			ActionEditor.hide();
+
 			DirEditor.show(currentDir);
 		});
 

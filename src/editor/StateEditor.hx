@@ -185,6 +185,8 @@ class StateEditor {
 		Id.text_color.as(InputElement).value = textColor == null ? '' : '#' + textColor.substr(2);
 		var bgColor = editingState.bgColor;
 		Id.bg_color.as(InputElement).value = bgColor == null ? '' : '#' + bgColor.substr(2);
+		var textSize = editingState.textSize;
+		Id.text_size.as(InputElement).value = Std.string(textSize == null ? App.editorData.layout.textSize : textSize);
 
 		Utils.fillSelectElement(Id.icons.as(SelectElement), [for (i in 0...App.icons.length) {value: i, text: App.icons[i].name}]);
 
@@ -195,11 +197,14 @@ class StateEditor {
 					setIconPreview(App.icons[index]);
 				case None:
 			};
+		} else {
+			setIconPreview(null);
 		}
 
 		Utils.addListener(listeners, Id.text.get(), 'change', onTextChange);
 		Utils.addListener(listeners, Id.text_color.get(), 'change', onTextColorChange);
 		Utils.addListener(listeners, Id.bg_color.get(), 'change', onBgColorChange);
+		Utils.addListener(listeners, Id.text_size.get(), 'change', onTextSizeChange);
 		Utils.addListener(listeners, Id.icons.get(), 'change', onIconChange);
 	}
 
@@ -210,7 +215,7 @@ class StateEditor {
 	}
 
 	static function setIconPreview(selectedIcon:App.IconData) {
-		if (selectedIcon.name != '') {
+		if (selectedIcon != null && selectedIcon.name != '') {
 			Id.icon_preview.get().classList.remove(Cls.hidden);
 			Id.icon_preview.as(ImageElement).src = 'data:image/jpeg;base64,' + selectedIcon.base64;
 		} else {
@@ -237,7 +242,7 @@ class StateEditor {
 	static function onTextColorChange(_) {
 		if (editingState == null)
 			return;
-		editingState.textColor = Id.text_color.as(InputElement).value;
+		editingState.textColor = 'ff' + Id.text_color.as(InputElement).value.substr(1);
 		updateState();
 	}
 
@@ -245,6 +250,13 @@ class StateEditor {
 		if (editingState == null)
 			return;
 		editingState.bgColor = 'ff' + Id.bg_color.as(InputElement).value.substr(1);
+		updateState();
+	}
+
+	static function onTextSizeChange(_) {
+		if (editingState == null)
+			return;
+		editingState.textSize = Std.parseInt(Id.text_size.as(InputElement).value);
 		updateState();
 	}
 
