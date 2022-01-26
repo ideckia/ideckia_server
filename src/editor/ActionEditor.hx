@@ -1,5 +1,10 @@
+import js.html.UListElement;
 import api.IdeckiaApi;
 import api.internal.ServerApi;
+import hx.Selectors.Cls;
+import hx.Selectors.Id;
+import hx.Selectors.Tag;
+import js.Browser.document;
 import js.html.DivElement;
 import js.html.Element;
 import js.html.Event;
@@ -7,9 +12,6 @@ import js.html.InputElement;
 import js.html.LIElement;
 import js.html.SelectElement;
 import js.html.SpanElement;
-import hx.Selectors.Cls;
-import hx.Selectors.Id;
-import hx.Selectors.Tag;
 
 using StringTools;
 
@@ -19,8 +21,7 @@ class ActionEditor {
 	static var listeners:Array<Utils.Listener> = [];
 
 	public static function show(action:Action, parentState:ServerState) {
-		var li:LIElement = cast Id.action_list_item_tpl.get().cloneNode(true);
-		li.removeAttribute('id');
+		var li = Utils.cloneElement(Id.action_list_item_tpl.get(), LIElement);
 		switch Tag.span.firstFrom(li) {
 			case Some(v):
 				v.innerText = action.name;
@@ -69,14 +70,15 @@ class ActionEditor {
 				Id.action_description.get().textContent = actionDescriptor.description;
 				Id.action_properties.get().classList.remove(Cls.hidden);
 				for (div in createFromDescriptor(actionDescriptor)) {
+					var propertyName = div.id;
 					var valueInput:InputElement = cast div.querySelector(Cls.prop_value.selector());
 					var possibleValuesSelect:SelectElement = cast div.querySelector(Cls.prop_possible_values.selector());
 					var booleanValueInput:InputElement = cast div.querySelector(Cls.prop_bool_value.selector());
-					fieldValue = (Reflect.hasField(editingAction.props, div.id)) ? Reflect.field(editingAction.props, div.id) : '';
+					var multiValuesDiv:DivElement = cast div.querySelector(Cls.prop_multi_values.selector());
+					fieldValue = (Reflect.hasField(editingAction.props, propertyName)) ? Reflect.field(editingAction.props, propertyName) : '';
+					var divDataType = div.dataset.prop_type;
 					if (!valueInput.classList.contains(Cls.hidden)) {
-						var notNullType = div.dataset.prop_type.replace('Null<', '');
-						var isPrimitive = notNullType.startsWith("Int") || notNullType.startsWith("UInt") || notNullType.startsWith("Float")
-							|| notNullType.startsWith("String");
+						var isPrimitive = Utils.isPrimitiveTypeByName(divDataType);
 						if (isPrimitive)
 							valueInput.value = fieldValue;
 						else
@@ -85,7 +87,7 @@ class ActionEditor {
 						Utils.addListener(listeners, valueInput, 'change', (_) -> {
 							var value = valueInput.value;
 							var propValue:Dynamic = (valueInput.type == 'number') ? Std.parseFloat(value) : (isPrimitive || value == '') ? value : haxe.Json.parse(value);
-							Reflect.setField(editingAction.props, div.id, propValue);
+							Reflect.setField(editingAction.props, propertyName, propValue);
 							App.dirtyData = true;
 						});
 					} else if (!possibleValuesSelect.classList.contains(Cls.hidden)) {
@@ -97,15 +99,86 @@ class ActionEditor {
 						}
 
 						Utils.addListener(listeners, possibleValuesSelect, 'change', (_) -> {
-							Reflect.setField(editingAction.props, div.id, children[possibleValuesSelect.selectedIndex].textContent);
+							Reflect.setField(editingAction.props, propertyName, children[possibleValuesSelect.selectedIndex].textContent);
 							App.dirtyData = true;
 						});
-					} else {
+					} else if (!booleanValueInput.classList.contains(Cls.hidden)) {
 						booleanValueInput.checked = Std.string(fieldValue) == 'true';
 						Utils.addListener(listeners, booleanValueInput, 'change', (_) -> {
-							Reflect.setField(editingAction.props, div.id, booleanValueInput.checked);
+							Reflect.setField(editingAction.props, propertyName, booleanValueInput.checked);
 							App.dirtyData = true;
 						});
+					} else if (!multiValuesDiv.classList.contains(Cls.hidden)) {
+						var valuesArray:Array<Any> = cast fieldValue;
+						switch Tag.ul.firstFrom(multiValuesDiv) {
+							case Some(v):
+								multiValuesDiv.removeChild(v);
+							case None:
+						}
+
+						var ul = document.createUListElement();
+						switch Cls.add_array_value.firstFrom(multiValuesDiv) {
+							case Some(v):
+								multiValuesDiv.insertBefore(ul, v);
+							case None:
+								multiValuesDiv.appendChild(ul);
+						}
+						var multiValuesType = multiValuesDiv.dataset.type;
+						var isNumeric = Utils.isNumeric(multiValuesType);
+						var isPrimitive = Utils.isPrimitiveTypeByName(multiValuesType);
+
+						function updateValuesArray(ul:UListElement) {
+							var newArray = [];
+							for (ulChild in ul.children) {
+								switch Tag.input.firstFrom(ulChild) {
+									case Some(v):
+										var value = cast(v, InputElement).value;
+										trace(value);
+										var propValue:Dynamic = (isNumeric) ? Std.parseFloat(value) : (isPrimitive || value == '') ? value : haxe.Json.parse(value);
+										newArray.push(propValue);
+									case None:
+								}
+							}
+
+							Reflect.setField(editingAction.props, propertyName, newArray);
+							App.dirtyData = true;
+						}
+
+						inline function addArrayValue(value:Dynamic) {
+							var li = Utils.cloneElement(Id.prop_multi_value_li_tpl.get(), LIElement);
+							li.classList.remove(Cls.hidden);
+							var liChild = document.createInputElement();
+							liChild.type = (isNumeric) ? 'number' : 'text';
+							if (value != null)
+								liChild.value = (isPrimitive) ? value : haxe.Json.stringify(value);
+
+							switch Cls.remove_value.firstFrom(li) {
+								case Some(v):
+									Utils.addListener(listeners, v, 'click', (_) -> {
+										if (!js.Browser.window.confirm("Are you sure you want to remove the element?"))
+											return;
+
+										ul.removeChild(li);
+										updateValuesArray(ul);
+									});
+								case None:
+							}
+							Utils.addListener(listeners, liChild, 'change', (e) -> {
+								updateValuesArray(ul);
+							});
+							li.insertBefore(liChild, li.children[0]);
+							ul.appendChild(li);
+						}
+
+						switch Cls.add_array_value.firstFrom(multiValuesDiv) {
+							case Some(v):
+								Utils.addListener(listeners, v, 'click', (_) -> addArrayValue(null));
+							case None:
+						}
+
+						for (value in valuesArray) {
+							addArrayValue(value);
+						}
 					}
 
 					Id.action_props.get().appendChild(div);
@@ -131,26 +204,31 @@ class ActionEditor {
 			nameSpan:SpanElement,
 			valueInput:InputElement,
 			possibleValuesSelect:SelectElement,
-			booleanValueInput:InputElement;
+			booleanValueInput:InputElement,
+			multiValuesDiv:DivElement;
 		var divs:Array<DivElement> = [];
 		for (prop in actionDescriptor.props) {
-			div = cast Id.action_prop_tpl.get().cloneNode(true);
+			div = Utils.cloneElement(Id.action_prop_tpl.get(), DivElement);
 			div.classList.remove(Cls.hidden);
 			div.id = prop.name;
-			div.dataset.prop_type = prop.type;
+			var divDataType = prop.type.replace('Null<', '');
+			div.dataset.prop_type = divDataType;
 			nameSpan = cast div.querySelector(Cls.prop_name.selector());
 			valueInput = cast div.querySelector(Cls.prop_value.selector());
 			possibleValuesSelect = cast div.querySelector(Cls.prop_possible_values.selector());
 			booleanValueInput = cast div.querySelector(Cls.prop_bool_value.selector());
+			multiValuesDiv = cast div.querySelector(Cls.prop_multi_values.selector());
 			if (prop.values != null && prop.values.length != 0) {
 				possibleValuesSelect.classList.remove(Cls.hidden);
 				Utils.fillSelectElement(possibleValuesSelect, [for (i in 0...prop.values.length) {value: i, text: prop.values[i]}]);
 			} else {
-				var notNullType = prop.type.replace('Null<', '');
-				if (notNullType.startsWith("Bool")) {
+				if (divDataType.startsWith("Bool")) {
 					booleanValueInput.classList.remove(Cls.hidden);
+				} else if (divDataType.startsWith('Array')) {
+					multiValuesDiv.dataset.type = divDataType.replace('Array<', '');
+					multiValuesDiv.classList.remove(Cls.hidden);
 				} else {
-					if (notNullType.startsWith("Int") || notNullType.startsWith("UInt") || notNullType.startsWith("Float")) {
+					if (divDataType.startsWith("Int") || divDataType.startsWith("UInt") || divDataType.startsWith("Float")) {
 						valueInput.type = 'number';
 					}
 					valueInput.classList.remove(Cls.hidden);

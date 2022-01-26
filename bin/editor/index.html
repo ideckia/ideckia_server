@@ -114,9 +114,16 @@
                 <span></span>
                 <input type="button" value="x" class="delete-btn" title="delete action">
             </li>
+            <ul class="hidden"></ul>
             <div id="action-prop-tpl">
                 <span class="prop-name"></span>
                 <input type="text" class="hidden prop-value">
+                <div class="hidden prop-multi-values">
+                    <input type="button" value="+" class="add-array-value">
+                </div>
+                <li class="hidden multi-value-li" id="prop-multi-value-li-tpl">
+                    <input type="button" value="x" class="remove-value">
+                </li>
                 <select class="hidden prop-possible-values"></select>
                 <input type="checkbox" class="hidden prop-bool-value">
             </div>

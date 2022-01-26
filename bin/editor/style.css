@@ -49,7 +49,7 @@ menu {
 #main-container {
     display: grid;
     grid-template-columns: 2fr 1fr 1fr;
-    grid-template-rows: 1fr 1fr;
+    grid-template-rows: 0.5fr 1fr;
     gap: 0px 0px;
     grid-template-areas: 
         "layout-container item-container state-properties"
@@ -257,4 +257,18 @@ input[type="radio"]:parent {
 
 input.row-column {
     width: 4%;
+}
+
+.prop-name {
+    text-decoration: underline dotted;
+    cursor: help;
+}
+
+.multi-value-li > input[type="text"] {
+    width: 90%;
+    margin-right: 1em;
+}
+
+.add-array-value {
+    margin-left: 3em;
 }

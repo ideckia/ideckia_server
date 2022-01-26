@@ -128,6 +128,7 @@ class App {
 		};
 		reader.onerror = function(e) {
 			trace('Error loading image: ' + e.type);
+			Id.new_icon_name.as(InputElement).value = '';
 		};
 
 		Id.add_icon_btn.get().addEventListener('click', (_) -> {
@@ -153,6 +154,8 @@ class App {
 						js.Browser.alert("File too large");
 						return;
 					}
+
+					Id.new_icon_name.as(InputElement).value = image.name;
 
 					reader.readAsDataURL(image);
 				}

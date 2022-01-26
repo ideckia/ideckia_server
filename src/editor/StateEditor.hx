@@ -16,8 +16,7 @@ class StateEditor {
 
 	public static function show(state:ServerState, deletable:Bool) {
 		Id.item_kind_states_properties.get().classList.remove(Cls.hidden);
-		var parentLi:LIElement = cast Id.state_list_item_tpl.get().cloneNode(true);
-		parentLi.removeAttribute('id');
+		var parentLi = Utils.cloneElement(Id.state_list_item_tpl.get(), LIElement);
 		switch Tag.span.firstFrom(parentLi) {
 			case Some(v):
 				var iconText = (state.icon == null) ? '' : ' / icon: [${state.icon.substr(0, 30)}]';

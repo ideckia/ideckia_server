@@ -1,3 +1,4 @@
+import hx.Selectors.IdSel;
 import api.internal.ServerApi;
 import hx.Selectors.Cls;
 import hx.Selectors.Id;
@@ -7,6 +8,8 @@ import js.html.InputElement;
 import js.html.OptionElement;
 import js.html.SelectElement;
 import haxe.ds.Option;
+
+using StringTools;
 
 typedef Listener = {
 	var element:Element;
@@ -54,6 +57,20 @@ class Utils {
 	public static function stopPropagation(e:Event) {
 		e.preventDefault();
 		e.stopPropagation();
+	}
+
+	public static function isNumeric(typeName:String) {
+		return typeName.startsWith("Int") || typeName.startsWith("UInt") || typeName.startsWith("Float");
+	}
+
+	public static function isPrimitiveTypeByName(typeName:String) {
+		return isNumeric(typeName) || typeName.startsWith("String");
+	}
+
+	public static function cloneElement<T:js.html.Element>(element:Element, cls:Class<T>):T {
+		var c = Std.downcast(element.cloneNode(true), cls);
+		c.removeAttribute('id');
+		return c;
 	}
 
 	public static function getIconIndexByName(iconName:String) {

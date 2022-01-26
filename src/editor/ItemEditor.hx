@@ -18,8 +18,7 @@ class ItemEditor {
 		if (item == null)
 			return None;
 
-		var cell:DivElement = cast Id.layout_grid_item_tpl.get().cloneNode(true);
-		cell.removeAttribute('id');
+		var cell = Utils.cloneElement(Id.layout_grid_item_tpl.get(), DivElement);
 		cell.dataset.item_id = Std.string(item.id.toUInt());
 		var callback:ServerItem->Void = (item) -> {};
 
@@ -53,8 +52,10 @@ class ItemEditor {
 				} else {
 					cell.classList.add('dir');
 				}
-			case States(_, list):
-				var state = list[0];
+			case States(index, list):
+				if (index == null)
+					index = 0;
+				var state = list[index];
 				switch Cls.item_icon.firstFrom(cell) {
 					case Some(cell_icon):
 						if (state.icon != null && state.icon != '') {
