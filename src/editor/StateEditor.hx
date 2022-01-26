@@ -68,7 +68,6 @@ class StateEditor {
 						var actionDescriptor = actionDescriptors[selectedActionIndex - 1];
 						var actionPresets = actionDescriptor.presets;
 						Id.new_action_description.get().textContent = actionDescriptor.description;
-						trace('desc: ${actionDescriptor.description}');
 						if (actionPresets != null) {
 							Utils.fillSelectElement(Id.action_presets.as(SelectElement),
 								emptyOption.concat([for (i in 0...actionPresets.length) {value: i + 1, text: actionPresets[i].name}]));

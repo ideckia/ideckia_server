@@ -104,7 +104,9 @@ class ItemEditor {
 	}
 
 	public static function refresh() {
-		edit(editingItem);
+		var oldItem = editingItem;
+		hide();
+		edit(oldItem);
 	}
 
 	public static function edit(item:ServerItem) {
@@ -181,7 +183,7 @@ class ItemEditor {
 						editingItem.kind = newItem.kind;
 						App.dirtyData = true;
 						DirEditor.refresh();
-						edit(editingItem);
+						refresh();
 						return;
 					}).catchError(error -> trace(error));
 				});
