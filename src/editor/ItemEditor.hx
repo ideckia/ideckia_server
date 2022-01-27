@@ -130,6 +130,9 @@ class ItemEditor {
 			if (js.Browser.window.confirm('Do you want to clear the item?')) {
 				editingItem.kind = null;
 				App.dirtyData = true;
+				StateEditor.hide();
+				ItemEditor.hide();
+				ActionEditor.hide();
 				DirEditor.refresh();
 			}
 		});
