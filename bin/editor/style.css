@@ -13,10 +13,6 @@ menu {
     width: 45%;
 }
 
-#delete-dir-btn {
-    border-right: ;
-}
-
 #execute-actions-lbl {
     float: right;
 }
@@ -49,7 +45,7 @@ menu {
 #main-container {
     display: grid;
     grid-template-columns: 2fr 1fr 1fr;
-    grid-template-rows: 0.5fr 1fr;
+    grid-template-rows: 0fr 1fr;
     gap: 0px 0px;
     grid-template-areas: 
         "layout-container item-container state-properties"
@@ -168,7 +164,7 @@ menu {
     padding: 1em;
     border: 2px solid;
     display: grid;
-    grid-template-rows: 1fr 4fr 1fr;
+    grid-template-rows: 0fr 4fr 0fr;
     grid-template-areas: 
     "dialog-title"
     "dialog-content"
@@ -184,13 +180,15 @@ menu {
     grid-area: dialog-content;
     border-bottom: 1px solid;
     padding: 1em;
+    overflow: auto;
+    height: 400px;
 }
 
 #dialog-content > * > * > input,
 #dialog-content > * > * > textarea,
 #dialog-content > * > * > label,
 #dialog-content > * > * > select {
-    width: 100%;
+    width: 95%;
     margin-bottom: .5em;
     display: block;
     font-size: 2em;
@@ -240,12 +238,12 @@ input[type="radio"]:parent {
     padding-top: 1.5em;
 }
 
-#cancel-dialog-btn {
+#accept-dialog-btn {
     position: relative;
     left: 35%;
 }
 
-#accept-dialog-btn {
+#cancel-dialog-btn {
     position: relative;
     left: 50%;
 }
@@ -271,4 +269,8 @@ input.row-column {
 
 .add-array-value {
     margin-left: 3em;
+}
+
+.shared-var-edit {
+    border: black 1px dotted;
 }

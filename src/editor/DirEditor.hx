@@ -50,7 +50,7 @@ class DirEditor {
 			addMissingItems();
 		});
 
-		for (d in Cls.draggable.get()) {
+		for (d in Cls.draggable_item.get()) {
 			Utils.addListener(listeners, d, 'dragstart', (_) -> onDragStart(d.dataset.item_id));
 			Utils.addListener(listeners, d, 'dragover', onDragOver);
 			Utils.addListener(listeners, d, 'dragleave', onDragLeave);

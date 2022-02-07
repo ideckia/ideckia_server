@@ -39,6 +39,7 @@ class LayoutManager {
 				rows: 0,
 				columns: 0,
 				dirs: [],
+				sharedVars: [],
 				icons: []
 			};
 		}
@@ -110,6 +111,17 @@ class LayoutManager {
 
 		Log.debug('State [id=${state.id}] of the item [id=$itemId]: [text=${state.text}], [icon=${state.icon}]');
 		return state;
+	}
+
+	public static function getSharedValue(sharedName:String) {
+		if (layout.sharedVars != null) {
+			for (sv in layout.sharedVars) {
+				if (sv.key == sharedName)
+					return Some(sv.value);
+			}
+		}
+
+		return None;
 	}
 
 	public static inline function currentDirForClient():ServerMsg<ClientLayout> {

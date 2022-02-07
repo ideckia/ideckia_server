@@ -28,7 +28,7 @@ class ActionEditor {
 			case None:
 				trace('No [${Tag.span.selector()}] found in [${Id.action_list_item_tpl.selector()}]');
 		}
-		li.addEventListener('click', (event:Event) -> {
+		Utils.addListener(listeners, li, 'click', (event:Event) -> {
 			event.stopImmediatePropagation();
 			Utils.selectElement(li);
 			edit(action);
@@ -37,10 +37,9 @@ class ActionEditor {
 		switch Cls.delete_btn.firstFrom(li) {
 			case Some(v):
 				v.addEventListener('click', (event) -> {
-					event.stopImmediatePropagation();
+					Utils.stopPropagation(event);
 					if (js.Browser.window.confirm('Do you want to remove the action [${action.name}]?')) {
 						parentState.actions.remove(action);
-						Utils.hideAllProps();
 						App.dirtyData = true;
 						DirEditor.refresh();
 						ItemEditor.refresh();
@@ -133,7 +132,6 @@ class ActionEditor {
 								switch Tag.input.firstFrom(ulChild) {
 									case Some(v):
 										var value = cast(v, InputElement).value;
-										trace(value);
 										var propValue:Dynamic = (isNumeric) ? Std.parseFloat(value) : (isPrimitive || value == '') ? value : haxe.Json.parse(value);
 										newArray.push(propValue);
 									case None:
@@ -148,7 +146,13 @@ class ActionEditor {
 							var li = Utils.cloneElement(Id.prop_multi_value_li_tpl.get(), LIElement);
 							li.classList.remove(Cls.hidden);
 							var liChild = document.createInputElement();
-							liChild.type = (isNumeric) ? 'number' : 'text';
+							if (isNumeric) {
+								liChild.type = 'number';
+							} else {
+								liChild.type = 'text';
+								liChild.setAttribute('list', Id.shared_vars_datalist);
+							}
+
 							if (value != null)
 								liChild.value = (isPrimitive) ? value : haxe.Json.stringify(value);
 
@@ -208,6 +212,26 @@ class ActionEditor {
 			multiValuesDiv:DivElement;
 		var divs:Array<DivElement> = [];
 		for (prop in actionDescriptor.props) {
+			if (prop.isShared) {
+				var sharedName = actionDescriptor.name + '.' + prop.name;
+				var found = false;
+				for (sv in App.editorData.layout.sharedVars) {
+					if (sv.key == sharedName) {
+						found = true;
+					}
+				}
+
+				if (!found) {
+					App.updateSharedValues({
+						key: sharedName,
+						value: prop.defaultValue
+					});
+				}
+
+				prop.defaultValue = sharedName;
+				Reflect.setField(editingAction.props, prop.name, '$' + sharedName);
+			}
+
 			div = Utils.cloneElement(Id.action_prop_tpl.get(), DivElement);
 			div.classList.remove(Cls.hidden);
 			div.id = prop.name;
@@ -230,6 +254,8 @@ class ActionEditor {
 				} else {
 					if (divDataType.startsWith("Int") || divDataType.startsWith("UInt") || divDataType.startsWith("Float")) {
 						valueInput.type = 'number';
+					} else {
+						valueInput.setAttribute('list', Id.shared_vars_datalist);
 					}
 					valueInput.classList.remove(Cls.hidden);
 				}

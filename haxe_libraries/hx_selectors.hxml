@@ -1,3 +1,3 @@
-# @install: lix --silent download "haxelib:/hx_selectors#1.0.2" into hx_selectors/1.0.2/haxelib
--cp ${HAXE_LIBCACHE}/hx_selectors/1.0.2/haxelib/src
--D hx_selectors=1.0.2
+# @install: lix --silent download "gh://github.com/josuigoa/hx_selectors#902df11b8a94f9b06ed31e5aacc5a24994f00a7f" into hx_selectors/1.0.3/github/902df11b8a94f9b06ed31e5aacc5a24994f00a7f
+-cp ${HAXE_LIBCACHE}/hx_selectors/1.0.3/github/902df11b8a94f9b06ed31e5aacc5a24994f00a7f/src
+-D hx_selectors=1.0.3

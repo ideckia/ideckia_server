@@ -26,9 +26,10 @@
         <menu>
             <input type="button" value="add directory" id="add-dir-btn">
             <input type="button" value="add icon" id="add-icon-btn">
+            <input type="button" value="edit shared values" id="edit-shared-btn">
             <label id="execute-actions-lbl" for="execute-actions-cb"
-                title="If activated, clicked states will be executed.">
-                Use as app
+                title="If activated, clicked states will be executed in the server.">
+                Use as client
                 <input type="checkbox" name="execute-actions" id="execute-actions-cb">
             </label>
         </menu>
@@ -95,22 +96,16 @@
         </div>
 
         <div id="templates" class="hidden">
-            <div id="layout-grid-item-tpl" draggable="true" class="layout-grid-item draggable">
+            <div id="layout-grid-item-tpl" draggable="true" class="layout-grid-item draggable-item">
                 <span></span>
                 <img alt="This is the selected icon preview" src="" class="hidden item-icon icon" />
             </div>
-            <li id="item-grid-item-tpl" draggable="true" class="item-list-item draggable">
-                <span></span>
-                <input type="button" value="create item" class="create-item-btn hidden">
-                <input type="button" value="+" class="add-state-btn" title="add state">
-                <input type="button" value="x" class="delete-btn" title="delete state">
-            </li>
             <li id="state-list-item-tpl" class="state-list-item">
                 <span></span>
                 <input type="button" value="+" class="add-action-btn" title="add action">
                 <input type="button" value="x" class="delete-btn" title="delete state">
             </li>
-            <li id="action-list-item-tpl" class="action-list-item">
+            <li id="action-list-item-tpl" class="action-list-item draggable-action">
                 <span></span>
                 <input type="button" value="x" class="delete-btn" title="delete action">
             </li>
@@ -183,6 +178,13 @@
                     </label>
                 </div>
             </div>
+
+            <div id="shared-var-edit" class="shared-var-edit">
+                <label for="item-kind-changedir-radio">Key</label>
+                <input type="text" name="shared-var-edit-key" class="shared-var-edit-key">
+                <label for="item-kind-states-radio">Value</label>
+                <input type="text" name="shared-var-edit-value" class="shared-var-edit-value">
+            </div>
         </div>
 
         <div id="modal-window" class="hidden">
@@ -190,11 +192,14 @@
                 <h2 id="dialog-title">title</h2>
                 <div id="dialog-content"></div>
                 <div id="dialog-buttons">
-                    <input id="cancel-dialog-btn" type="button" value="Cancel">
                     <input id="accept-dialog-btn" type="button" value="Accept">
+                    <input id="cancel-dialog-btn" type="button" value="Cancel">
                 </div>
             </div>
         </div>
+
+        <datalist id="shared-vars-datalist">
+        </datalist>
     </body>
 
 </html>

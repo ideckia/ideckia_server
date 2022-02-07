@@ -44,6 +44,7 @@ class ClientManager {
 							Log.debug('newState: $newState');
 							currentState.text = newState.text;
 							currentState.textColor = newState.textColor;
+							currentState.textSize = newState.textSize;
 							currentState.icon = newState.icon;
 							currentState.bgColor = newState.bgColor;
 						}
@@ -83,6 +84,7 @@ class ClientManager {
 
 		var tx = newState.text;
 		var txc = newState.textColor;
+		var txs = newState.textSize;
 		var ic = newState.icon;
 		var bgc = newState.bgColor;
 
@@ -90,6 +92,8 @@ class ClientManager {
 			currentState.text = tx;
 		if (txc != null)
 			currentState.textColor = txc;
+		if (txs != null)
+			currentState.textSize = txs;
 		if (ic != null)
 			currentState.icon = ic;
 		if (bgc != null)
