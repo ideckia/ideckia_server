@@ -213,23 +213,30 @@ class App {
 		Id.edit_shared_btn.get().addEventListener('click', (_) -> {
 			var container:Element = document.createDivElement();
 			var div;
-			for (sv in editorData.layout.sharedVars) {
+
+			inline function createSharedDataDiv(key, value) {
 				div = Utils.cloneElement(Id.shared_var_edit.get(), DivElement);
 
 				switch Cls.shared_var_edit_key.firstFromAs(div, InputElement) {
 					case Some(svKey):
-						svKey.value = sv.key;
+						svKey.value = key;
 					case None:
 				}
 
 				switch Cls.shared_var_edit_value.firstFromAs(div, InputElement) {
 					case Some(svValue):
-						svValue.value = sv.value;
+						svValue.value = value;
 					case None:
 				}
 
-				container.appendChild(div);
+				return div;
 			}
+
+			container.appendChild(createSharedDataDiv('', ''));
+			for (sv in editorData.layout.sharedVars) {
+				container.appendChild(createSharedDataDiv(sv.key, sv.value));
+			}
+
 			Dialog.show('Shared values', container, () -> {
 				return new js.lib.Promise((resolveDialog, _) -> {
 					var svDivs = Cls.shared_var_edit.from(container);
