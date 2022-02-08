@@ -1,3 +1,4 @@
+import js.html.Element;
 import js.html.ImageElement;
 import api.internal.ServerApi;
 import hx.Selectors.Cls;
@@ -11,6 +12,7 @@ import haxe.ds.Option;
 
 class ItemEditor {
 	static var editingItem:ServerItem;
+	static var draggingStateIndex:UInt;
 	static var listeners:Array<Utils.Listener> = [];
 	static var cellListeners:Array<Utils.Listener> = [];
 
@@ -171,11 +173,18 @@ class ItemEditor {
 				var uList = document.createUListElement();
 				var li;
 				var deletable = list.length > 1;
-				for (state in list) {
-					li = StateEditor.show(state, deletable);
+				for (i in 0...list.length) {
+					li = StateEditor.show(list[i], deletable);
+					li.dataset.state_id = Std.string(i);
 					uList.append(li);
 				}
 				parentDiv.append(uList);
+				for (d in Cls.draggable_state.from(uList)) {
+					Utils.addListener(listeners, d, 'dragstart', (_) -> onDragStart(d.dataset.state_id));
+					Utils.addListener(listeners, d, 'dragover', onDragOver);
+					Utils.addListener(listeners, d, 'dragleave', onDragLeave);
+					Utils.addListener(listeners, d, 'drop', (e) -> onDrop(e, item));
+				}
 
 				Utils.addListener(listeners, Id.add_state_btn.get(), 'click', (_) -> {});
 			case null:
@@ -206,6 +215,45 @@ class ItemEditor {
 				var select = Id.to_dir_select.as(SelectElement);
 				var children = select.children;
 				editingItem.kind = ChangeDir(new DirName(children[select.selectedIndex].textContent), state);
+			case _:
+		}
+	}
+
+	static function onDragStart(stateId:String) {
+		draggingStateIndex = Std.parseInt(stateId);
+	}
+
+	static function onDragOver(e:Event) {
+		e.preventDefault();
+		var targetElement = cast(e.currentTarget, Element);
+		if (!targetElement.classList.contains(Cls.drag_over))
+			targetElement.classList.add(Cls.drag_over);
+	}
+
+	static function onDragLeave(e:Event) {
+		e.preventDefault();
+		var targetElement = cast(e.currentTarget, Element);
+		targetElement.classList.remove(Cls.drag_over);
+	}
+
+	static function onDrop(e:Event, item:ServerItem) {
+		for (d in Cls.drag_over.get())
+			d.classList.remove(Cls.drag_over);
+		var targetStateIndex = Std.parseInt(cast(e.currentTarget, Element).dataset.state_id);
+
+		trace(draggingStateIndex);
+		trace(targetStateIndex);
+		// var actionToMove = item.actions.splice(draggingStateIndex, 1)[0];
+		switch item.kind {
+			case States(index, list):
+				var stateToMove = list.splice(draggingStateIndex, 1)[0];
+				if (stateToMove != null) {
+					list.insert(targetStateIndex, stateToMove);
+					item.kind = States(index, list);
+					App.dirtyData = true;
+					DirEditor.refresh();
+					refresh();
+				}
 			case _:
 		}
 	}

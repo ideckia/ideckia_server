@@ -1,3 +1,4 @@
+import js.html.Element;
 import js.html.SelectElement;
 import api.internal.ServerApi;
 import js.Browser.document;
@@ -11,6 +12,7 @@ import hx.Selectors.Tag;
 
 class StateEditor {
 	static var editingState:ServerState;
+	static var draggingActionIndex:UInt;
 
 	static var listeners:Array<Utils.Listener> = [];
 
@@ -35,10 +37,19 @@ class StateEditor {
 
 		if (state.actions != null) {
 			var ulActions = document.createUListElement();
-			for (action in state.actions) {
-				ulActions.append(ActionEditor.show(action, state));
+			var liAction;
+			for (i in 0...state.actions.length) {
+				liAction = ActionEditor.show(state.actions[i], state);
+				liAction.dataset.action_id = Std.string(i);
+				ulActions.append(liAction);
 			}
 			parentLi.append(ulActions);
+			for (d in Cls.draggable_action.from(ulActions)) {
+				Utils.addListener(listeners, d, 'dragstart', (_) -> onDragStart(d.dataset.action_id));
+				Utils.addListener(listeners, d, 'dragover', onDragOver);
+				Utils.addListener(listeners, d, 'dragleave', onDragLeave);
+				Utils.addListener(listeners, d, 'drop', (e) -> onDrop(e, state));
+			}
 		}
 
 		parentLi.addEventListener('click', (event:Event) -> {
@@ -49,7 +60,7 @@ class StateEditor {
 
 		switch Cls.add_action_btn.firstFrom(parentLi) {
 			case Some(v):
-				v.addEventListener('click', (event) -> {
+				Utils.addListener(listeners, v, 'click', (event) -> {
 					Utils.stopPropagation(event);
 
 					var actionDescriptors = App.editorData.actionDescriptors;
@@ -134,7 +145,7 @@ class StateEditor {
 
 		switch Cls.delete_btn.firstFrom(parentLi) {
 			case Some(v):
-				v.addEventListener('click', (event) -> {
+				Utils.addListener(listeners, v, 'click', (event) -> {
 					event.stopImmediatePropagation();
 
 					if (js.Browser.window.confirm('Do you want to remove the state [${state.text}]?')) {
@@ -159,6 +170,40 @@ class StateEditor {
 				trace('No [${Cls.delete_btn.selector()}] found in [${Id.state_list_item_tpl.selector()}]');
 		}
 		return parentLi;
+	}
+
+	static function onDragStart(actionId:String) {
+		draggingActionIndex = Std.parseInt(actionId);
+	}
+
+	static function onDragOver(e:Event) {
+		e.preventDefault();
+		var targetElement = cast(e.currentTarget, Element);
+		if (!targetElement.classList.contains(Cls.drag_over))
+			targetElement.classList.add(Cls.drag_over);
+	}
+
+	static function onDragLeave(e:Event) {
+		e.preventDefault();
+		var targetElement = cast(e.currentTarget, Element);
+		targetElement.classList.remove(Cls.drag_over);
+	}
+
+	static function onDrop(e:Event, state:ServerState) {
+		for (d in Cls.drag_over.get())
+			d.classList.remove(Cls.drag_over);
+		var targetActionIndex = Std.parseInt(cast(e.currentTarget, Element).dataset.action_id);
+
+		trace(draggingActionIndex);
+		trace(targetActionIndex);
+		var actionToMove = state.actions.splice(draggingActionIndex, 1)[0];
+
+		if (actionToMove != null) {
+			state.actions.insert(targetActionIndex, actionToMove);
+			App.dirtyData = true;
+			DirEditor.refresh();
+			ItemEditor.refresh();
+		}
 	}
 
 	public static function refresh() {

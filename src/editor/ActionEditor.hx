@@ -28,7 +28,7 @@ class ActionEditor {
 			case None:
 				trace('No [${Tag.span.selector()}] found in [${Id.action_list_item_tpl.selector()}]');
 		}
-		Utils.addListener(listeners, li, 'click', (event:Event) -> {
+		li.addEventListener('click', (event:Event) -> {
 			event.stopImmediatePropagation();
 			Utils.selectElement(li);
 			edit(action);
