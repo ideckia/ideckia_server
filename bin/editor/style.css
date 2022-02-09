@@ -209,7 +209,7 @@ input[type="radio"]:parent {
 }
 
 #new-action-description {
-    width: 100%;
+    width: 95%;
     margin-bottom: 1em;
     display: block;
     font-size: 1em;
