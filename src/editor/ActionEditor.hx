@@ -224,11 +224,10 @@ class ActionEditor {
 				if (!found) {
 					App.updateSharedValues({
 						key: sharedName,
-						value: prop.defaultValue
+						value: prop.defaultValue.replace('"', '')
 					});
 				}
 
-				prop.defaultValue = sharedName;
 				Reflect.setField(editingAction.props, prop.name, '$' + sharedName);
 			}
 
@@ -252,7 +251,7 @@ class ActionEditor {
 					multiValuesDiv.dataset.type = divDataType.replace('Array<', '');
 					multiValuesDiv.classList.remove(Cls.hidden);
 				} else {
-					if (divDataType.startsWith("Int") || divDataType.startsWith("UInt") || divDataType.startsWith("Float")) {
+					if (!prop.isShared && Utils.isNumeric(divDataType)) {
 						valueInput.type = 'number';
 					} else {
 						valueInput.setAttribute('list', Id.shared_vars_datalist);
