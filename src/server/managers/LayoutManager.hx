@@ -208,17 +208,7 @@ class LayoutManager {
 		// item IDs
 		setItemAndStateIds(getAllItems());
 		// action IDs
-		var actions = [];
-		for (i in getAllItems())
-			i.kind = switch i.kind {
-				case States(_, list):
-					for (s in list)
-						actions.concat(s.actions);
-					States(0, list);
-				case k:
-					k;
-			}
-		setActionIds(actions.filter(action -> action != null));
+		setActionIds();
 	}
 
 	public static function appendLayout(newLayout:Layout) {
@@ -259,7 +249,7 @@ class LayoutManager {
 				default:
 			}
 
-		setActionIds(actions.filter(action -> action != null), true);
+		setActionIds(true);
 
 		return tinkJsonStringify(expLayout);
 	}
@@ -313,9 +303,20 @@ class LayoutManager {
 		}
 	}
 
-	static function setActionIds(actions:Array<Action>, toNull:Bool = false) {
+	static function setActionIds(toNull:Bool = false) {
 		var id = 0;
-		for (a in actions)
-			a.id = toNull ? null : new ActionId(id++);
+		for (i in getAllItems())
+			i.kind = switch i.kind {
+				case States(_, list):
+					for (s in list) {
+						if (s.actions != null)
+							for (a in s.actions)
+								if (a != null)
+									a.id = toNull ? null : new ActionId(id++);
+					}
+					States(0, list);
+				case k:
+					k;
+			}
 	}
 }
