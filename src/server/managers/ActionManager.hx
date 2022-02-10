@@ -58,6 +58,7 @@ class ActionManager {
 					}
 				}
 
+				state.textSize = state.textSize == null ? LayoutManager.layout.textSize : state.textSize;
 				ideckiaAction.setup(action.props, idkServer);
 				ideckiaAction.init(state).then(newState -> {
 					if (newState != null) {
