@@ -29,6 +29,16 @@ menu {
     border-style: dotted;
     margin-bottom: 1em;
     padding: 1em;
+    display: grid;
+}
+
+#fixed-content {
+    border: gray;
+    border-style: dotted;
+    margin-bottom: 1em;
+    padding: 1em;
+    overflow-x: auto;
+    display: grid;
 }
 
 #dir-content ul, li {
@@ -100,10 +110,6 @@ menu {
 
 .drag-over {
     background-color: ghostwhite !important;
-}
-
-#dir-content {
-    display: grid;
 }
 
 .layout-grid-item {

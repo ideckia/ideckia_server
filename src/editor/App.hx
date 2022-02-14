@@ -116,6 +116,16 @@ class App {
 			}).catchError(error -> trace(error));
 		});
 
+		Id.add_fixed_item_btn.get().addEventListener('click', (_) -> {
+			Utils.createNewItem().then(item -> {
+				if (editorData.layout.fixedItems == null)
+					editorData.layout.fixedItems = [];
+				editorData.layout.fixedItems.push(item);
+				App.dirtyData = true;
+				FixedEditor.show();
+			}).catchError(error -> trace(error));
+		});
+
 		Id.delete_dir_btn.get().addEventListener('click', (_) -> {
 			var currentDir = @:privateAccess DirEditor.currentDir;
 			if (js.Browser.window.confirm('Are you sure you want to delete the [${currentDir.name.toString()}] directory?')) {
@@ -379,6 +389,7 @@ class App {
 					updateIcons();
 
 					updateDirsSelect();
+					FixedEditor.show();
 
 				case _:
 					trace('Unhandled message from server [${haxe.Json.stringify(event)}]');

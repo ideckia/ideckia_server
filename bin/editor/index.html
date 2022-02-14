@@ -21,6 +21,7 @@
             <label for="current-dir-columns">columns</label>
             <input type="number" id="current-dir-columns" class="row-column">
             <input type="button" value="add item" id="add-item-btn">
+            <input type="button" value="add fixed item" id="add-fixed-item-btn">
             <input type="button" value="x" id="delete-dir-btn" title="delete directory">
         </menu>
         <menu>
@@ -35,7 +36,14 @@
         </menu>
         <div id="main-container">
             <div id="layout-container">
-                <div id="dir-content"></div>
+                <div>
+                    <h3>Directory items</h3>
+                    <div id="dir-content"></div>
+                </div>
+                <div>
+                    <h3>Fixed items</h3>
+                    <div id="fixed-content"></div>
+                </div>
                 <div id="buttons">
                     <input type="button" value="Update server layout" id="update-server-layout-btn" class="hidden">
                     <span id="layout-updated" class="hidden">Server layout updated!</span>
@@ -96,7 +104,7 @@
         </div>
 
         <div id="templates" class="hidden">
-            <div id="layout-grid-item-tpl" draggable="true" class="layout-grid-item draggable-item">
+            <div id="layout-grid-item-tpl" draggable="true" class="layout-grid-item draggable-item draggable-fixed-item">
                 <span></span>
                 <img alt="This is the selected icon preview" src="" class="hidden item-icon icon" />
             </div>

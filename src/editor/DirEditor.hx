@@ -28,6 +28,7 @@ class DirEditor {
 				switch ItemEditor.show(item) {
 					case Some(cell):
 						Id.dir_content.get().append(cell);
+						cell.classList.remove(Cls.draggable_fixed_item);
 					case None:
 				}
 			}

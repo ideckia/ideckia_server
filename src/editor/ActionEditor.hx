@@ -43,6 +43,7 @@ class ActionEditor {
 						App.dirtyData = true;
 						DirEditor.refresh();
 						ItemEditor.refresh();
+						FixedEditor.show();
 					}
 				});
 			case None:

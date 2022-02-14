@@ -16,7 +16,7 @@ class ItemEditor {
 	static var listeners:Array<Utils.Listener> = [];
 	static var cellListeners:Array<Utils.Listener> = [];
 
-	public static function show(item:ServerItem) {
+	public static function show(item:ServerItem):Option<Element> {
 		if (item == null)
 			return None;
 
@@ -93,7 +93,7 @@ class ItemEditor {
 				trace('No [${Tag.span.selector()}] found in [${Id.layout_grid_item_tpl.selector()}]');
 		}
 
-		Utils.addListener(cellListeners, cell, 'click', (event:Event) -> {
+		cell.addEventListener('click', (event:Event) -> {
 			Utils.stopPropagation(event);
 			Utils.selectElement(cell);
 			Utils.hideAllProps();
@@ -241,9 +241,6 @@ class ItemEditor {
 			d.classList.remove(Cls.drag_over);
 		var targetStateIndex = Std.parseInt(cast(e.currentTarget, Element).dataset.state_id);
 
-		trace(draggingStateIndex);
-		trace(targetStateIndex);
-		// var actionToMove = item.actions.splice(draggingStateIndex, 1)[0];
 		switch item.kind {
 			case States(index, list):
 				var stateToMove = list.splice(draggingStateIndex, 1)[0];

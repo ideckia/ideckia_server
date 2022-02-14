@@ -110,6 +110,7 @@ class StateEditor {
 								App.dirtyData = true;
 								DirEditor.refresh();
 								ItemEditor.refresh();
+								FixedEditor.show();
 								ActionEditor.edit(action);
 								resolve(true);
 							}
@@ -159,6 +160,7 @@ class StateEditor {
 												App.dirtyData = true;
 												DirEditor.refresh();
 												ItemEditor.refresh();
+												FixedEditor.show();
 											}
 									default:
 								}
@@ -194,8 +196,6 @@ class StateEditor {
 			d.classList.remove(Cls.drag_over);
 		var targetActionIndex = Std.parseInt(cast(e.currentTarget, Element).dataset.action_id);
 
-		trace(draggingActionIndex);
-		trace(targetActionIndex);
 		var actionToMove = state.actions.splice(draggingActionIndex, 1)[0];
 
 		if (actionToMove != null) {
@@ -203,6 +203,7 @@ class StateEditor {
 			App.dirtyData = true;
 			DirEditor.refresh();
 			ItemEditor.refresh();
+			FixedEditor.show();
 		}
 	}
 
@@ -324,5 +325,6 @@ class StateEditor {
 		App.dirtyData = true;
 		DirEditor.refresh();
 		ItemEditor.refresh();
+		FixedEditor.show();
 	}
 }
