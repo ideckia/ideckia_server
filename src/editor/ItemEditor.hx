@@ -129,15 +129,44 @@ class ItemEditor {
 
 		Utils.addListener(listeners, Id.clear_item_btn.get(), 'click', (event) -> {
 			Utils.stopPropagation(event);
-			if (js.Browser.window.confirm('Do you want to clear the item?')) {
+			if (js.Browser.window.confirm('Do you want to CLEAR the item?')) {
 				editingItem.kind = null;
 				App.dirtyData = true;
 				StateEditor.hide();
 				ItemEditor.hide();
 				ActionEditor.hide();
 				DirEditor.refresh();
+				FixedEditor.show();
 			}
 		});
+
+		Utils.addListener(listeners, Id.remove_item_btn.get(), 'click', (event) -> {
+			Utils.stopPropagation(event);
+			if (js.Browser.window.confirm('Do you want to REMOVE the item?')) {
+				editingItem.kind = null;
+
+				function removeItem(items:Array<ServerItem>) {
+					for (i in items) {
+						if (i.id == editingItem.id) {
+							items.remove(i);
+							return true;
+						}
+					}
+					return false;
+				}
+
+				if (!removeItem(@:privateAccess DirEditor.currentDir.items)) {
+					removeItem(App.editorData.layout.fixedItems);
+				}
+				App.dirtyData = true;
+				StateEditor.hide();
+				ItemEditor.hide();
+				ActionEditor.hide();
+				DirEditor.refresh();
+				FixedEditor.show();
+			}
+		});
+
 		Id.item_container.get().classList.remove(Cls.hidden);
 		Id.add_item_kind_btn.get().classList.add(Cls.hidden);
 		Id.add_state_btn.get().classList.add(Cls.hidden);
