@@ -39,6 +39,8 @@ class LayoutManager {
 				rows: 0,
 				columns: 0,
 				dirs: [],
+				fixedItems: [],
+				sharedVars: [],
 				icons: []
 			};
 		}
@@ -76,18 +78,21 @@ class LayoutManager {
 	}
 
 	public static function getAllItems() {
+		var fixedItems = layout.fixedItems == null ? [] : layout.fixedItems;
 		return [
 			for (f in layout.dirs)
 				for (i in f.items)
 					i
-		];
+		].concat([
+			for (fi in fixedItems)
+				fi
+		]);
 	}
 
 	public static function getItem(itemId:ItemId) {
-		for (f in layout.dirs)
-			for (i in f.items)
-				if (i.id == itemId)
-					return i;
+		for (i in getAllItems())
+			if (i.id == itemId)
+				return i;
 
 		throw new ItemNotFoundException('Could not find [$itemId] item');
 	}
@@ -112,6 +117,17 @@ class LayoutManager {
 		return state;
 	}
 
+	public static function getSharedValue(sharedName:String) {
+		if (layout.sharedVars != null) {
+			for (sv in layout.sharedVars) {
+				if (sv.key == sharedName)
+					return Some(sv.value);
+			}
+		}
+
+		return None;
+	}
+
 	public static inline function currentDirForClient():ServerMsg<ClientLayout> {
 		Log.debug('Sending current directory to client.');
 
@@ -130,27 +146,30 @@ class LayoutManager {
 		var rows = currentDir.rows == null ? layout.rows : currentDir.rows;
 		var columns = currentDir.columns == null ? layout.columns : currentDir.columns;
 
+		function transformItem(item:ServerItem) {
+			var currentState = getItemCurrentState(item.id);
+
+			// from ServerState to ClientItem
+			var clientItem:ClientItem = {id: item.id.toUInt()};
+
+			if (currentState != null) {
+				clientItem.text = currentState.text;
+				clientItem.textSize = currentState.textSize == null ? layout.textSize : currentState.textSize;
+				clientItem.textColor = currentState.textColor;
+				clientItem.icon = getIconData(currentState.icon);
+				clientItem.bgColor = currentState.bgColor;
+			}
+
+			return clientItem;
+		}
+
 		return {
 			type: ServerMsgType.layout,
 			data: {
 				rows: rows,
 				columns: columns,
-				items: getCurrentItems().map(i -> {
-					var currentState = getItemCurrentState(i.id);
-
-					// from ServerState to ClientItem
-					var clientItem:ClientItem = {id: i.id.toUInt()};
-
-					if (currentState != null) {
-						clientItem.text = currentState.text;
-						clientItem.textSize = currentState.textSize == null ? layout.textSize : currentState.textSize;
-						clientItem.textColor = currentState.textColor;
-						clientItem.icon = getIconData(currentState.icon);
-						clientItem.bgColor = currentState.bgColor;
-					}
-
-					clientItem;
-				})
+				items: getCurrentItems().map(transformItem),
+				fixedItems: layout.fixedItems == null ? [] : layout.fixedItems.map(transformItem)
 			}
 		};
 	}
@@ -196,17 +215,7 @@ class LayoutManager {
 		// item IDs
 		setItemAndStateIds(getAllItems());
 		// action IDs
-		var actions = [];
-		for (i in getAllItems())
-			i.kind = switch i.kind {
-				case States(_, list):
-					for (s in list)
-						actions.concat(s.actions);
-					States(0, list);
-				case k:
-					k;
-			}
-		setActionIds(actions.filter(action -> action != null));
+		setActionIds();
 	}
 
 	public static function appendLayout(newLayout:Layout) {
@@ -247,7 +256,7 @@ class LayoutManager {
 				default:
 			}
 
-		setActionIds(actions.filter(action -> action != null), true);
+		setActionIds(true);
 
 		return tinkJsonStringify(expLayout);
 	}
@@ -301,9 +310,20 @@ class LayoutManager {
 		}
 	}
 
-	static function setActionIds(actions:Array<Action>, toNull:Bool = false) {
+	static function setActionIds(toNull:Bool = false) {
 		var id = 0;
-		for (a in actions)
-			a.id = toNull ? null : new ActionId(id++);
+		for (i in getAllItems())
+			i.kind = switch i.kind {
+				case States(_, list):
+					for (s in list) {
+						if (s.actions != null)
+							for (a in s.actions)
+								if (a != null)
+									a.id = toNull ? null : new ActionId(id++);
+					}
+					States(0, list);
+				case k:
+					k;
+			}
 	}
 }

@@ -28,6 +28,7 @@ class DirEditor {
 				switch ItemEditor.show(item) {
 					case Some(cell):
 						Id.dir_content.get().append(cell);
+						cell.classList.remove(Cls.draggable_fixed_item);
 					case None:
 				}
 			}
@@ -50,7 +51,7 @@ class DirEditor {
 			addMissingItems();
 		});
 
-		for (d in Cls.draggable.get()) {
+		for (d in Cls.draggable_item.get()) {
 			Utils.addListener(listeners, d, 'dragstart', (_) -> onDragStart(d.dataset.item_id));
 			Utils.addListener(listeners, d, 'dragover', onDragOver);
 			Utils.addListener(listeners, d, 'dragleave', onDragLeave);

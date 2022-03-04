@@ -1,3 +1,4 @@
+import js.html.Element;
 import js.html.SelectElement;
 import api.internal.ServerApi;
 import js.Browser.document;
@@ -11,13 +12,13 @@ import hx.Selectors.Tag;
 
 class StateEditor {
 	static var editingState:ServerState;
+	static var draggingActionIndex:UInt;
 
 	static var listeners:Array<Utils.Listener> = [];
 
 	public static function show(state:ServerState, deletable:Bool) {
 		Id.item_kind_states_properties.get().classList.remove(Cls.hidden);
-		var parentLi:LIElement = cast Id.state_list_item_tpl.get().cloneNode(true);
-		parentLi.removeAttribute('id');
+		var parentLi = Utils.cloneElement(Id.state_list_item_tpl.get(), LIElement);
 		switch Tag.span.firstFrom(parentLi) {
 			case Some(v):
 				var iconText = (state.icon == null) ? '' : ' / icon: [${state.icon.substr(0, 30)}]';
@@ -36,10 +37,19 @@ class StateEditor {
 
 		if (state.actions != null) {
 			var ulActions = document.createUListElement();
-			for (action in state.actions) {
-				ulActions.append(ActionEditor.show(action, state));
+			var liAction;
+			for (i in 0...state.actions.length) {
+				liAction = ActionEditor.show(state.actions[i], state);
+				liAction.dataset.action_id = Std.string(i);
+				ulActions.append(liAction);
 			}
 			parentLi.append(ulActions);
+			for (d in Cls.draggable_action.from(ulActions)) {
+				Utils.addListener(listeners, d, 'dragstart', (_) -> onDragStart(d.dataset.action_id));
+				Utils.addListener(listeners, d, 'dragover', onDragOver);
+				Utils.addListener(listeners, d, 'dragleave', onDragLeave);
+				Utils.addListener(listeners, d, 'drop', (e) -> onDrop(e, state));
+			}
 		}
 
 		parentLi.addEventListener('click', (event:Event) -> {
@@ -69,7 +79,6 @@ class StateEditor {
 						var actionDescriptor = actionDescriptors[selectedActionIndex - 1];
 						var actionPresets = actionDescriptor.presets;
 						Id.new_action_description.get().textContent = actionDescriptor.description;
-						trace('desc: ${actionDescriptor.description}');
 						if (actionPresets != null) {
 							Utils.fillSelectElement(Id.action_presets.as(SelectElement),
 								emptyOption.concat([for (i in 0...actionPresets.length) {value: i + 1, text: actionPresets[i].name}]));
@@ -101,6 +110,7 @@ class StateEditor {
 								App.dirtyData = true;
 								DirEditor.refresh();
 								ItemEditor.refresh();
+								FixedEditor.show();
 								ActionEditor.edit(action);
 								resolve(true);
 							}
@@ -136,7 +146,7 @@ class StateEditor {
 
 		switch Cls.delete_btn.firstFrom(parentLi) {
 			case Some(v):
-				v.addEventListener('click', (event) -> {
+				Utils.addListener(listeners, v, 'click', (event) -> {
 					event.stopImmediatePropagation();
 
 					if (js.Browser.window.confirm('Do you want to remove the state [${state.text}]?')) {
@@ -150,6 +160,7 @@ class StateEditor {
 												App.dirtyData = true;
 												DirEditor.refresh();
 												ItemEditor.refresh();
+												FixedEditor.show();
 											}
 									default:
 								}
@@ -161,6 +172,39 @@ class StateEditor {
 				trace('No [${Cls.delete_btn.selector()}] found in [${Id.state_list_item_tpl.selector()}]');
 		}
 		return parentLi;
+	}
+
+	static function onDragStart(actionId:String) {
+		draggingActionIndex = Std.parseInt(actionId);
+	}
+
+	static function onDragOver(e:Event) {
+		e.preventDefault();
+		var targetElement = cast(e.currentTarget, Element);
+		if (!targetElement.classList.contains(Cls.drag_over))
+			targetElement.classList.add(Cls.drag_over);
+	}
+
+	static function onDragLeave(e:Event) {
+		e.preventDefault();
+		var targetElement = cast(e.currentTarget, Element);
+		targetElement.classList.remove(Cls.drag_over);
+	}
+
+	static function onDrop(e:Event, state:ServerState) {
+		for (d in Cls.drag_over.get())
+			d.classList.remove(Cls.drag_over);
+		var targetActionIndex = Std.parseInt(cast(e.currentTarget, Element).dataset.action_id);
+
+		var actionToMove = state.actions.splice(draggingActionIndex, 1)[0];
+
+		if (actionToMove != null) {
+			state.actions.insert(targetActionIndex, actionToMove);
+			App.dirtyData = true;
+			DirEditor.refresh();
+			ItemEditor.refresh();
+			FixedEditor.show();
+		}
 	}
 
 	public static function refresh() {
@@ -185,6 +229,8 @@ class StateEditor {
 		Id.text_color.as(InputElement).value = textColor == null ? '' : '#' + textColor.substr(2);
 		var bgColor = editingState.bgColor;
 		Id.bg_color.as(InputElement).value = bgColor == null ? '' : '#' + bgColor.substr(2);
+		var textSize = editingState.textSize;
+		Id.text_size.as(InputElement).value = Std.string(textSize == null ? App.editorData.layout.textSize : textSize);
 
 		Utils.fillSelectElement(Id.icons.as(SelectElement), [for (i in 0...App.icons.length) {value: i, text: App.icons[i].name}]);
 
@@ -195,11 +241,14 @@ class StateEditor {
 					setIconPreview(App.icons[index]);
 				case None:
 			};
+		} else {
+			setIconPreview(null);
 		}
 
 		Utils.addListener(listeners, Id.text.get(), 'change', onTextChange);
 		Utils.addListener(listeners, Id.text_color.get(), 'change', onTextColorChange);
 		Utils.addListener(listeners, Id.bg_color.get(), 'change', onBgColorChange);
+		Utils.addListener(listeners, Id.text_size.get(), 'change', onTextSizeChange);
 		Utils.addListener(listeners, Id.icons.get(), 'change', onIconChange);
 	}
 
@@ -210,7 +259,7 @@ class StateEditor {
 	}
 
 	static function setIconPreview(selectedIcon:App.IconData) {
-		if (selectedIcon.name != '') {
+		if (selectedIcon != null && selectedIcon.name != '') {
 			Id.icon_preview.get().classList.remove(Cls.hidden);
 			Id.icon_preview.as(ImageElement).src = 'data:image/jpeg;base64,' + selectedIcon.base64;
 		} else {
@@ -237,7 +286,7 @@ class StateEditor {
 	static function onTextColorChange(_) {
 		if (editingState == null)
 			return;
-		editingState.textColor = Id.text_color.as(InputElement).value;
+		editingState.textColor = 'ff' + Id.text_color.as(InputElement).value.substr(1);
 		updateState();
 	}
 
@@ -245,6 +294,13 @@ class StateEditor {
 		if (editingState == null)
 			return;
 		editingState.bgColor = 'ff' + Id.bg_color.as(InputElement).value.substr(1);
+		updateState();
+	}
+
+	static function onTextSizeChange(_) {
+		if (editingState == null)
+			return;
+		editingState.textSize = Std.parseInt(Id.text_size.as(InputElement).value);
 		updateState();
 	}
 
@@ -269,5 +325,6 @@ class StateEditor {
 		App.dirtyData = true;
 		DirEditor.refresh();
 		ItemEditor.refresh();
+		FixedEditor.show();
 	}
 }

@@ -21,20 +21,29 @@
             <label for="current-dir-columns">columns</label>
             <input type="number" id="current-dir-columns" class="row-column">
             <input type="button" value="add item" id="add-item-btn">
+            <input type="button" value="add fixed item" id="add-fixed-item-btn">
             <input type="button" value="x" id="delete-dir-btn" title="delete directory">
         </menu>
         <menu>
             <input type="button" value="add directory" id="add-dir-btn">
             <input type="button" value="add icon" id="add-icon-btn">
+            <input type="button" value="edit shared values" id="edit-shared-btn">
             <label id="execute-actions-lbl" for="execute-actions-cb"
-                title="If activated, clicked states will be executed.">
-                Use as app
+                title="If activated, clicked states will be executed in the server.">
+                Use as client
                 <input type="checkbox" name="execute-actions" id="execute-actions-cb">
             </label>
         </menu>
         <div id="main-container">
             <div id="layout-container">
-                <div id="dir-content"></div>
+                <div>
+                    <h3>Directory items</h3>
+                    <div id="dir-content"></div>
+                </div>
+                <div>
+                    <h3>Fixed items</h3>
+                    <div id="fixed-content"></div>
+                </div>
                 <div id="buttons">
                     <input type="button" value="Update server layout" id="update-server-layout-btn" class="hidden">
                     <span id="layout-updated" class="hidden">Server layout updated!</span>
@@ -55,6 +64,7 @@
                     <input type="button" value="+item kind" id="add-item-kind-btn" title="add item">
                     <input type="button" value="+state" id="add-state-btn" title="add state">
                     <input type="button" value="clear item" id="clear-item-btn" title="clear item">
+                    <input type="button" value="remove item" id="remove-item-btn" title="remove item">
                 </div>
             </div>
             <div id="state-properties" class="hidden edit-property-container">
@@ -75,6 +85,11 @@
                 </div>
 
                 <div>
+                    <label for="text-size">Text color</label>
+                    <input type="number" name="text-size" id="text-size">
+                </div>
+
+                <div>
                     <label for="icon">Icon</label>
                     <select name="icon-select" id="icons"></select>
                     <img id="icon-preview" alt="This is the selected icon preview" src="" class="hidden icon" />
@@ -90,28 +105,29 @@
         </div>
 
         <div id="templates" class="hidden">
-            <div id="layout-grid-item-tpl" draggable="true" class="layout-grid-item draggable">
+            <div id="layout-grid-item-tpl" draggable="true" class="layout-grid-item draggable-item draggable-fixed-item">
                 <span></span>
                 <img alt="This is the selected icon preview" src="" class="hidden item-icon icon" />
             </div>
-            <li id="item-grid-item-tpl" draggable="true" class="item-list-item draggable">
-                <span></span>
-                <input type="button" value="create item" class="create-item-btn hidden">
-                <input type="button" value="+" class="add-state-btn" title="add state">
-                <input type="button" value="x" class="delete-btn" title="delete state">
-            </li>
-            <li id="state-list-item-tpl" class="state-list-item">
+            <li id="state-list-item-tpl" draggable="true" class="state-list-item draggable-state">
                 <span></span>
                 <input type="button" value="+" class="add-action-btn" title="add action">
                 <input type="button" value="x" class="delete-btn" title="delete state">
             </li>
-            <li id="action-list-item-tpl" class="action-list-item">
+            <li id="action-list-item-tpl" draggable="true" class="action-list-item draggable-action">
                 <span></span>
                 <input type="button" value="x" class="delete-btn" title="delete action">
             </li>
+            <ul class="hidden"></ul>
             <div id="action-prop-tpl">
                 <span class="prop-name"></span>
                 <input type="text" class="hidden prop-value">
+                <div class="hidden prop-multi-values">
+                    <input type="button" value="+" class="add-array-value">
+                </div>
+                <li class="hidden multi-value-li" id="prop-multi-value-li-tpl">
+                    <input type="button" value="x" class="remove-value">
+                </li>
                 <select class="hidden prop-possible-values"></select>
                 <input type="checkbox" class="hidden prop-bool-value">
             </div>
@@ -171,6 +187,13 @@
                     </label>
                 </div>
             </div>
+
+            <div id="shared-var-edit" class="shared-var-edit">
+                <label for="item-kind-changedir-radio">Key</label>
+                <input type="text" name="shared-var-edit-key" class="shared-var-edit-key">
+                <label for="item-kind-states-radio">Value</label>
+                <input type="text" name="shared-var-edit-value" class="shared-var-edit-value">
+            </div>
         </div>
 
         <div id="modal-window" class="hidden">
@@ -178,11 +201,14 @@
                 <h2 id="dialog-title">title</h2>
                 <div id="dialog-content"></div>
                 <div id="dialog-buttons">
-                    <input id="cancel-dialog-btn" type="button" value="Cancel">
                     <input id="accept-dialog-btn" type="button" value="Accept">
+                    <input id="cancel-dialog-btn" type="button" value="Cancel">
                 </div>
             </div>
         </div>
+
+        <datalist id="shared-vars-datalist">
+        </datalist>
     </body>
 
 </html>

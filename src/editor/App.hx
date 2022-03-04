@@ -1,10 +1,15 @@
 package;
 
-import js.html.Event;
 import api.internal.ServerApi;
+import js.Browser.document;
+import js.html.DataListElement;
+import js.html.DivElement;
 import js.html.DragEvent;
+import js.html.Element;
+import js.html.Event;
 import js.html.FileReader;
 import js.html.InputElement;
+import js.html.LabelElement;
 import js.html.SelectElement;
 import js.html.TextAreaElement;
 
@@ -50,6 +55,10 @@ class App {
 				return;
 			var selectedIndex = Std.parseInt(Id.dir_select.as(SelectElement).value);
 			var currentDir = editorData.layout.dirs[selectedIndex];
+
+			ItemEditor.hide();
+			StateEditor.hide();
+			ActionEditor.hide();
 
 			DirEditor.show(currentDir);
 		});
@@ -107,6 +116,16 @@ class App {
 			}).catchError(error -> trace(error));
 		});
 
+		Id.add_fixed_item_btn.get().addEventListener('click', (_) -> {
+			Utils.createNewItem().then(item -> {
+				if (editorData.layout.fixedItems == null)
+					editorData.layout.fixedItems = [];
+				editorData.layout.fixedItems.push(item);
+				App.dirtyData = true;
+				FixedEditor.show();
+			}).catchError(error -> trace(error));
+		});
+
 		Id.delete_dir_btn.get().addEventListener('click', (_) -> {
 			var currentDir = @:privateAccess DirEditor.currentDir;
 			if (js.Browser.window.confirm('Are you sure you want to delete the [${currentDir.name.toString()}] directory?')) {
@@ -124,6 +143,7 @@ class App {
 		};
 		reader.onerror = function(e) {
 			trace('Error loading image: ' + e.type);
+			Id.new_icon_name.as(InputElement).value = '';
 		};
 
 		Id.add_icon_btn.get().addEventListener('click', (_) -> {
@@ -149,6 +169,8 @@ class App {
 						js.Browser.alert("File too large");
 						return;
 					}
+
+					Id.new_icon_name.as(InputElement).value = image.name;
 
 					reader.readAsDataURL(image);
 				}
@@ -198,6 +220,64 @@ class App {
 			});
 		});
 
+		Id.edit_shared_btn.get().addEventListener('click', (_) -> {
+			var container:Element = document.createDivElement();
+			var div;
+
+			inline function createSharedDataDiv(key, value) {
+				div = Utils.cloneElement(Id.shared_var_edit.get(), DivElement);
+
+				switch Cls.shared_var_edit_key.firstFromAs(div, InputElement) {
+					case Some(svKey):
+						svKey.value = key;
+					case None:
+				}
+
+				switch Cls.shared_var_edit_value.firstFromAs(div, InputElement) {
+					case Some(svValue):
+						svValue.value = value;
+					case None:
+				}
+
+				return div;
+			}
+
+			container.appendChild(createSharedDataDiv('', ''));
+			for (sv in editorData.layout.sharedVars) {
+				container.appendChild(createSharedDataDiv(sv.key, sv.value));
+			}
+
+			Dialog.show('Shared values', container, () -> {
+				return new js.lib.Promise((resolveDialog, _) -> {
+					var svDivs = Cls.shared_var_edit.from(container);
+
+					var newSharedVars = [];
+
+					for (svDiv in svDivs) {
+						switch Cls.shared_var_edit_key.firstFromAs(svDiv, InputElement) {
+							case Some(svKey):
+								if (svKey.value != '') {
+									switch Cls.shared_var_edit_value.firstFromAs(svDiv, InputElement) {
+										case Some(svValue):
+											newSharedVars.push({key: svKey.value, value: svValue.value});
+										case None:
+									}
+								}
+
+							case None:
+						}
+					}
+
+					editorData.layout.sharedVars = newSharedVars;
+					App.dirtyData = true;
+
+					Dialog.clear(true);
+
+					resolveDialog(true);
+				});
+			});
+		});
+
 		Id.update_server_layout_btn.get().addEventListener('click', (_) -> {
 			var rows, columns, maxLength;
 			for (dir in editorData.layout.dirs) {
@@ -223,6 +303,29 @@ class App {
 				}, 3000);
 			}, 10);
 		});
+	}
+
+	public static function updateSharedValues(?newSharedVar:{key:String, value:Any}) {
+		var sharedVars = editorData.layout.sharedVars;
+		if (sharedVars == null) {
+			if (newSharedVar == null)
+				return;
+
+			sharedVars = [];
+		}
+
+		if (newSharedVar != null) {
+			editorData.layout.sharedVars.push(newSharedVar);
+		}
+		var datalist = Id.shared_vars_datalist.as(DataListElement);
+		Utils.clearElement(datalist);
+
+		var opt;
+		for (sv in sharedVars) {
+			opt = js.Browser.document.createOptionElement();
+			opt.value = '$' + sv.key;
+			datalist.appendChild(opt);
+		}
 	}
 
 	static function updateDirsSelect(showLast:Bool = false) {
@@ -277,6 +380,8 @@ class App {
 					trace('Received editor data.');
 					editorData = serverData.data;
 
+					updateSharedValues();
+
 					ItemEditor.hide();
 					StateEditor.hide();
 					ActionEditor.hide();
@@ -284,6 +389,7 @@ class App {
 					updateIcons();
 
 					updateDirsSelect();
+					FixedEditor.show();
 
 				case _:
 					trace('Unhandled message from server [${haxe.Json.stringify(event)}]');

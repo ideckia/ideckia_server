@@ -13,10 +13,6 @@ menu {
     width: 45%;
 }
 
-#delete-dir-btn {
-    border-right: ;
-}
-
 #execute-actions-lbl {
     float: right;
 }
@@ -33,6 +29,16 @@ menu {
     border-style: dotted;
     margin-bottom: 1em;
     padding: 1em;
+    display: grid;
+}
+
+#fixed-content {
+    border: gray;
+    border-style: dotted;
+    margin-bottom: 1em;
+    padding: 1em;
+    overflow-x: auto;
+    display: grid;
 }
 
 #dir-content ul, li {
@@ -49,7 +55,7 @@ menu {
 #main-container {
     display: grid;
     grid-template-columns: 2fr 1fr 1fr;
-    grid-template-rows: 1fr 1fr;
+    grid-template-rows: 0fr 1fr;
     gap: 0px 0px;
     grid-template-areas: 
         "layout-container item-container state-properties"
@@ -104,10 +110,6 @@ menu {
 
 .drag-over {
     background-color: ghostwhite !important;
-}
-
-#dir-content {
-    display: grid;
 }
 
 .layout-grid-item {
@@ -168,7 +170,7 @@ menu {
     padding: 1em;
     border: 2px solid;
     display: grid;
-    grid-template-rows: 1fr 4fr 1fr;
+    grid-template-rows: 0fr 4fr 0fr;
     grid-template-areas: 
     "dialog-title"
     "dialog-content"
@@ -184,13 +186,15 @@ menu {
     grid-area: dialog-content;
     border-bottom: 1px solid;
     padding: 1em;
+    overflow: auto;
+    height: 400px;
 }
 
 #dialog-content > * > * > input,
 #dialog-content > * > * > textarea,
 #dialog-content > * > * > label,
 #dialog-content > * > * > select {
-    width: 100%;
+    width: 95%;
     margin-bottom: .5em;
     display: block;
     font-size: 2em;
@@ -211,7 +215,7 @@ input[type="radio"]:parent {
 }
 
 #new-action-description {
-    width: 100%;
+    width: 95%;
     margin-bottom: 1em;
     display: block;
     font-size: 1em;
@@ -240,12 +244,12 @@ input[type="radio"]:parent {
     padding-top: 1.5em;
 }
 
-#cancel-dialog-btn {
+#accept-dialog-btn {
     position: relative;
     left: 35%;
 }
 
-#accept-dialog-btn {
+#cancel-dialog-btn {
     position: relative;
     left: 50%;
 }
@@ -257,4 +261,22 @@ input[type="radio"]:parent {
 
 input.row-column {
     width: 4%;
+}
+
+.prop-name {
+    text-decoration: underline dotted;
+    cursor: help;
+}
+
+.multi-value-li > input[type="text"] {
+    width: 90%;
+    margin-right: 1em;
+}
+
+.add-array-value {
+    margin-left: 3em;
+}
+
+.shared-var-edit {
+    border: black 1px dotted;
 }

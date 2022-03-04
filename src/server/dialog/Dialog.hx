@@ -51,7 +51,7 @@ class Dialog {
 		var dialogsPath = js.Node.__dirname + '/../node_modules/dialog-node/';
 		var src = dialogsPath + filename;
 		var dst = homedir + filename;
-		trace('Copying dialogs [$filename] to $dst');
+		Log.info('Copying dialogs [$filename] to $dst');
 		sys.io.File.copy(src, dst);
 	}
 }

@@ -40,11 +40,31 @@ class ActionManager {
 				};
 				var actionPath = Ideckia.getAppPath() + '/${actionsPath}/$name';
 				var ideckiaAction:IdeckiaAction = requireAction(actionPath);
+
+				var propFieldValue;
+				var sharedEReg = ~/\$([\w0-9.\-_]+)/g;
+				var sharedName;
+				for (field in Reflect.fields(action.props)) {
+					propFieldValue = Reflect.field(action.props, field);
+					if (sharedEReg.match(Std.string(propFieldValue))) {
+						sharedName = sharedEReg.matched(1);
+						switch LayoutManager.getSharedValue(sharedName) {
+							case Some(sharedValue):
+								Log.debug('Replacing shared value [$sharedName] by [$sharedValue] in [$name] action.');
+								Reflect.setField(action.props, field, sharedValue);
+							case None:
+								Log.error('Not found shared value with name [$sharedName]');
+						}
+					}
+				}
+
+				state.textSize = state.textSize == null ? LayoutManager.layout.textSize : state.textSize;
 				ideckiaAction.setup(action.props, idkServer);
 				ideckiaAction.init(state).then(newState -> {
 					if (newState != null) {
 						state.text = newState.text;
 						state.textColor = newState.textColor;
+						state.textSize = newState.textSize;
 						state.icon = newState.icon;
 						state.bgColor = newState.bgColor;
 					}
@@ -57,7 +77,6 @@ class ActionManager {
 				Log.error('Error creating [${action.name}] action: ${e.message}');
 			}
 		}
-
 		return Some(retActions);
 	}
 
