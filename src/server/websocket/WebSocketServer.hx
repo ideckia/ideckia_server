@@ -64,7 +64,7 @@ class WebSocketServer {
 
 		server.listen(port, () -> {
 			var banner = haxe.Resource.getString('banner');
-			banner = banner.replace('::version::', #if dev_build Macros.getGitCommitHash() #else Macros.getLastTagName() #end);
+			banner = banner.replace('::version::', Ideckia.CURRENT_VERSION);
 			banner = banner.replace('::buildDate::', Macros.buildDate().toString());
 			banner = banner.replace('::address::', '${getIPAddress()}:$port');
 			js.Node.console.log(banner);

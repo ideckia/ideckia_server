@@ -1,5 +1,6 @@
 package;
 
+import tink.semver.Version;
 import api.internal.ServerApi;
 import dialog.Dialog;
 import managers.ActionManager;
@@ -18,6 +19,8 @@ class Ideckia {
 
 	@:v('ideckia.actions-path:actions')
 	static var actionsPath:String;
+
+	static public inline final CURRENT_VERSION = Macros.getLastTagName() #if dev_build + Macros.getGitCommitHash() #end;
 
 	function new() {
 		var autoLauncher = new AutoLaunch({
@@ -78,10 +81,52 @@ class Ideckia {
 		return haxe.io.Path.directory(js.Node.process.execPath);
 	}
 
+	static function checkNewerRelease() {
+		var http = new haxe.http.HttpNodeJs('https://api.github.com/repos/ideckia/ideckia_server/releases');
+		http.addHeader("User-Agent", "ideckia");
+
+		var isDevIndex = CURRENT_VERSION.indexOf(Macros.DEV_COMMIT_PREFIX);
+		var currentVersionNumber = (isDevIndex != -1) ? CURRENT_VERSION.substring(0, isDevIndex) : CURRENT_VERSION;
+		var currentVersion = switch Version.parse(currentVersionNumber.replace('v', '')) {
+			case Success(ver):
+				ver;
+			case Failure(_):
+				new Version(0, 0, 0);
+		};
+
+		http.onError = (e) -> trace('Error checking the releases: ' + e);
+		http.onData = (data) -> {
+			var releases:Array<{tag_name:String, prerelease:Bool, html_url:String}> = haxe.Json.parse(data);
+			var lastReleaseVersion:Version = new Version(0, 0, 0);
+			var releaseNumber:String;
+			var lastReleaseUrl:String = '';
+			for (r in releases) {
+				if (r.prerelease)
+					continue;
+
+				releaseNumber = r.tag_name.replace('v', '');
+				switch Version.parse(releaseNumber) {
+					case Success(releaseVersion):
+						if (releaseVersion > lastReleaseVersion) {
+							lastReleaseVersion = releaseVersion;
+							lastReleaseUrl = r.html_url;
+						}
+					case Failure(_):
+				};
+			}
+
+			if (lastReleaseVersion > currentVersion)
+				Log.info('New ideckia version [$lastReleaseVersion] is available for download. Get it from $lastReleaseUrl');
+		};
+
+		http.request();
+	}
+
 	static function main() {
 		appropos.Appropos.init(getAppPath() + '/app.props');
 		Log.level = logLevel;
 		Dialog.init();
+		checkNewerRelease();
 
 		var args = Sys.args();
 		if (args.length > 0) {
