@@ -4,6 +4,7 @@
 --library ideckia_api
 --library appropos
 --library tink_json
+--library tink_semver
 
 -D analyzer-optimize
 -D js-es=6

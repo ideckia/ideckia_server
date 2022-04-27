@@ -59,7 +59,7 @@ class ActionEditor {
 
 	public static function edit(action:Action) {
 		Utils.removeListeners(listeners);
-		switch getActionDescriptorByName(action.name) {
+		switch App.getActionDescriptorByName(action.name) {
 			case None:
 				trace('Descriptor not found for [${action.name}]');
 			case Some(actionDescriptor):
@@ -197,13 +197,6 @@ class ActionEditor {
 		Id.action_properties.get().classList.add(Cls.hidden);
 	}
 
-	static function getActionDescriptorByName(actionName:String):haxe.ds.Option<ActionDescriptor> {
-		var f = App.editorData.actionDescriptors.filter(ad -> ad.name.toLowerCase() == actionName.toLowerCase());
-		if (f.length == 0)
-			return None;
-		return Some(f[0]);
-	}
-
 	static function createFromDescriptor(actionDescriptor:ActionDescriptor) {
 		var div:DivElement,
 			nameSpan:SpanElement,
@@ -223,9 +216,10 @@ class ActionEditor {
 				}
 
 				if (!found) {
+					var value = (prop.defaultValue == null) ? null : prop.defaultValue.replace('"', '');
 					App.updateSharedValues({
 						key: sharedName,
-						value: prop.defaultValue.replace('"', '')
+						value: value
 					});
 				}
 

@@ -315,7 +315,15 @@ class App {
 		}
 
 		if (newSharedVar != null) {
-			editorData.layout.sharedVars.push(newSharedVar);
+			var updated = false;
+			for (index => variable in editorData.layout.sharedVars) {
+				if (newSharedVar.key == variable.key) {
+					editorData.layout.sharedVars[index] = newSharedVar;
+					updated = true;
+				}
+			}
+			if (!updated)
+				editorData.layout.sharedVars.push(newSharedVar);
 		}
 		var datalist = Id.shared_vars_datalist.as(DataListElement);
 		Utils.clearElement(datalist);
@@ -326,6 +334,13 @@ class App {
 			opt.value = '$' + sv.key;
 			datalist.appendChild(opt);
 		}
+	}
+
+	static public function getActionDescriptorByName(actionName:String):haxe.ds.Option<ActionDescriptor> {
+		var f = editorData.actionDescriptors.filter(ad -> ad.name.toLowerCase() == actionName.toLowerCase());
+		if (f.length == 0)
+			return None;
+		return Some(f[0]);
 	}
 
 	static function updateDirsSelect(showLast:Bool = false) {

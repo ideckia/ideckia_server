@@ -1,3 +1,4 @@
+import api.IdeckiaApi.ActionDescriptor;
 import hx.Selectors.Tag;
 import js.Browser.document;
 import js.html.InputElement;
@@ -50,13 +51,21 @@ class PresetEditor {
 				return new js.lib.Promise((resolveDialog, _) -> {
 					var inputs = Tag.input.from(container);
 					var fieldValue;
+					var descriptor = null;
+					switch App.getActionDescriptorByName(actionName) {
+						case Some(v):
+							descriptor = v;
+						case None:
+					};
 					presetString = haxe.Json.stringify(preset.props);
 					for (i in inputs) {
 						input = cast i;
 						fieldName = input.className;
 						fieldValue = input.value;
+
 						fieldValueTpl = input.dataset.tpl;
 						if (fieldValue != null && StringTools.trim(fieldValue) != '') {
+							updateSharedValues(descriptor, fieldName, fieldValue);
 							presetString = StringTools.replace(presetString, fieldValueTpl, fieldValue);
 						}
 					}
@@ -68,5 +77,20 @@ class PresetEditor {
 				});
 			});
 		});
+	}
+
+	static inline function updateSharedValues(descriptor:ActionDescriptor, fieldName:String, fieldValue:String) {
+		if (descriptor == null)
+			return;
+
+		for (prop in descriptor.props) {
+			if (!prop.isShared)
+				continue;
+			if (prop.name == fieldName) {
+				var sharedName = descriptor.name + '.' + prop.name;
+				App.updateSharedValues({key: sharedName, value: fieldValue});
+				break;
+			}
+		}
 	}
 }

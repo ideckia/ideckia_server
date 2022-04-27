@@ -1,4 +1,6 @@
 class Macros {
+	static public inline var DEV_COMMIT_PREFIX = ' > dev_commit ';
+
 	public static macro function buildDate():haxe.macro.Expr.ExprOf<Date> {
 		var now = Date.now();
 
@@ -23,7 +25,7 @@ class Macros {
 		#end
 
 		// Generates a string expression
-		return macro $v{'Development build: commit $commitHash'};
+		return macro $v{DEV_COMMIT_PREFIX + '$commitHash'};
 	}
 
 	public static macro function getLastTagName():haxe.macro.Expr.ExprOf<String> {
