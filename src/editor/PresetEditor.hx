@@ -24,25 +24,51 @@ class PresetEditor {
 			if (Lambda.empty(editableFields))
 				return resolvePreset(preset.props);
 
+			var descriptor = null;
+			switch App.getActionDescriptorByName(actionName) {
+				case Some(v):
+					descriptor = v;
+				case None:
+			};
 			var container:Element = document.createDivElement();
-			var div;
+			var div, sharedTextDiv;
+			var isAnyShared:Bool = false;
 			var label:LabelElement;
 			var input:InputElement;
 			var i = 0;
 			for (key => value in editableFields) {
 				div = document.createDivElement();
 				input = document.createInputElement();
-				input.value = value;
 				input.dataset.tpl = '::$value::';
 				input.id = key + i;
 				input.classList.add(key);
 				label = document.createLabelElement();
 				label.textContent = key;
 				label.htmlFor = input.id;
+
 				div.appendChild(label);
+
+				input.value = if (isShared(key, descriptor)) {
+					input.disabled = true;
+					sharedTextDiv = document.createDivElement();
+					sharedTextDiv.textContent = '(shared variable)';
+					div.appendChild(sharedTextDiv);
+					isAnyShared = true;
+
+					"$" + descriptor.name + "." + key;
+				} else {
+					value;
+				}
+
 				div.appendChild(input);
 				container.appendChild(div);
 				i++;
+			}
+
+			if (isAnyShared) {
+				div = document.createDivElement();
+				div.textContent = 'Edit the shared variables via "edit shared variables" button please';
+				container.appendChild(div);
 			}
 
 			Dialog.clear();
@@ -51,12 +77,6 @@ class PresetEditor {
 				return new js.lib.Promise((resolveDialog, _) -> {
 					var inputs = Tag.input.from(container);
 					var fieldValue;
-					var descriptor = null;
-					switch App.getActionDescriptorByName(actionName) {
-						case Some(v):
-							descriptor = v;
-						case None:
-					};
 					presetString = haxe.Json.stringify(preset.props);
 					for (i in inputs) {
 						input = cast i;
@@ -65,7 +85,6 @@ class PresetEditor {
 
 						fieldValueTpl = input.dataset.tpl;
 						if (fieldValue != null && StringTools.trim(fieldValue) != '') {
-							updateSharedValues(descriptor, fieldName, fieldValue);
 							presetString = StringTools.replace(presetString, fieldValueTpl, fieldValue);
 						}
 					}
@@ -79,18 +98,18 @@ class PresetEditor {
 		});
 	}
 
-	static inline function updateSharedValues(descriptor:ActionDescriptor, fieldName:String, fieldValue:String) {
+	static function isShared(fieldName:String, descriptor:ActionDescriptor) {
 		if (descriptor == null)
-			return;
+			return false;
 
 		for (prop in descriptor.props) {
 			if (!prop.isShared)
 				continue;
 			if (prop.name == fieldName) {
-				var sharedName = descriptor.name + '.' + prop.name;
-				App.updateSharedValues({key: sharedName, value: fieldValue});
-				break;
+				return true;
 			}
 		}
+
+		return false;
 	}
 }
