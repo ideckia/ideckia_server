@@ -1,10 +1,9 @@
-import js.html.InputElement;
 import api.internal.ServerApi;
 import hx.Selectors.Cls;
 import hx.Selectors.Id;
-import js.Browser.document;
 import js.html.Element;
 import js.html.Event;
+import js.html.InputElement;
 import js.html.SelectElement;
 
 class DirEditor {
@@ -43,12 +42,12 @@ class DirEditor {
 
 		Utils.addListener(listeners, rowsInput, 'change', (_) -> {
 			currentDir.rows = Std.parseInt(rowsInput.value);
-			addMissingItems();
+			addMissingItems(currentDir);
 		});
 
 		Utils.addListener(listeners, columnsInput, 'change', (_) -> {
 			currentDir.columns = Std.parseInt(columnsInput.value);
-			addMissingItems();
+			addMissingItems(currentDir);
 		});
 
 		for (d in Cls.draggable_item.get()) {
@@ -59,14 +58,16 @@ class DirEditor {
 		}
 	}
 
-	static function addMissingItems() {
-		var rows = currentDir.rows == null ? App.editorData.layout.rows : currentDir.rows;
-		var columns = currentDir.columns == null ? App.editorData.layout.columns : currentDir.columns;
-		while (currentDir.items.length < rows * columns) {
-			currentDir.items.push({id: Utils.getNextItemId()});
+	static public function addMissingItems(dir:Dir, doDirt:Bool = true) {
+		var rows = dir.rows == null ? App.editorData.layout.rows : dir.rows;
+		var columns = dir.columns == null ? App.editorData.layout.columns : dir.columns;
+		while (dir.items.length < rows * columns) {
+			dir.items.push({id: Utils.getNextItemId()});
 		}
-		App.dirtyData = true;
-		refresh();
+		if (doDirt) {
+			App.dirtyData = true;
+			refresh();
+		}
 	}
 
 	static function onDragStart(itemId:String) {
@@ -91,8 +92,8 @@ class DirEditor {
 			d.classList.remove(Cls.drag_over);
 		var targetItemId = Std.parseInt(cast(e.currentTarget, Element).dataset.item_id);
 
-		var itemToMove = null;
 		var item;
+		var itemToMoveIndex = -1;
 		var targetIndex = -1;
 		for (i in 0...currentDir.items.length) {
 			item = currentDir.items[i];
@@ -101,10 +102,11 @@ class DirEditor {
 			if (item.id.toUInt() == targetItemId)
 				targetIndex = i;
 			if (item.id.toUInt() == draggingItemId)
-				itemToMove = currentDir.items.splice(i, 1)[0];
+				itemToMoveIndex = i;
 		}
 
-		if (itemToMove != null && targetIndex != -1) {
+		if (itemToMoveIndex != -1 && targetIndex != -1) {
+			var itemToMove = currentDir.items.splice(itemToMoveIndex, 1)[0];
 			currentDir.items.insert(targetIndex, itemToMove);
 			App.dirtyData = true;
 			refresh();
