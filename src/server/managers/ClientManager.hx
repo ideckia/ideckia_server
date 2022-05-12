@@ -60,7 +60,7 @@ class ClientManager {
 							if (isLongPress)
 								return action.onLongPress(curState);
 							else
-								return action.execute(currentState);
+								return action.execute(curState);
 						});
 					},
 						js.lib.Promise.resolve(currentState)).then(promiseThen).catchError(promiseError);

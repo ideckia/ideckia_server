@@ -60,8 +60,8 @@ class FixedEditor {
 			d.classList.remove(Cls.drag_over);
 		var targetItemId = Std.parseInt(cast(e.currentTarget, Element).dataset.item_id);
 
-		var itemToMove = null;
 		var item;
+		var itemToMoveIndex = -1;
 		var targetIndex = -1;
 		var items = App.editorData.layout.fixedItems;
 		for (i in 0...items.length) {
@@ -71,15 +71,11 @@ class FixedEditor {
 			if (item.id.toUInt() == targetItemId)
 				targetIndex = i;
 			if (item.id.toUInt() == draggingItemId)
-				itemToMove = items.splice(i, 1)[0];
+				itemToMoveIndex = i;
 		}
 
-		trace('draggingItemId', draggingItemId);
-		trace('targetItemId', targetItemId);
-		trace('itemToMove', itemToMove);
-		trace('targetIndex', targetIndex);
-
-		if (itemToMove != null && targetIndex != -1) {
+		if (itemToMoveIndex != -1 && targetIndex != -1) {
+			var itemToMove = items.splice(itemToMoveIndex, 1)[0];
 			items.insert(targetIndex, itemToMove);
 			App.dirtyData = true;
 			show();

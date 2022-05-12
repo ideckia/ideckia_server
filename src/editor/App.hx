@@ -98,6 +98,9 @@ class App {
 					if (newColumns != layoutColumns)
 						newDir.columns = newColumns;
 
+					for (_ in 0...newDir.rows * newDir.columns)
+						newDir.items.push({id: Utils.getNextItemId()});
+
 					dirs.push(newDir);
 
 					App.dirtyData = true;
@@ -392,10 +395,12 @@ class App {
 					};
 					websocket.send(haxe.Json.stringify(msg));
 				case ServerMsgType.editorData:
-					trace('Received editor data.');
 					editorData = serverData.data;
 
 					updateSharedValues();
+
+					for (d in editorData.layout.dirs)
+						DirEditor.addMissingItems(d, false);
 
 					ItemEditor.hide();
 					StateEditor.hide();

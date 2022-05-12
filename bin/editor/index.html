@@ -20,19 +20,21 @@
             <input type="number" id="current-dir-rows" class="row-column">
             <label for="current-dir-columns">columns</label>
             <input type="number" id="current-dir-columns" class="row-column">
-            <input type="button" value="add item" id="add-item-btn">
-            <input type="button" value="add fixed item" id="add-fixed-item-btn">
-            <input type="button" value="x" id="delete-dir-btn" title="delete directory">
-        </menu>
-        <menu>
             <input type="button" value="add directory" id="add-dir-btn">
-            <input type="button" value="add icon" id="add-icon-btn">
-            <input type="button" value="edit shared values" id="edit-shared-btn">
+            <input type="button" value="delete directory" id="delete-dir-btn" title="delete directory">
             <label id="execute-actions-lbl" for="execute-actions-cb"
                 title="If activated, clicked states will be executed in the server.">
                 Use as client
                 <input type="checkbox" name="execute-actions" id="execute-actions-cb">
             </label>
+        </menu>
+        <menu>
+            <input type="button" value="add item" id="add-item-btn">
+            <input type="button" value="add fixed item" id="add-fixed-item-btn">
+        </menu>
+        <menu>
+            <input type="button" value="add icon" id="add-icon-btn">
+            <input type="button" value="edit shared values" id="edit-shared-btn">
         </menu>
         <div id="main-container">
             <div id="layout-container">
@@ -105,7 +107,8 @@
         </div>
 
         <div id="templates" class="hidden">
-            <div id="layout-grid-item-tpl" draggable="true" class="layout-grid-item draggable-item draggable-fixed-item">
+            <div id="layout-grid-item-tpl" draggable="true"
+                class="layout-grid-item draggable-item draggable-fixed-item">
                 <span></span>
                 <img alt="This is the selected icon preview" src="" class="hidden item-icon icon" />
             </div>

@@ -59,7 +59,9 @@ class Log {
 	}
 
 	static private function doLog(levelString:String, data:Dynamic, posInfos:haxe.PosInfos) {
-        var time = DateTools.format(Date.now(), '%H:%M:%S');
-		logger('$time [$levelString] - [${posInfos.fileName}.${posInfos.methodName}:${posInfos.lineNumber}]: $data');
+		var time = DateTools.format(Date.now(), '%H:%M:%S');
+		var filePath = posInfos.fileName;
+		var filename = StringTools.replace(filePath.substr(filePath.lastIndexOf('/') + 1), '.hx', '');
+		logger('$time [$levelString]-[$filename.${posInfos.methodName}:${posInfos.lineNumber}]: $data');
 	}
 }
