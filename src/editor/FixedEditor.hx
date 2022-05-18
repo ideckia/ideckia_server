@@ -17,7 +17,7 @@ class FixedEditor {
 		Utils.clearElement(Id.fixed_content.get());
 
 		for (fi in fixedItems) {
-			switch ItemEditor.show(fi) {
+			switch ItemEditor.show(fi, true) {
 				case Some(cell):
 					Id.fixed_content.get().append(cell);
 					cell.classList.remove(Cls.draggable_item);

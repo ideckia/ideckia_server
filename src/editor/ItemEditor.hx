@@ -12,11 +12,12 @@ import haxe.ds.Option;
 
 class ItemEditor {
 	static var editingItem:ServerItem;
+	static var isFixedItem:Bool;
 	static var draggingStateIndex:UInt;
 	static var listeners:Array<Utils.Listener> = [];
 	static var cellListeners:Array<Utils.Listener> = [];
 
-	public static function show(item:ServerItem):Option<Element> {
+	public static function show(item:ServerItem, isFixed:Bool = false):Option<Element> {
 		if (item == null)
 			return None;
 
@@ -99,7 +100,7 @@ class ItemEditor {
 			Utils.hideAllProps();
 
 			callback(item);
-			edit(item);
+			edit(item, isFixed);
 		});
 
 		return Some(cell);
@@ -108,11 +109,12 @@ class ItemEditor {
 	public static function refresh() {
 		var oldItem = editingItem;
 		hide();
-		edit(oldItem);
+		edit(oldItem, isFixedItem);
 	}
 
-	public static function edit(item:ServerItem) {
+	public static function edit(item:ServerItem, isFixed:Bool) {
 		editingItem = item;
+		isFixedItem = isFixed;
 
 		Utils.addListener(listeners, Id.add_state_btn.get(), 'click', (event) -> {
 			Utils.stopPropagation(event);
@@ -121,7 +123,7 @@ class ItemEditor {
 				case States(_, list):
 					var state = Utils.createNewState();
 					list.push(state);
-					edit(editingItem);
+					edit(editingItem, isFixedItem);
 					StateEditor.edit(state);
 				default:
 			}
@@ -140,32 +142,37 @@ class ItemEditor {
 			}
 		});
 
-		Utils.addListener(listeners, Id.remove_item_btn.get(), 'click', (event) -> {
-			Utils.stopPropagation(event);
-			if (js.Browser.window.confirm('Do you want to REMOVE the item?')) {
-				editingItem.kind = null;
+		if (isFixed) {
+			Id.remove_item_btn.get().classList.remove(Cls.hidden);
+			Utils.addListener(listeners, Id.remove_item_btn.get(), 'click', (event) -> {
+				Utils.stopPropagation(event);
+				if (js.Browser.window.confirm('Do you want to REMOVE the item?')) {
+					editingItem.kind = null;
 
-				function removeItem(items:Array<ServerItem>) {
-					for (i in items) {
-						if (i.id == editingItem.id) {
-							items.remove(i);
-							return true;
+					function removeItem(items:Array<ServerItem>) {
+						for (i in items) {
+							if (i.id == editingItem.id) {
+								items.remove(i);
+								return true;
+							}
 						}
+						return false;
 					}
-					return false;
-				}
 
-				if (!removeItem(@:privateAccess DirEditor.currentDir.items)) {
-					removeItem(App.editorData.layout.fixedItems);
+					if (!removeItem(@:privateAccess DirEditor.currentDir.items)) {
+						removeItem(App.editorData.layout.fixedItems);
+					}
+					App.dirtyData = true;
+					StateEditor.hide();
+					ItemEditor.hide();
+					ActionEditor.hide();
+					DirEditor.refresh();
+					FixedEditor.show();
 				}
-				App.dirtyData = true;
-				StateEditor.hide();
-				ItemEditor.hide();
-				ActionEditor.hide();
-				DirEditor.refresh();
-				FixedEditor.show();
-			}
-		});
+			});
+		} else {
+			Id.remove_item_btn.get().classList.add(Cls.hidden);
+		}
 
 		Id.item_container.get().classList.remove(Cls.hidden);
 		Id.add_item_kind_btn.get().classList.add(Cls.hidden);
