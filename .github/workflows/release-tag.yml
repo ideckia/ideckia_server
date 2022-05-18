@@ -10,7 +10,8 @@ jobs:
 
     runs-on: ubuntu-latest
     env:
-      PKG_NODE_VERSION: 10
+      PKG_NODE_VERSION: 16
+      NODE_VERSION: 16
       HAXE_VERSION: latest
 
     steps:
@@ -19,7 +20,7 @@ jobs:
     - name: Setup Node.js
       uses: actions/setup-node@v2
       with:
-        node-version: '10'
+        node-version: ${{ env.NODE_VERSION }}
 
     - name: Install lix, haxe ${{ env.HAXE_VERSION }} and dependencies
       run: |
