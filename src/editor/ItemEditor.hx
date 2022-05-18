@@ -244,6 +244,7 @@ class ItemEditor {
 				var select = Id.to_dir_select.as(SelectElement);
 				var children = select.children;
 				editingItem.kind = ChangeDir(new DirName(children[select.selectedIndex].textContent), state);
+				App.dirtyData = true;
 			case _:
 		}
 	}
