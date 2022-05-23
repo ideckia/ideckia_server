@@ -41,7 +41,8 @@ menu {
     display: grid;
 }
 
-#dir-content ul, li {
+#dir-content ul,
+li {
     margin-top: .5em;
 }
 
@@ -57,24 +58,28 @@ menu {
     grid-template-columns: 2fr 1fr 1fr;
     grid-template-rows: 0fr 1fr;
     gap: 0px 0px;
-    grid-template-areas: 
+    grid-template-areas:
         "layout-container item-container state-properties"
         "layout-container action-properties action-properties";
 }
 
-#item-container ul, li {
+#item-container ul,
+li {
     margin-top: .5em;
 }
 
 #layout-container {
     grid-area: layout-container;
 }
+
 #item-container {
     grid-area: item-container;
 }
+
 #state-properties {
     grid-area: state-properties;
 }
+
 #action-properties {
     grid-area: action-properties;
 }
@@ -122,7 +127,7 @@ menu {
 }
 
 .layout-grid-item.dir {
-    background-color: yellow;
+    background-color: yellowgreen;
 }
 
 .layout-grid-item.states {
@@ -148,18 +153,18 @@ menu {
 #modal-window {
     position: fixed;
     font-family: arial;
-    font-size:80%;
+    font-size: 80%;
     top: 0;
     right: 0;
     bottom: 0;
     left: 0;
-    background: rgba(0,0,0,0.2);
+    background: rgba(0, 0, 0, 0.2);
     z-index: 99999;
     pointer-events: auto;
     display: grid;
     grid-template: 1fr 1fr 1fr / 1fr 1fr 1fr;
     gap: 0px 0px;
-    grid-template-areas: 
+    grid-template-areas:
         ". . ."
         ". dialog ."
         ". . .";
@@ -172,10 +177,10 @@ menu {
     border: 2px solid;
     display: grid;
     grid-template-rows: 0fr 4fr 0fr;
-    grid-template-areas: 
-    "dialog-title"
-    "dialog-content"
-    "dialog-buttons";
+    grid-template-areas:
+        "dialog-title"
+        "dialog-content"
+        "dialog-buttons";
 }
 
 #dialog-title {
@@ -191,17 +196,17 @@ menu {
     height: 400px;
 }
 
-#dialog-content > * > * > input,
-#dialog-content > * > * > textarea,
-#dialog-content > * > * > label,
-#dialog-content > * > * > select {
+#dialog-content>*>*>input,
+#dialog-content>*>*>textarea,
+#dialog-content>*>*>label,
+#dialog-content>*>*>select {
     width: 95%;
     margin-bottom: .5em;
     display: block;
     font-size: 2em;
 }
 
-#dialog-content > * > div {
+#dialog-content>*>div {
     margin-bottom: 3em;
 }
 
@@ -234,7 +239,7 @@ input[type="radio"]:parent {
     background-color: lightgreen !important;
 }
 
-#new-icon-drop-img > span {
+#new-icon-drop-img>span {
     top: 4em;
     position: relative;
     left: 24em;
@@ -269,7 +274,7 @@ input.row-column {
     cursor: help;
 }
 
-.multi-value-li > input[type="text"] {
+.multi-value-li>input[type="text"] {
     width: 90%;
     margin-right: 1em;
 }
