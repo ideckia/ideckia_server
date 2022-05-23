@@ -93,10 +93,8 @@ class App {
 					var newRows = Std.parseInt(Id.new_dir_rows.as(InputElement).value);
 					var newColumns = Std.parseInt(Id.new_dir_columns.as(InputElement).value);
 
-					if (newRows != layoutRows)
-						newDir.rows = newRows;
-					if (newColumns != layoutColumns)
-						newDir.columns = newColumns;
+					newDir.rows = newRows;
+					newDir.columns = newColumns;
 
 					for (_ in 0...newDir.rows * newDir.columns)
 						newDir.items.push({id: Utils.getNextItemId()});
