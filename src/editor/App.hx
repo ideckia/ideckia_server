@@ -93,12 +93,20 @@ class App {
 					var newRows = Std.parseInt(Id.new_dir_rows.as(InputElement).value);
 					var newColumns = Std.parseInt(Id.new_dir_columns.as(InputElement).value);
 
-					if (newRows != layoutRows)
-						newDir.rows = newRows;
-					if (newColumns != layoutColumns)
-						newDir.columns = newColumns;
+					newDir.rows = newRows;
+					newDir.columns = newColumns;
+					var itemCount = newRows * newColumns;
 
-					for (_ in 0...newDir.rows * newDir.columns)
+					if (App.editorData.layout.dirs.length > 0) {
+						var firstDirName = App.editorData.layout.dirs[0].name;
+						newDir.items.push({
+							id: Utils.getNextItemId(),
+							kind: ChangeDir(firstDirName, {id: Utils.getNextStateId(), text: 'back to $firstDirName'})
+						});
+						itemCount--;
+					}
+
+					for (_ in 0...itemCount)
 						newDir.items.push({id: Utils.getNextItemId()});
 
 					dirs.push(newDir);

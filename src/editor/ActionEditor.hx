@@ -24,7 +24,7 @@ class ActionEditor {
 		var li = Utils.cloneElement(Id.action_list_item_tpl.get(), LIElement);
 		switch Tag.span.firstFrom(li) {
 			case Some(v):
-				v.innerText = action.name;
+				v.innerText = '${action.name} [id=${action.id}]';
 			case None:
 				trace('No [${Tag.span.selector()}] found in [${Id.action_list_item_tpl.selector()}]');
 		}

@@ -1,11 +1,11 @@
 package managers;
 
 import exceptions.ItemNotFoundException;
+import haxe.ds.Option;
 import js.node.Require;
 import tink.Json.parse as tinkJsonParse;
 import tink.Json.stringify as tinkJsonStringify;
 import websocket.WebSocketConnection;
-import haxe.ds.Option;
 
 using api.IdeckiaApi;
 using api.internal.ServerApi;
@@ -77,10 +77,13 @@ class LayoutManager {
 		return [for (i in currentDir.items) i];
 	}
 
-	public static function getAllItems() {
-		var fixedItems = layout.fixedItems == null ? [] : layout.fixedItems;
+	public static function getAllItems(?fromLayout:Layout) {
+		if (fromLayout == null)
+			fromLayout = layout;
+
+		var fixedItems = fromLayout.fixedItems == null ? [] : fromLayout.fixedItems;
 		return [
-			for (f in layout.dirs)
+			for (f in fromLayout.dirs)
 				for (i in f.items)
 					i
 		].concat([
@@ -215,7 +218,7 @@ class LayoutManager {
 		// item IDs
 		setItemAndStateIds(getAllItems());
 		// action IDs
-		setActionIds();
+		setActionIds(getAllItems());
 	}
 
 	public static function appendLayout(newLayout:Layout) {
@@ -237,26 +240,13 @@ class LayoutManager {
 		}
 	}
 
-	public static function exportLayout(?_layout:Layout) {
-		var expLayout = (_layout != null) ? Reflect.copy(_layout) : Reflect.copy(layout);
-		// Remove item IDs
-		setItemAndStateIds([
-			for (f in expLayout.dirs)
-				for (i in f.items)
-					i
-		], true);
+	public static function exportLayout(?fromLayout:Layout) {
+		var expLayout = (fromLayout != null) ? Reflect.copy(fromLayout) : Reflect.copy(layout);
 
-		// Remove action IDs
-		var actions = [];
-		for (i in getAllItems())
-			switch i.kind {
-				case States(_, list):
-					for (state in list)
-						actions.concat(state.actions);
-				default:
-			}
+		var expItems = getAllItems(expLayout);
 
-		setActionIds(true);
+		setItemAndStateIds(expItems, true);
+		setActionIds(expItems, true);
 
 		return tinkJsonStringify(expLayout);
 	}
@@ -310,9 +300,9 @@ class LayoutManager {
 		}
 	}
 
-	static function setActionIds(toNull:Bool = false) {
+	static function setActionIds(items:Array<ServerItem>, toNull:Bool = false) {
 		var id = 0;
-		for (i in getAllItems())
+		for (i in items)
 			i.kind = switch i.kind {
 				case States(_, list):
 					for (s in list) {
