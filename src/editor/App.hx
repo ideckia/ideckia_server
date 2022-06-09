@@ -119,14 +119,6 @@ class App {
 			});
 		});
 
-		Id.add_item_btn.get().addEventListener('click', (_) -> {
-			Utils.createNewItem().then(item -> {
-				@:privateAccess DirEditor.currentDir.items.push(item);
-				App.dirtyData = true;
-				DirEditor.refresh();
-			}).catchError(error -> trace(error));
-		});
-
 		Id.add_fixed_item_btn.get().addEventListener('click', (_) -> {
 			Utils.createNewItem().then(item -> {
 				if (editorData.layout.fixedItems == null)

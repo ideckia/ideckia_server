@@ -175,7 +175,6 @@ class ItemEditor {
 		}
 
 		Id.item_container.get().classList.remove(Cls.hidden);
-		Id.add_item_kind_btn.get().classList.add(Cls.hidden);
 		Id.add_state_btn.get().classList.add(Cls.hidden);
 		Id.clear_item_btn.get().classList.add(Cls.hidden);
 		Id.item_kind_changedir_properties.get().classList.add(Cls.hidden);
