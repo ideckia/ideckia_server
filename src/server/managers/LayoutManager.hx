@@ -252,23 +252,28 @@ class LayoutManager {
 	}
 
 	public static function exportDirs(dirNames:Array<String>):Option<{processedDirNames:Array<String>, layout:String}> {
-		var foundDirs = layout.dirs.filter(d -> dirNames.indexOf(d.name.toString()) != -1);
+		var expLayout = Reflect.copy(layout);
+		var foundDirs = expLayout.dirs.filter(d -> dirNames.indexOf(d.name.toString()) != -1);
 		if (foundDirs.length == 0)
 			return None;
 
 		var dirIconNames = [];
+		var expItems = [];
 		for (dir in foundDirs) {
 			for (i in dir.items) {
+				expItems.push(i);
 				switch i.kind {
 					case ChangeDir(_, state) if (state.icon != null && !dirIconNames.contains(state.icon)):
 						dirIconNames.push(state.icon);
 					case States(_, list):
-						dirIconNames.concat(list.map(s -> s.icon).filter(i -> i != null && !dirIconNames.contains(i)));
-
+						dirIconNames = dirIconNames.concat(list.map(s -> s.icon).filter(i -> i != null && !dirIconNames.contains(i)));
 					case _:
 				}
 			}
 		}
+
+		setItemAndStateIds(expItems, true);
+		setActionIds(expItems, true);
 
 		return Some({
 			processedDirNames: foundDirs.map(f -> f.name.toString()),

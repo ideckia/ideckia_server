@@ -22,6 +22,8 @@
             <input type="number" id="current-dir-columns" class="row-column">
             <input type="button" value="add directory" id="add-dir-btn">
             <input type="button" value="delete directory" id="delete-dir-btn" title="delete directory">
+            <input type="button" value="export directories" id="export-dir-btn" title="export directories">
+            <input type="button" value="append layout" id="append-layout-btn" title="append layout">
             <label id="execute-actions-lbl" for="execute-actions-cb"
                 title="If activated, clicked states will be executed in the server.">
                 Use as client
@@ -196,6 +198,15 @@
                 <label for="item-kind-states-radio">Value</label>
                 <input type="text" name="shared-var-edit-value" class="shared-var-edit-value">
             </div>
+            
+            <div id="export-dir">
+                <select name="export-dir-select" class="dir-select" id="export-dir-select" multiple></select>
+            </div>
+            
+            <div id="append-layout">
+                <input type="file" name="append-layout" id="append-layout-input">
+            </div>
+            
         </div>
 
         <div id="modal-window" class="hidden">

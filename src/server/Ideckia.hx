@@ -163,22 +163,25 @@ class Ideckia {
 				sys.io.File.saveContent(LayoutManager.getLayoutPath(), LayoutManager.exportLayout());
 			} else if (exportDirsIndex != -1) {
 				var dirNames = args[exportDirsIndex + 1];
-				var dirNamesArray = dirNames.split(',');
-				LayoutManager.readLayout();
-				switch LayoutManager.exportDirs(dirNamesArray) {
-					case Some(response):
-						var filename = Ideckia.getAppPath() + '/dirs.export.json';
-						sys.io.File.saveContent(filename, response.layout);
-						Log.info('[${response.processedDirNames.join(',')}] successfully exported to [$filename].');
-					case None:
-						Log.info('Could not find [$dirNames] directories in the layout file.');
-				};
+				exportDirs(dirNames.split(','));
 			} else {
 				showHelp();
 			}
 		} else {
 			new Ideckia();
 		}
+	}
+
+	static public function exportDirs(dirNames:Array<String>) {
+		LayoutManager.readLayout();
+		switch LayoutManager.exportDirs(dirNames) {
+			case Some(response):
+				var filename = Ideckia.getAppPath() + '/dirs.export.json';
+				sys.io.File.saveContent(filename, response.layout);
+				Log.info('[${response.processedDirNames.join(',')}] successfully exported to [$filename].');
+			case None:
+				Log.info('Could not find [$dirNames] directories in the layout file.');
+		};
 	}
 
 	static function showHelp() {

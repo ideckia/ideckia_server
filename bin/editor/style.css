@@ -286,3 +286,10 @@ input.row-column {
 .shared-var-edit {
     border: black 1px dotted;
 }
+
+#export-dir-select {
+    width: 100%;
+    font-size: 2em;
+    background-color: lightgray;
+    overflow: auto;
+}
