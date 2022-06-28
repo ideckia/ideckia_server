@@ -314,13 +314,7 @@ class App {
 								if (cb.checked) {
 									switch Cls.icon_name_label.firstFrom(c) {
 										case Some(lbl):
-											for (i in icons) {
-												if (i.name == lbl.innerText) {
-													icons.remove(i);
-													removed.push(i.name);
-													break;
-												}
-											}
+											removed.push(lbl.innerText);
 										case None:
 									}
 								}
@@ -328,6 +322,39 @@ class App {
 						}
 					}
 					if (removed.length != 0) {
+						for (r in removed) {
+							// remove from the editor icon list
+							var foundIcons = icons.filter(i -> i.name == r);
+							if (foundIcons.length != 0) {
+								for (fi in foundIcons)
+									icons.remove(fi);
+							}
+							var foundLayoutIcons = editorData.layout.icons.filter(i -> i.key == r);
+							if (foundLayoutIcons.length != 0) {
+								var iconNames = [];
+								// remove from the layout icon list
+								for (fli in foundLayoutIcons) {
+									editorData.layout.icons.remove(fli);
+									iconNames.push(fli.key);
+								}
+
+								// remove those icon references from states
+								for (d in editorData.layout.dirs) {
+									for (i in d.items) {
+										switch i.kind {
+											case null:
+											case ChangeDir(_, state):
+												if (state != null && state.icon != null && iconNames.indexOf(state.icon) != -1) state.icon = null;
+											case States(_, list):
+												for (s in list)
+													if (s != null && s.icon != null && iconNames.indexOf(s.icon) != -1)
+														s.icon = null;
+										}
+									}
+								}
+							}
+						}
+
 						js.Browser.window.alert('Icons removed: ${removed.join(',')}');
 						App.dirtyData = true;
 					}
