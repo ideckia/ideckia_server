@@ -1,18 +1,8 @@
 package;
 
-import js.html.OptionElement;
 import api.internal.ServerApi;
 import js.Browser.document;
-import js.html.DataListElement;
-import js.html.DivElement;
-import js.html.DragEvent;
-import js.html.Element;
-import js.html.Event;
-import js.html.FileReader;
-import js.html.InputElement;
-import js.html.LabelElement;
-import js.html.SelectElement;
-import js.html.TextAreaElement;
+import js.html.*;
 
 using api.IdeckiaApi;
 using hx.Selectors;
@@ -291,6 +281,56 @@ class App {
 					});
 					updateIcons();
 					App.dirtyData = true;
+					resolve(true);
+				});
+			});
+		});
+		Id.remove_icon_btn.get().addEventListener('click', (_) -> {
+			var container = document.createDivElement();
+			var tplClone;
+			for (i in icons) {
+				if (i.name == '')
+					continue;
+				tplClone = Utils.cloneElement(Id.remove_icon_tpl.get(), DivElement);
+				switch Cls.icon_name_label.firstFrom(tplClone) {
+					case Some(label):
+						label.innerText = i.name;
+					case None:
+				}
+				switch Cls.icon_preview.firstFromAs(tplClone, ImageElement) {
+					case Some(img):
+						img.src = 'data:image/jpeg;base64,' + i.base64;
+					case None:
+				}
+
+				container.appendChild(tplClone);
+			}
+			Dialog.show('Select icons to remove', container, () -> {
+				return new js.lib.Promise((resolve, reject) -> {
+					var removed = [];
+					for (c in container.children) {
+						switch Cls.remove_icon_name_cb.firstFromAs(c, InputElement) {
+							case Some(cb):
+								if (cb.checked) {
+									switch Cls.icon_name_label.firstFrom(c) {
+										case Some(lbl):
+											for (i in icons) {
+												if (i.name == lbl.innerText) {
+													icons.remove(i);
+													removed.push(i.name);
+													break;
+												}
+											}
+										case None:
+									}
+								}
+							case None:
+						}
+					}
+					if (removed.length != 0) {
+						js.Browser.window.alert('Icons removed: ${removed.join(',')}');
+						App.dirtyData = true;
+					}
 					resolve(true);
 				});
 			});

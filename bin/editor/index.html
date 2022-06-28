@@ -31,10 +31,11 @@
             </label>
         </menu>
         <menu>
-            <input type="button" value="add fixed item" id="add-fixed-item-btn">
+            <input type="button" value="add icon" id="add-icon-btn">
+            <input type="button" value="remove icon" id="remove-icon-btn">
         </menu>
         <menu>
-            <input type="button" value="add icon" id="add-icon-btn">
+            <input type="button" value="add fixed item" id="add-fixed-item-btn">
             <input type="button" value="edit shared values" id="edit-shared-btn">
         </menu>
         <div id="main-container">
@@ -163,6 +164,12 @@
                     <label for="new-icon-base64">Or put the base64 text here</label>
                     <textarea name="base64" id="new-icon-base64"></textarea>
                 </div>
+            </div>
+
+            <div id="remove-icon-tpl">
+                <input type="checkbox" name="icon-name" class="remove-icon-name-cb"/>
+                <label for="icon-name" class="icon-name-label">Name</label>
+                <img alt="This is the selected icon preview" src="" class="icon icon-preview" />
             </div>
 
             <div id="new-action">

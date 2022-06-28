@@ -24,6 +24,15 @@ menu {
     margin-left: 1em;
 }
 
+#dialog-content>*>*>.remove-icon-name-cb {
+    width: 5%;
+    display: inline;
+}
+
+#dialog-content>*>*>.icon-name-label {
+    display: inline;
+}
+
 #dir-content {
     border: gray;
     border-style: dotted;
