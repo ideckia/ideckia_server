@@ -287,14 +287,21 @@ class App {
 		});
 		Id.remove_icon_btn.get().addEventListener('click', (_) -> {
 			var container = document.createDivElement();
-			var tplClone;
+			var tplClone, cbId;
 			for (i in icons) {
 				if (i.name == '')
 					continue;
 				tplClone = Utils.cloneElement(Id.remove_icon_tpl.get(), DivElement);
-				switch Cls.icon_name_label.firstFrom(tplClone) {
+				cbId = 'remove-${i.name}-icon';
+				switch Cls.remove_icon_name_cb.firstFrom(tplClone) {
+					case Some(cb):
+						cb.id = cbId;
+					case None:
+				}
+				switch Cls.icon_name_label.firstFromAs(tplClone, LabelElement) {
 					case Some(label):
 						label.innerText = i.name;
+						label.htmlFor = cbId;
 					case None:
 				}
 				switch Cls.icon_preview.firstFromAs(tplClone, ImageElement) {
