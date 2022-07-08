@@ -6,7 +6,6 @@ import haxe.ds.Option;
 import js.node.Require;
 import tink.Json.parse as tinkJsonParse;
 import tink.Json.stringify as tinkJsonStringify;
-import websocket.WebSocketConnection;
 
 using api.IdeckiaApi;
 using api.internal.ServerApi;
@@ -203,7 +202,7 @@ class LayoutManager {
 		var foundLength = foundDirs.length;
 		if (foundLength == 0) {
 			Log.error('Could not find dir with name [$dirName]');
-			Dialog.show(DialogType.Error, 'Error switching directory', 'Could not find dir with name [$dirName]');
+			Dialog.show(Type.Error, 'Error switching directory', 'Could not find dir with name [$dirName]');
 			return;
 		} else if (foundLength > 1) {
 			Log.error('Found $foundLength dirs with name [$dirName]');

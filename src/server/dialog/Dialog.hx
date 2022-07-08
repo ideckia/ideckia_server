@@ -1,11 +1,19 @@
 package dialog;
 
-import api.IdeckiaApi.DialogType;
+enum Type {
+	Info;
+	Warning;
+	Error;
+	Question;
+	Entry;
+	Calendar;
+	FileSelect;
+}
 
 typedef Callback = (code:UInt, returnValue:String, stdError:String) -> Void;
 
 class Dialog {
-	public static function show(type:DialogType, title:String, text:String) {
+	public static function show(type:Type, title:String, text:String) {
 		return new js.lib.Promise((resolve, reject) -> {
 			var timeout = 0;
 			var callback = (code, returnValue, stdError) -> {
@@ -15,6 +23,10 @@ class Dialog {
 					reject(stdError);
 			};
 			switch type {
+				case Info:
+					DialogNode.info(text, title, timeout, callback);
+				case Warning:
+					DialogNode.warn(text, title, timeout, callback);
 				case Error:
 					DialogNode.error(text, title, timeout, callback);
 				case Question:
@@ -23,8 +35,8 @@ class Dialog {
 					DialogNode.entry(text, title, timeout, callback);
 				case FileSelect:
 					DialogNode.fileselect(text, title, timeout, callback);
-				default:
-					DialogNode.info(text, title, timeout, callback);
+				case Calendar:
+					DialogNode.calendar(text, title, timeout, callback);
 			}
 		});
 	}

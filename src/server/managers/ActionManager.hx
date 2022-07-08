@@ -31,9 +31,11 @@ class ActionManager {
 					},
 					dialog: {
 						info: (text:String) -> Dialog.show(Info, name, text),
+						warning: (text:String) -> Dialog.show(Warning, name, text),
 						error: (text:String) -> Dialog.show(Error, name, text),
 						question: (text:String) -> Dialog.show(Question, name, text),
 						entry: (text:String) -> Dialog.show(Entry, name, text),
+						calendar: (text:String) -> Dialog.show(Calendar, name, text),
 						fileselect: (text:String) -> Dialog.show(FileSelect, name, text)
 					},
 					updateClientState: ClientManager.fromActionToClient.bind(itemId, name)
