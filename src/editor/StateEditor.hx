@@ -261,7 +261,7 @@ class StateEditor {
 	static function setIconPreview(selectedIcon:App.IconData) {
 		if (selectedIcon != null && selectedIcon.name != '') {
 			Id.icon_preview.get().classList.remove(Cls.hidden);
-			Id.icon_preview.as(ImageElement).src = 'data:image/jpeg;base64,' + selectedIcon.base64;
+			Id.icon_preview.as(ImageElement).src = selectedIcon.base64;
 		} else {
 			Id.icon_preview.get().classList.add(Cls.hidden);
 		}

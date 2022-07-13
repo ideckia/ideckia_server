@@ -35,12 +35,7 @@ class ItemEditor {
 					case Some(cell_icon):
 						if (state.icon != null && state.icon != '') {
 							cell_icon.classList.remove(Cls.hidden);
-							switch Utils.getIconIndexByName(state.icon) {
-								case Some(index):
-									cast(cell_icon, ImageElement).src = 'data:image/jpeg;base64,' + App.icons[index].base64;
-								case None:
-									cast(cell_icon, ImageElement).src = 'data:image/jpeg;base64,' + state.icon;
-							};
+							cast(cell_icon, ImageElement).src = extractIcon(state);
 						} else {
 							cell_icon.classList.add(Cls.hidden);
 						}
@@ -63,12 +58,7 @@ class ItemEditor {
 					case Some(cell_icon):
 						if (state.icon != null && state.icon != '') {
 							cell_icon.classList.remove(Cls.hidden);
-							switch Utils.getIconIndexByName(state.icon) {
-								case Some(index):
-									cast(cell_icon, ImageElement).src = 'data:image/jpeg;base64,' + App.icons[index].base64;
-								case None:
-									cast(cell_icon, ImageElement).src = 'data:image/jpeg;base64,' + state.icon;
-							};
+							cast(cell_icon, ImageElement).src = extractIcon(state);
 						} else {
 							cell_icon.classList.add(Cls.hidden);
 						}
@@ -104,6 +94,19 @@ class ItemEditor {
 		});
 
 		return Some(cell);
+	}
+
+	static function extractIcon(state) {
+		var base64Icon = switch Utils.getIconIndexByName(state.icon) {
+			case Some(index):
+				App.icons[index].base64;
+			case None:
+				state.icon;
+		};
+		if (base64Icon.indexOf('base64,') == -1)
+			base64Icon = 'data:image/jpeg;base64,' + base64Icon;
+
+		return base64Icon;
 	}
 
 	public static function refresh() {

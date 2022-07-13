@@ -217,8 +217,7 @@ class App {
 			var reader = new FileReader();
 
 			reader.onload = function(e) {
-				var cleanResult = new EReg("data:image/.*;base64,", "").replace(reader.result, '');
-				Id.new_icon_base64.as(TextAreaElement).value = cleanResult;
+				Id.new_icon_base64.as(TextAreaElement).value = reader.result;
 			};
 
 			reader.onerror = function(e) {
@@ -306,7 +305,7 @@ class App {
 				}
 				switch Cls.icon_preview.firstFromAs(tplClone, ImageElement) {
 					case Some(img):
-						img.src = 'data:image/jpeg;base64,' + i.base64;
+						img.src = i.base64;
 					case None:
 				}
 
