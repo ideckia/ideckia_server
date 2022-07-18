@@ -305,7 +305,10 @@ class App {
 				}
 				switch Cls.icon_preview.firstFromAs(tplClone, ImageElement) {
 					case Some(img):
-						img.src = i.base64;
+						var base64Icon = i.base64;
+						if (base64Icon.indexOf('base64,') == -1)
+							base64Icon = 'data:image/jpeg;base64,' + base64Icon;
+						img.src = base64Icon;
 					case None:
 				}
 
