@@ -2,7 +2,6 @@ package;
 
 import tink.semver.Version;
 import api.internal.ServerApi;
-import dialog.Dialog;
 import managers.ActionManager;
 import managers.LayoutManager;
 import managers.MsgManager;
@@ -20,9 +19,21 @@ class Ideckia {
 	@:v('ideckia.actions-path:actions')
 	static var actionsPath:String;
 
-	static public inline final CURRENT_VERSION = Macros.getLastTagName() #if dev_build + Macros.getGitCommitHash() #end;
+	public static var dialog:api.dialog.Dialog;
+
+	static public inline final CURRENT_VERSION = #if dev_build Macros.getGitCommitHash() #else Macros.getLastTagName() #end;
 
 	function new() {
+		dialog = try {
+			var dialogsPath = getAppPath() + '/dialogs';
+			js.Syntax.code("var required = require({0})", dialogsPath);
+			js.Syntax.code('new required.Dialog()');
+		} catch (e:haxe.Exception) {
+			Log.error('Error loading dialogs implementation: $e');
+			Log.error('Loading the fallback dialogs module.');
+			new FallbackDialog();
+		}
+
 		var autoLauncher = new AutoLaunch({
 			name: 'Ideckia',
 			path: js.Node.process.execPath
@@ -37,10 +48,6 @@ class Ideckia {
 			Log.error('The error was: ', error);
 			Log.error('Please restart the server.');
 		});
-
-		#if debug
-		haxe.NativeStackTrace.wrapCallSite = js.Lib.require('source-map-support').wrapCallSite;
-		#end
 
 		autoLauncher.isEnabled().then((isEnabled) -> {
 			switch [isEnabled, autoLaunchEnabled] {
@@ -85,9 +92,10 @@ class Ideckia {
 		var http = new haxe.http.HttpNodeJs('https://api.github.com/repos/ideckia/ideckia_server/releases');
 		http.addHeader("User-Agent", "ideckia");
 
-		var isDevIndex = CURRENT_VERSION.indexOf(Macros.DEV_COMMIT_PREFIX);
-		var currentVersionNumber = (isDevIndex != -1) ? CURRENT_VERSION.substring(0, isDevIndex) : CURRENT_VERSION;
-		var currentVersion = switch Version.parse(currentVersionNumber.replace('v', '')) {
+		if (CURRENT_VERSION.indexOf(Macros.DEV_COMMIT_PREFIX) != -1)
+			return;
+
+		var currentVersion = switch Version.parse(CURRENT_VERSION.replace('v', '')) {
 			case Success(ver):
 				ver;
 			case Failure(_):
@@ -125,7 +133,6 @@ class Ideckia {
 	static function main() {
 		appropos.Appropos.init(getAppPath() + '/app.props');
 		Log.level = logLevel;
-		Dialog.init();
 		checkNewerRelease();
 
 		var args = Sys.args();

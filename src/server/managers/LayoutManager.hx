@@ -1,6 +1,5 @@
 package managers;
 
-import dialog.Dialog;
 import exceptions.ItemNotFoundException;
 import haxe.ds.Option;
 import js.node.Require;
@@ -202,7 +201,7 @@ class LayoutManager {
 		var foundLength = foundDirs.length;
 		if (foundLength == 0) {
 			Log.error('Could not find dir with name [$dirName]');
-			Dialog.show(Type.Error, 'Error switching directory', 'Could not find dir with name [$dirName]');
+			Ideckia.dialog.error('Error switching directory', 'Could not find dir with name [$dirName]');
 			return;
 		} else if (foundLength > 1) {
 			Log.error('Found $foundLength dirs with name [$dirName]');

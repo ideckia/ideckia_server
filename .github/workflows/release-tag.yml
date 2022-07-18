@@ -13,6 +13,7 @@ jobs:
       PKG_NODE_VERSION: 16
       NODE_VERSION: 16
       HAXE_VERSION: latest
+      PKG_ARGS: --no-bytecode --public --public-packages '*' --compress Brotli
 
     steps:
     - uses: actions/checkout@v2
@@ -40,9 +41,9 @@ jobs:
 
     - name: Install pkg
       run: npm i -g pkg@5.3.1
-    
-    - name: Package with pkg
-      run: pkg . --targets node${{ env.PKG_NODE_VERSION }}-linux,node${{ env.PKG_NODE_VERSION }}-win,node${{ env.PKG_NODE_VERSION }}-macos --no-bytecode --public --public-packages '*'
+
+    - name: Package with pkg (linux & windows)
+      run: pkg . --targets node${{ env.PKG_NODE_VERSION }}-linux,node${{ env.PKG_NODE_VERSION }}-win,node${{ env.PKG_NODE_VERSION }}-macos ${{ env.PKG_ARGS }}
 
     - name: Release
       uses: "marvinpinto/action-automatic-releases@latest"

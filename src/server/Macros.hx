@@ -1,5 +1,5 @@
 class Macros {
-	static public inline var DEV_COMMIT_PREFIX = ' > dev_commit ';
+	static public inline var DEV_COMMIT_PREFIX = ' > commit ';
 
 	public static macro function buildDate():haxe.macro.Expr.ExprOf<Date> {
 		var now = Date.now();
