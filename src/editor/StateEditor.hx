@@ -92,7 +92,8 @@ class StateEditor {
 								return;
 							}
 
-							var actionName = actionDescriptors[selectedActionIndex - 1].name;
+							var actionDescriptor = actionDescriptors[selectedActionIndex - 1];
+							var actionName = actionDescriptor.name;
 
 							function createAction(props:Any) {
 								if (state.actions == null) {
@@ -115,7 +116,7 @@ class StateEditor {
 								resolve(true);
 							}
 
-							var actionPresets = actionDescriptors[selectedActionIndex - 1].presets;
+							var actionPresets = actionDescriptor.presets;
 							if (actionPresets != null) {
 								var selectedPresetIndex = Id.action_presets.as(SelectElement).selectedIndex;
 								if (selectedPresetIndex != 0) {
@@ -134,7 +135,11 @@ class StateEditor {
 								}
 							}
 
-							createAction({});
+							var actionDefaultProps = {};
+							for (p in actionDescriptor.props)
+								Reflect.setField(actionDefaultProps, p.name, p.defaultValue);
+
+							createAction(actionDefaultProps);
 						});
 					}, () -> {
 						Utils.removeListeners(selListener);
@@ -261,7 +266,7 @@ class StateEditor {
 	static function setIconPreview(selectedIcon:App.IconData) {
 		if (selectedIcon != null && selectedIcon.name != '') {
 			Id.icon_preview.get().classList.remove(Cls.hidden);
-			Id.icon_preview.as(ImageElement).src = selectedIcon.base64;
+			Id.icon_preview.as(ImageElement).src = Utils.defaultBase64Prefix(selectedIcon.base64);
 		} else {
 			Id.icon_preview.get().classList.add(Cls.hidden);
 		}
