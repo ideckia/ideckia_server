@@ -21,7 +21,7 @@ class Ideckia {
 
 	public static var dialog:api.dialog.Dialog;
 
-	static public inline final CURRENT_VERSION = #if dev_build Macros.getGitCommitHash() #else Macros.getLastTagName() #end;
+	static public inline final CURRENT_VERSION = #if release Macros.getLastTagName() #else Macros.getGitCommitHash() #end;
 
 	function new() {
 		dialog = try {

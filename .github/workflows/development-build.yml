@@ -30,7 +30,7 @@ jobs:
             lix download
 
     - name: Compile server
-      run: haxe deploy_server.hxml -D dev_build
+      run: haxe deploy_server.hxml
 
     - name: Compile editor
       run: haxe deploy_editor.hxml
