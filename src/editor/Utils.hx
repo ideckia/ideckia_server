@@ -86,6 +86,10 @@ class Utils {
 		};
 	}
 
+	public static function defaultBase64Prefix(base64:String) {
+		return (base64.indexOf('base64,') == -1) ? 'data:image/jpeg;base64,' + base64 : base64;
+	}
+
 	public static function createNewItem():js.lib.Promise<ServerItem> {
 		Id.item_kind_changedir_radio.as(InputElement).checked = false;
 		Id.item_kind_states_radio.as(InputElement).checked = false;

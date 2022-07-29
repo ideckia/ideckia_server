@@ -103,10 +103,8 @@ class ItemEditor {
 			case None:
 				state.icon;
 		};
-		if (base64Icon.indexOf('base64,') == -1)
-			base64Icon = 'data:image/jpeg;base64,' + base64Icon;
 
-		return base64Icon;
+		return Utils.defaultBase64Prefix(base64Icon);
 	}
 
 	public static function refresh() {
