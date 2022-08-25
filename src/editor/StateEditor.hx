@@ -1,14 +1,15 @@
-import js.html.Element;
-import js.html.SelectElement;
+import api.IdeckiaApi.TextPosition;
 import api.internal.ServerApi;
+import hx.Selectors.Cls;
+import hx.Selectors.Id;
+import hx.Selectors.Tag;
 import js.Browser.document;
+import js.html.Element;
 import js.html.Event;
 import js.html.ImageElement;
 import js.html.InputElement;
 import js.html.LIElement;
-import hx.Selectors.Cls;
-import hx.Selectors.Id;
-import hx.Selectors.Tag;
+import js.html.SelectElement;
 
 class StateEditor {
 	static var editingState:ServerState;
@@ -236,6 +237,10 @@ class StateEditor {
 		Id.bg_color.as(InputElement).value = bgColor == null ? '' : '#' + bgColor.substr(2);
 		var textSize = editingState.textSize;
 		Id.text_size.as(InputElement).value = Std.string(textSize == null ? App.editorData.layout.textSize : textSize);
+		var textPosition = editingState.textPosition;
+		if (textPosition == null)
+			textPosition = TextPosition.bottom;
+		Id.text_position.as(SelectElement).value = textPosition;
 
 		Utils.fillSelectElement(Id.icons.as(SelectElement), [for (i in 0...App.icons.length) {value: i, text: App.icons[i].name}]);
 
@@ -254,6 +259,7 @@ class StateEditor {
 		Utils.addListener(listeners, Id.text_color.get(), 'change', onTextColorChange);
 		Utils.addListener(listeners, Id.bg_color.get(), 'change', onBgColorChange);
 		Utils.addListener(listeners, Id.text_size.get(), 'change', onTextSizeChange);
+		Utils.addListener(listeners, Id.text_position.get(), 'change', onTextPositionChange);
 		Utils.addListener(listeners, Id.icons.get(), 'change', onIconChange);
 	}
 
@@ -306,6 +312,13 @@ class StateEditor {
 		if (editingState == null)
 			return;
 		editingState.textSize = Std.parseInt(Id.text_size.as(InputElement).value);
+		updateState();
+	}
+
+	static function onTextPositionChange(_) {
+		if (editingState == null)
+			return;
+		editingState.textPosition = Id.text_position.as(SelectElement).value;
 		updateState();
 	}
 

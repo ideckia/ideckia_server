@@ -89,8 +89,17 @@
                 </div>
 
                 <div>
-                    <label for="text-size">Text color</label>
+                    <label for="text-size">Text size</label>
                     <input type="number" name="text-size" id="text-size">
+                </div>
+
+                <div>
+                    <label for="text-position">Text position</label>
+                    <select name="icon-select" id="text-position">
+                        <option value="top">top</option>
+                        <option value="center">center</option>
+                        <option value="bottom">bottom</option>
+                    </select>
                 </div>
 
                 <div>
@@ -111,8 +120,12 @@
         <div id="templates" class="hidden">
             <div id="layout-grid-item-tpl" draggable="true"
                 class="layout-grid-item draggable-item draggable-fixed-item">
-                <span></span>
-                <img alt="This is the selected icon preview" src="" class="hidden item-icon icon" />
+                <div class="item-text-div">
+                    <span></span>
+                </div>
+                <div>
+                    <img alt="This is the selected icon preview" src="" class="hidden item-icon icon" />
+                </div>
             </div>
             <li id="state-list-item-tpl" draggable="true" class="state-list-item draggable-state">
                 <span></span>
@@ -167,7 +180,7 @@
             </div>
 
             <div id="remove-icon-tpl">
-                <input type="checkbox" name="icon-name" class="remove-icon-name-cb"/>
+                <input type="checkbox" name="icon-name" class="remove-icon-name-cb" />
                 <label for="icon-name" class="icon-name-label">Name</label>
                 <img alt="This is the selected icon preview" src="" class="icon icon-preview" />
             </div>
@@ -187,13 +200,13 @@
             <div id="new-item-kind">
                 <div>
                     <label for="item-kind-changedir-radio">
-                        ChangeDir
+                        Change Directory
                         <input type="radio" name="item-kind" id="item-kind-changedir-radio">
                     </label>
                 </div>
                 <div>
                     <label for="item-kind-states-radio">
-                        States
+                        Multi-State
                         <input type="radio" name="item-kind" id="item-kind-states-radio">
                     </label>
                 </div>
@@ -205,15 +218,15 @@
                 <label for="item-kind-states-radio">Value</label>
                 <input type="text" name="shared-var-edit-value" class="shared-var-edit-value">
             </div>
-            
+
             <div id="export-dir">
                 <select name="export-dir-select" class="dir-select" id="export-dir-select" multiple></select>
             </div>
-            
+
             <div id="append-layout">
                 <input type="file" name="append-layout" id="append-layout-input">
             </div>
-            
+
         </div>
 
         <div id="modal-window" class="hidden">

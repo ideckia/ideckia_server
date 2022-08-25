@@ -571,6 +571,16 @@ class App {
 		}
 	}
 
+	public static function onItemLongPress(itemId:UInt) {
+		if (Id.execute_actions_cb.as(InputElement).checked) {
+			websocket.send(haxe.Json.stringify({
+				type: longPress,
+				whoami: client,
+				itemId: itemId,
+			}));
+		}
+	}
+
 	static function main() {
 		new App();
 	}

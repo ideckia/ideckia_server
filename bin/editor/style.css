@@ -34,16 +34,10 @@ menu {
 }
 
 #dir-content {
-    border: gray;
-    border-style: dotted;
-    margin-bottom: 1em;
-    padding: 1em;
     display: grid;
 }
 
 #fixed-content {
-    border: gray;
-    border-style: dotted;
     margin-bottom: 1em;
     padding: 1em;
     overflow-x: auto;
@@ -79,6 +73,10 @@ li {
 
 #layout-container {
     grid-area: layout-container;
+    border: gray;
+    border-style: dotted;
+    margin-bottom: 1em;
+    padding: 1em;
 }
 
 #item-container {
@@ -141,6 +139,22 @@ li {
 
 .layout-grid-item.states {
     background-color: skyblue;
+}
+
+.layout-grid-item>div {
+    position: relative;
+}
+
+.layout-top-text {
+    top: 0%;
+}
+
+.layout-center-text {
+    top: 40%;
+}
+
+.layout-bottom-text {
+    top: 70%;
 }
 
 #item-kind-changedir-properties {
