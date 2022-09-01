@@ -158,6 +158,7 @@ class LayoutManager {
 				clientItem.text = currentState.text;
 				clientItem.textSize = currentState.textSize == null ? layout.textSize : currentState.textSize;
 				clientItem.textColor = currentState.textColor;
+				clientItem.textPosition = currentState.textPosition;
 				clientItem.icon = getIconData(currentState.icon);
 				clientItem.bgColor = currentState.bgColor;
 			}
