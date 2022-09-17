@@ -11,6 +11,8 @@ import js.html.InputElement;
 import js.html.LIElement;
 import js.html.SelectElement;
 
+using StringTools;
+
 class StateEditor {
 	static var editingState:ServerState;
 	static var draggingActionIndex:UInt;
@@ -103,6 +105,7 @@ class StateEditor {
 
 								var action = {
 									name: actionName,
+									enabled: true,
 									props: props
 								};
 								state.actions.push(action);
@@ -137,8 +140,12 @@ class StateEditor {
 							}
 
 							var actionDefaultProps = {};
-							for (p in actionDescriptor.props)
-								Reflect.setField(actionDefaultProps, p.name, p.defaultValue);
+							for (p in actionDescriptor.props) {
+								if (p.type.contains('Bool'))
+									Reflect.setField(actionDefaultProps, p.name, p.defaultValue == 'true');
+								else
+									Reflect.setField(actionDefaultProps, p.name, p.defaultValue);
+							}
 
 							createAction(actionDefaultProps);
 						});

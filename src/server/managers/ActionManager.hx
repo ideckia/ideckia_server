@@ -31,6 +31,9 @@ class ActionManager {
 					dialog: Ideckia.dialog,
 					updateClientState: ClientManager.fromActionToClient.bind(itemId, name)
 				};
+				if (!action.enabled) {
+					continue;
+				}
 				var actionPath = Ideckia.getAppPath() + '/${actionsPath}/$name';
 				var ideckiaAction:IdeckiaAction = requireAction(actionPath);
 
