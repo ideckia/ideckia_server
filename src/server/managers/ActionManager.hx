@@ -29,6 +29,7 @@ class ActionManager {
 						info: actionLog.bind(Log.info, name)
 					},
 					dialog: Ideckia.dialog,
+					mediaPlayer: Ideckia.mediaPlayer,
 					updateClientState: ClientManager.fromActionToClient.bind(itemId, name)
 				};
 				if (!action.enabled) {

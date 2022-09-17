@@ -1,82 +1,82 @@
-import api.dialog.Dialog;
+package fallback.dialog;
+
+import api.dialog.IDialog;
 import api.dialog.DialogTypes.Color;
 import api.dialog.DialogTypes.FileFilter;
 import api.dialog.DialogTypes.WindowOptions;
 import js.lib.Promise;
 
 @:keep
-class FallbackDialog implements Dialog {
-	static inline var FALLBACK_MESSAGE = 'No valid api.dialog.Dialog implementation found. Please probide an implementation as defined here []';
+class FallbackDialog implements IDialog {
+	static inline var FALLBACK_MESSAGE = 'Using a very basic implementation of api.dialog.IDialog implementation found. Please probide an implementation as defined here [https://github.com/ideckia/ideckia_api/blob/develop/api/dialog/IDialog.hx]';
 
 	public function new() {
-		trace('Called dialog.$new function.');
+		Dialog.init();
 		trace(FALLBACK_MESSAGE);
 	}
 
 	public function setDefaultOptions(options:WindowOptions) {
-		trace('Called dialog.$setDefaultOptions function.');
 		trace(FALLBACK_MESSAGE);
 	}
 
 	public function notify(title:String, text:String, ?options:WindowOptions) {
-		trace('Called dialog.$notify function.');
 		trace(FALLBACK_MESSAGE);
+		Dialog.show(Info, title, text);
 	}
 
 	public function info(title:String, text:String, ?options:WindowOptions) {
-		trace('Called dialog.$info function.');
 		trace(FALLBACK_MESSAGE);
+		Dialog.show(Info, title, text);
 	}
 
 	public function warning(title:String, text:String, ?options:WindowOptions) {
-		trace('Called dialog.$warning function.');
 		trace(FALLBACK_MESSAGE);
+		Dialog.show(Warning, title, text);
 	}
 
 	public function error(title:String, text:String, ?options:WindowOptions) {
-		trace('Called dialog.$error function.');
 		trace(FALLBACK_MESSAGE);
+		Dialog.show(Error, title, text);
 	}
 
 	public function question(title:String, text:String, ?options:WindowOptions):Promise<Bool> {
-		trace('Called dialog.$question function.');
 		trace(FALLBACK_MESSAGE);
-		return Promise.resolve(true);
+		return new js.lib.Promise((resolve, reject) -> {
+			Dialog.show(Question, title, text).then(ok -> resolve(ok == 'OK')).catchError(reject);
+		});
 	}
 
 	public function selectFile(title:String, isDirectory:Bool = false, multiple:Bool = false, ?fileFilter:FileFilter,
 			?options:WindowOptions):Promise<Array<String>> {
-		trace('Called dialog.$selectFile function.');
 		trace(FALLBACK_MESSAGE);
-		return Promise.resolve(['file0path', 'file1path']);
+		return new js.lib.Promise((resolve, reject) -> {
+			Dialog.show(FileSelect, title, 'Select a file').then(resp -> resolve([resp])).catchError(reject);
+		});
 	}
 
 	public function saveFile(title:String, ?saveName:String, ?fileFilter:FileFilter, ?options:WindowOptions):Promise<String> {
-		trace('Called dialog.$saveFile function.');
 		trace(FALLBACK_MESSAGE);
-		return Promise.resolve('filepath');
+		return Dialog.show(FileSelect, title, "Save a file");
 	}
 
 	public function entry(title:String, text:String, placeholder:String = '', ?options:WindowOptions):Promise<String> {
-		trace('Called dialog.$entry function.');
 		trace(FALLBACK_MESSAGE);
-		return Promise.resolve(placeholder);
+		return Dialog.show(Entry, title, text);
 	}
 
 	public function password(title:String, text:String, showUsername:Bool = false, ?options:WindowOptions):Promise<Array<String>> {
-		trace('Called dialog.$password function.');
 		trace(FALLBACK_MESSAGE);
-		return Promise.resolve(['username', 'password']);
+		return new js.lib.Promise((resolve, reject) -> {
+			Dialog.show(Entry, title, text).then(resp -> resolve([resp])).catchError(reject);
+		});
 	}
 
 	public function progress(title:String, text:String, pulsate:Bool = false, autoClose:Bool = true, ?options:WindowOptions):Progress {
-		trace('Called dialog.$progress function.');
 		trace(FALLBACK_MESSAGE);
 		return new FallbackProgress();
 	}
 
 	public function color(title:String, ?initialColor:String, palette:Bool = false, ?options:WindowOptions):Promise<Color> {
-		trace('Called dialog.$color function.');
 		trace(FALLBACK_MESSAGE);
 		inline function rndColorComp()
 			return Std.int(Math.random() * 255);
@@ -84,14 +84,12 @@ class FallbackDialog implements Dialog {
 	}
 
 	public function calendar(title:String, text:String, ?year:UInt, ?month:UInt, ?day:UInt, ?dateFormat:String, ?options:WindowOptions):Promise<String> {
-		trace('Called dialog.$calendar function.');
 		trace(FALLBACK_MESSAGE);
 		return Promise.resolve(Date.now().toString());
 	}
 
 	public function list(title:String, text:String, columnHeader:String, values:Array<String>, multiple:Bool = false,
 			?options:WindowOptions):Promise<Array<String>> {
-		trace('Called dialog.$list function.');
 		trace(FALLBACK_MESSAGE);
 		return Promise.resolve(['item0', 'item1']);
 	}

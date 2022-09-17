@@ -1,10 +1,10 @@
 package;
 
-import tink.semver.Version;
 import api.internal.ServerApi;
 import managers.ActionManager;
 import managers.LayoutManager;
 import managers.MsgManager;
+import tink.semver.Version;
 
 using StringTools;
 
@@ -19,7 +19,8 @@ class Ideckia {
 	@:v('ideckia.actions-path:actions')
 	static var actionsPath:String;
 
-	public static var dialog:api.dialog.Dialog;
+	public static var dialog:api.dialog.IDialog;
+	public static var mediaPlayer:api.media.IMediaPlayer;
 
 	static public inline final CURRENT_VERSION = #if release Macros.getLastTagName() #else Macros.getGitCommitHash() #end;
 
@@ -29,9 +30,16 @@ class Ideckia {
 			js.Syntax.code("var required = require({0})", dialogsPath);
 			js.Syntax.code('new required.Dialog()');
 		} catch (e:haxe.Exception) {
-			Log.error('Error loading dialogs implementation: $e');
-			Log.error('Loading the fallback dialogs module.');
-			new FallbackDialog();
+			Log.info('External dialogs implementation not found. Loading the fallback dialogs module.');
+			new fallback.dialog.FallbackDialog();
+		}
+		mediaPlayer = try {
+			var mediaPath = getAppPath() + '/media';
+			js.Syntax.code("var required = require({0})", mediaPath);
+			js.Syntax.code('new required.MediaPlayer()');
+		} catch (e:haxe.Exception) {
+			Log.info('External media player implementation not found. Loading the fallback media player module.');
+			new fallback.media.FallbackMediaPlayer();
 		}
 
 		var autoLauncher = new AutoLaunch({
@@ -154,6 +162,7 @@ class Ideckia {
 					state = {
 						actions: [
 							{
+								enabled: true,
 								name: param,
 								props: {}
 							}
