@@ -15,7 +15,7 @@ class LayoutManager {
 
 	public static var layout:Layout;
 	public static var currentDir:Dir;
-	static var currentDirName:DirName;
+	static var currentDirName:DirName = new DirName(MAIN_DIR_ID);
 	static var isWatching:Bool = false;
 
 	static inline var DEFAULT_TEXT_SIZE = 15;
@@ -30,7 +30,6 @@ class LayoutManager {
 
 		Log.info('Loading layout from [$layoutFullPath]');
 		try {
-			currentDirName = new DirName(MAIN_DIR_ID);
 			layout = tinkJsonParse(sys.io.File.getContent(layoutFullPath));
 		} catch (e:haxe.Exception) {
 			Log.error(e);
@@ -194,7 +193,7 @@ class LayoutManager {
 
 	public static function changeDir(dirName:DirName) {
 		if (layout == null) {
-			throw new haxe.Exception('There is no loaded layout. First call LayoutManager.load().');
+			throw new haxe.Exception('There is no loaded layout. Call LayoutManager.load() first.');
 		}
 
 		Log.info('Switching dir to [$dirName]');
@@ -213,6 +212,7 @@ class LayoutManager {
 		}
 
 		currentDir = foundDirs[0];
+		currentDirName = currentDir.name;
 	}
 
 	static function addIds() {

@@ -60,11 +60,11 @@ class Utils {
 	}
 
 	public static function isNumeric(typeName:String) {
-		return typeName.contains("Int") || typeName.contains("UInt") || typeName.contains("Float");
+		return typeName.startsWith("Int") || typeName.startsWith("UInt") || typeName.startsWith("Float");
 	}
 
 	public static function isPrimitiveTypeByName(typeName:String) {
-		return isNumeric(typeName) || typeName.contains("String");
+		return isNumeric(typeName.replace('Null<', '')) || typeName.replace('Null<', '').startsWith("String");
 	}
 
 	public static function cloneElement<T:js.html.Element>(element:Element, cls:Class<T>):T {
