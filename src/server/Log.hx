@@ -56,6 +56,6 @@ class Log {
 		var time = DateTools.format(Date.now(), '%H:%M:%S');
 		var filePath = posInfos.fileName;
 		var filename = StringTools.replace(filePath.substr(filePath.lastIndexOf('/') + 1), '.hx', '');
-		trace('$time [$levelString]-[$filename.${posInfos.methodName}:${posInfos.lineNumber}]: $data');
+		Sys.println('$time [$levelString]-[$filename.${posInfos.methodName}:${posInfos.lineNumber}]: $data');
 	}
 }
