@@ -6,7 +6,6 @@ import api.dialog.DialogTypes.FileFilter;
 import api.dialog.DialogTypes.WindowOptions;
 import js.lib.Promise;
 
-@:keep
 class FallbackDialog implements IDialog {
 	static inline var FALLBACK_MESSAGE = 'Using a very basic implementation of api.dialog.IDialog implementation found. Please probide an implementation as defined here [https://github.com/ideckia/ideckia_api/blob/develop/api/dialog/IDialog.hx]';
 

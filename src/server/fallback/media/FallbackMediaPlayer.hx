@@ -2,7 +2,6 @@ package fallback.media;
 
 import api.media.IMediaPlayer;
 
-@:keep
 class FallbackMediaPlayer implements IMediaPlayer {
 	var ids:Array<Int> = [];
 
@@ -47,6 +46,8 @@ class FallbackMediaPlayer implements IMediaPlayer {
 	}
 
 	public function pause(id:Int) {}
+
+	public function resume(id:Int) {}
 
 	public function stop(id:Int) {
 		if (!ids.contains(id))
