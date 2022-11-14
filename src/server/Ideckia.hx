@@ -33,6 +33,9 @@ class Ideckia {
 			Log.info('External dialogs implementation not found. Loading the fallback dialogs module.');
 			new fallback.dialog.FallbackDialog();
 		}
+		var iconPath = haxe.io.Path.join([getAppPath(), 'icon.png']);
+		if (sys.FileSystem.exists(iconPath))
+			dialog.setDefaultOptions({windowIcon: iconPath});
 		mediaPlayer = try {
 			var mediaPath = getAppPath() + '/media';
 			js.Syntax.code("var required = require({0})", mediaPath);
@@ -42,11 +45,6 @@ class Ideckia {
 			new fallback.media.FallbackMediaPlayer();
 		}
 
-		var autoLauncher = new AutoLaunch({
-			name: 'Ideckia',
-			path: js.Node.process.execPath
-		});
-
 		js.Node.process.on('uncaughtException', (error) -> {
 			Log.error('There was an uncaughtException: $error');
 			Log.error('Please restart the server.');
@@ -55,6 +53,11 @@ class Ideckia {
 			Log.error('Rejection was not handled in the promise: $promise');
 			Log.error('The error was: ', error);
 			Log.error('Please restart the server.');
+		});
+
+		var autoLauncher = new AutoLaunch({
+			name: 'Ideckia',
+			path: js.Node.process.execPath
 		});
 
 		autoLauncher.isEnabled().then((isEnabled) -> {
