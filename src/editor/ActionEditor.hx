@@ -227,7 +227,7 @@ class ActionEditor {
 				}
 
 				if (!found) {
-					var value = (prop.defaultValue == null) ? null : prop.defaultValue.replace('"', '');
+					var value = (prop.defaultValue == null) ? null : prop.defaultValue.replace('"', '').replace("'", '');
 					App.updateSharedValues({
 						key: sharedName,
 						value: value

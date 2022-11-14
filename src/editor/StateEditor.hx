@@ -140,11 +140,13 @@ class StateEditor {
 							}
 
 							var actionDefaultProps = {};
+							var defValue;
 							for (p in actionDescriptor.props) {
+								defValue = (p.defaultValue == null) ? null : p.defaultValue.replace('"', '').replace("'", '');
 								if (p.type.contains('Bool'))
-									Reflect.setField(actionDefaultProps, p.name, p.defaultValue == 'true');
+									Reflect.setField(actionDefaultProps, p.name, defValue == 'true');
 								else
-									Reflect.setField(actionDefaultProps, p.name, p.defaultValue);
+									Reflect.setField(actionDefaultProps, p.name, defValue);
 							}
 
 							createAction(actionDefaultProps);
