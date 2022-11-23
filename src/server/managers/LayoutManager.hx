@@ -248,6 +248,7 @@ class LayoutManager {
 
 		setItemAndStateIds(expItems, true);
 		setActionIds(expItems, true);
+		removeDefaults(expItems);
 
 		return tinkJsonStringify(expLayout);
 	}
@@ -275,6 +276,7 @@ class LayoutManager {
 
 		setItemAndStateIds(expItems, true);
 		setActionIds(expItems, true);
+		removeDefaults(expItems);
 
 		return Some({
 			processedDirNames: foundDirs.map(f -> f.name.toString()),
@@ -316,6 +318,21 @@ class LayoutManager {
 							for (a in s.actions)
 								if (a != null)
 									a.id = toNull ? null : new ActionId(id++);
+					}
+					States(0, list);
+				case k:
+					k;
+			}
+	}
+
+	static function removeDefaults(items:Array<ServerItem>) {
+		var defaultTextSize = layout.textSize;
+		for (i in items)
+			i.kind = switch i.kind {
+				case States(_, list):
+					for (s in list) {
+						if (s.textSize == defaultTextSize)
+							s.textSize = null;
 					}
 					States(0, list);
 				case k:
