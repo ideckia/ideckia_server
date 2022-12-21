@@ -1,13 +1,15 @@
 package fallback.dialog;
 
+import api.dialog.DialogTypes.IdValue;
 import api.dialog.IDialog;
 import api.dialog.DialogTypes.Color;
 import api.dialog.DialogTypes.FileFilter;
 import api.dialog.DialogTypes.WindowOptions;
 import js.lib.Promise;
+import haxe.ds.Option;
 
 class FallbackDialog implements IDialog {
-	static inline var FALLBACK_MESSAGE = 'Using a very basic implementation of api.dialog.IDialog implementation found. Please probide an implementation as defined here [https://github.com/ideckia/ideckia_api/blob/develop/api/dialog/IDialog.hx]';
+	static inline var FALLBACK_MESSAGE = 'Using a very basic implementation of api.dialog.IDialog implementation found. Please provide an implementation as defined here [https://github.com/ideckia/ideckia_api/blob/develop/api/dialog/IDialog.hx]';
 
 	public function new() {
 		Dialog.init();
@@ -46,51 +48,61 @@ class FallbackDialog implements IDialog {
 	}
 
 	public function selectFile(title:String, isDirectory:Bool = false, multiple:Bool = false, ?fileFilter:FileFilter,
-			?options:WindowOptions):Promise<Array<String>> {
+			?options:WindowOptions):Promise<Option<Array<String>>> {
 		trace(FALLBACK_MESSAGE);
 		return new js.lib.Promise((resolve, reject) -> {
-			Dialog.show(FileSelect, title, 'Select a file').then(resp -> resolve([resp])).catchError(reject);
+			Dialog.show(FileSelect, title, 'Select a file').then(resp -> resolve(Some([resp]))).catchError(reject);
 		});
 	}
 
-	public function saveFile(title:String, ?saveName:String, ?fileFilter:FileFilter, ?options:WindowOptions):Promise<String> {
-		trace(FALLBACK_MESSAGE);
-		return Dialog.show(FileSelect, title, "Save a file");
-	}
-
-	public function entry(title:String, text:String, placeholder:String = '', ?options:WindowOptions):Promise<String> {
-		trace(FALLBACK_MESSAGE);
-		return Dialog.show(Entry, title, text);
-	}
-
-	public function password(title:String, text:String, showUsername:Bool = false, ?options:WindowOptions):Promise<Array<String>> {
+	public function saveFile(title:String, ?saveName:String, ?fileFilter:FileFilter, ?options:WindowOptions):Promise<Option<String>> {
 		trace(FALLBACK_MESSAGE);
 		return new js.lib.Promise((resolve, reject) -> {
-			Dialog.show(Entry, title, text).then(resp -> resolve([resp])).catchError(reject);
+			Dialog.show(FileSelect, title, "Save a file").then(resp -> resolve(Some(resp))).catchError(reject);
 		});
 	}
 
-	public function progress(title:String, text:String, pulsate:Bool = false, autoClose:Bool = true, ?options:WindowOptions):Progress {
+	public function entry(title:String, text:String, placeholder:String = '', ?options:WindowOptions):Promise<Option<String>> {
+		trace(FALLBACK_MESSAGE);
+		return new js.lib.Promise((resolve, reject) -> {
+			Dialog.show(Entry, title, text).then(resp -> resolve(Some(resp))).catchError(reject);
+		});
+	}
+
+	public function password(title:String, text:String, showUsername:Bool = false,
+			?options:WindowOptions):Promise<Option<{username:String, password:String}>> {
+		trace(FALLBACK_MESSAGE);
+		return new js.lib.Promise((resolve, reject) -> {
+			Dialog.show(Entry, title, text).then(resp -> resolve(Some({username: null, password: resp}))).catchError(reject);
+		});
+	}
+
+	public function progress(title:String, text:String, autoClose:Bool = true, ?options:WindowOptions):Progress {
 		trace(FALLBACK_MESSAGE);
 		return new FallbackProgress();
 	}
 
-	public function color(title:String, ?initialColor:String, palette:Bool = false, ?options:WindowOptions):Promise<Color> {
+	public function color(title:String, ?initialColor:String, ?options:WindowOptions):Promise<Option<Color>> {
 		trace(FALLBACK_MESSAGE);
 		inline function rndColorComp()
 			return Std.int(Math.random() * 255);
-		return Promise.resolve(new Color({red: rndColorComp(), green: rndColorComp(), blue: rndColorComp()}));
+		return Promise.resolve(Some(new Color({red: rndColorComp(), green: rndColorComp(), blue: rndColorComp()})));
 	}
 
-	public function calendar(title:String, text:String, ?year:UInt, ?month:UInt, ?day:UInt, ?dateFormat:String, ?options:WindowOptions):Promise<String> {
+	public function calendar(title:String, text:String, ?year:UInt, ?month:UInt, ?day:UInt, ?dateFormat:String,
+			?options:WindowOptions):Promise<Option<String>> {
 		trace(FALLBACK_MESSAGE);
-		return Promise.resolve(Date.now().toString());
+		return Promise.resolve(Some(Date.now().toString()));
 	}
 
 	public function list(title:String, text:String, columnHeader:String, values:Array<String>, multiple:Bool = false,
-			?options:WindowOptions):Promise<Array<String>> {
+			?options:WindowOptions):Promise<Option<Array<String>>> {
 		trace(FALLBACK_MESSAGE);
-		return Promise.resolve(['item0', 'item1']);
+		return Promise.resolve(Some(values));
+	}
+
+	public function custom(definitionPath:String):api.IdeckiaApi.Promise<Option<Array<IdValue<String>>>> {
+		throw new haxe.exceptions.NotImplementedException();
 	}
 }
 
