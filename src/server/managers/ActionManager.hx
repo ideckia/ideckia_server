@@ -82,7 +82,7 @@ class ActionManager {
 		actionDescriptors = null;
 
 		inline function getActionFromState(itemId:ItemId, state:ServerState) {
-			Log.debug('item [$itemId] / state [id=${state.id}] [text=${state.text}], [icon=${state.icon}]');
+			Log.debug('item [$itemId] / state [id=${state.id}] [text=${state.text}], [icon=${(state.icon == null) ? null : state.icon.substring(0, 50) + "..."}]');
 			switch loadAndInitAction(itemId, state) {
 				case Some(actions):
 					clientActions.set(state.id, actions);

@@ -114,7 +114,7 @@ class LayoutManager {
 				list[index];
 		}
 
-		Log.debug('State [id=${state.id}] of the item [id=$itemId]: [text=${state.text}], [icon=${state.icon}]');
+		Log.debug('State [id=${state.id}] of the item [id=$itemId]: [text=${state.text}],  [icon=${(state.icon == null) ? null : state.icon.substring(0, 50) + "..."}]');
 		return state;
 	}
 
