@@ -1,5 +1,6 @@
 package;
 
+import websocket.WebSocketServer;
 import api.internal.ServerApi;
 import managers.ActionManager;
 import managers.LayoutManager;
@@ -46,13 +47,12 @@ class Ideckia {
 		}
 
 		js.Node.process.on('uncaughtException', (error) -> {
-			Log.error('There was an uncaughtException: $error');
-			Log.error('Please restart the server.');
+			Log.error('There was an uncaughtException. Please restart the server.');
+			Sys.println(error);
 		});
 		js.Node.process.on('unhandledRejection', (error, promise) -> {
-			Log.error('Rejection was not handled in the promise: $promise');
-			Log.error('The error was: ', error);
-			Log.error('Please restart the server.');
+			Log.error('Rejection was not handled in the promise. Please restart the server.');
+			Sys.println(error);
 		});
 
 		var autoLauncher = new AutoLaunch({
@@ -78,7 +78,7 @@ class Ideckia {
 		LayoutManager.load();
 		LayoutManager.watchForChanges();
 
-		var wsServer = new websocket.WebSocketServer();
+		var wsServer = new WebSocketServer();
 
 		wsServer.onConnect = (connection) -> {
 			MsgManager.send(connection, LayoutManager.currentDirForClient());

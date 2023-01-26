@@ -22,7 +22,9 @@ class LayoutManager {
 	static inline var MAIN_DIR_ID = "_main_";
 
 	public static function getLayoutPath() {
-		return Ideckia.getAppPath() + '/' + layoutFilePath;
+		if (js.node.Path.isAbsolute(layoutFilePath))
+			return layoutFilePath;
+		return haxe.io.Path.join([Ideckia.getAppPath(), layoutFilePath]);
 	}
 
 	public static function readLayout() {

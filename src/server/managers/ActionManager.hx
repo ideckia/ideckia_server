@@ -13,6 +13,12 @@ class ActionManager {
 
 	static var actionDescriptors:Array<ActionDescriptor>;
 
+	public static function getActionsPath() {
+		if (js.node.Path.isAbsolute(actionsPath))
+			return actionsPath;
+		return haxe.io.Path.join([Ideckia.getAppPath(), actionsPath]);
+	}
+
 	static function loadAndInitAction(itemId:ItemId, state:ServerState):Option<Array<IdeckiaAction>> {
 		var actions = state.actions;
 		if (actions == null || actions.length == 0)
@@ -35,7 +41,7 @@ class ActionManager {
 				if (!action.enabled) {
 					continue;
 				}
-				var actionPath = Ideckia.getAppPath() + '/${actionsPath}/$name';
+				var actionPath = getActionsPath() + '/$name';
 				var ideckiaAction:IdeckiaAction = requireAction(actionPath);
 
 				var propFieldValue;
@@ -105,7 +111,7 @@ class ActionManager {
 	}
 
 	public static function getEditorActionDescriptors() {
-		var actionPath = Ideckia.getAppPath() + '/${actionsPath}/';
+		var actionPath = getActionsPath();
 		if (actionDescriptors == null) {
 			actionDescriptors = [];
 			var desc:ActionDescriptor;
