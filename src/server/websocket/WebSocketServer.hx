@@ -11,7 +11,7 @@ class WebSocketServer {
 	public static inline var EDITOR_ENDPOINT = 'editor';
 
 	@:v('ideckia.port:8888')
-	static var port:Int;
+	static public var port:Int;
 
 	var ws:WebSocketServerJs;
 

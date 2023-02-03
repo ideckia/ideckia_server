@@ -18,6 +18,7 @@
 	},
 	"pkg": {
 		"assets": [
+			"bin/tray/*",
 			"bin/editor/*"
 		]
 	}

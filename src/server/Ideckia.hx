@@ -93,6 +93,8 @@ class Ideckia {
 			Log.info('Closing connection [code=$reasonCode]: $description');
 			connection.dispose();
 		}
+
+		Tray.show(WebSocketServer.port);
 	}
 
 	public static function getAppPath() {
