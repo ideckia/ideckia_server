@@ -64,7 +64,7 @@ class Utils {
 	}
 
 	public static function isPrimitiveTypeByName(typeName:String) {
-		return isNumeric(typeName) || typeName.startsWith("String");
+		return isNumeric(typeName.replace('Null<', '')) || typeName.replace('Null<', '').startsWith("String");
 	}
 
 	public static function cloneElement<T:js.html.Element>(element:Element, cls:Class<T>):T {
@@ -84,6 +84,10 @@ class Utils {
 		return {
 			id: getNextStateId()
 		};
+	}
+
+	public static function defaultBase64Prefix(base64:String) {
+		return (base64.indexOf('base64,') == -1) ? 'data:image/jpeg;base64,' + base64 : base64;
 	}
 
 	public static function createNewItem():js.lib.Promise<ServerItem> {

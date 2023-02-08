@@ -1,5 +1,6 @@
 package websocket;
 
+import managers.LayoutManager;
 import websocket.WebSocketConnection.WebSocketConnectionJs;
 import js.node.Os;
 
@@ -7,59 +8,19 @@ using StringTools;
 
 class WebSocketServer {
 	public static inline var DISCOVER_ENDPOINT = '/ping';
-	public static inline var EDITOR_ENDPOINT = '/editor';
+	public static inline var EDITOR_ENDPOINT = 'editor';
 
 	@:v('ideckia.port:8888')
-	static var port:Int;
+	static public var port:Int;
 
 	var ws:WebSocketServerJs;
 
 	public function new() {
 		var server = js.node.Http.createServer(function(request, response) {
-			var headers = {
-				'Access-Control-Allow-Origin': '*',
-				'Access-Control-Allow-Methods': 'OPTIONS, POST, GET',
-				'Access-Control-Max-Age': 2592000, // 30 days
-				"Access-Control-Allow-Headers": "Content-Type",
-				"Content-Type": "text/html",
-				/** add other headers as per requirement */
-			};
-
-			if (request.method == 'OPTIONS') {
-				response.writeHead(204, headers);
-				response.end();
-				return;
-			}
-
-			if (['GET', 'POST'].indexOf(request.method) > -1) {
-				var code = 404;
-				var body = null;
-				if (request.url.indexOf(DISCOVER_ENDPOINT) != -1) {
-					code = 200;
-					body = haxe.Json.stringify({pong: Os.hostname()});
-				} else if (request.url.indexOf(EDITOR_ENDPOINT) != -1 || request.url.endsWith('.js') || request.url.endsWith('.css')) {
-					code = 200;
-					var relativePath = '/${EDITOR_ENDPOINT}';
-					if (request.url.endsWith(EDITOR_ENDPOINT)) {
-						relativePath += '/index.html';
-					} else {
-						relativePath += '/${request.url}';
-					}
-					var absolutePath = '${Ideckia.getAppPath()}/$relativePath';
-					if (!sys.FileSystem.exists(absolutePath)) {
-						absolutePath = js.Node.__dirname + '$relativePath';
-					}
-					headers = {"Content-Type": "text/" + haxe.io.Path.extension(absolutePath)};
-					body = sys.io.File.getContent(absolutePath);
-				}
-
-				response.writeHead(code, headers);
-				response.end(body);
-				return;
-			}
-
-			response.writeHead(405, headers);
-			response.end('${request.method} is not allowed for the request.');
+			handleRequest(request).then(res -> {
+				response.writeHead(res.code, res.headers);
+				response.end(res.body);
+			});
 		});
 
 		server.listen(port, () -> {
@@ -86,6 +47,106 @@ class WebSocketServer {
 			connection.on('close', function(reasonCode, description) {
 				onClose(connection, reasonCode, description);
 			});
+		});
+	}
+
+	function handleRequest(request:js.node.http.IncomingMessage):js.lib.Promise<{code:Int, headers:Any, body:String}> {
+		return new js.lib.Promise((resolve, reject) -> {
+			var headers = {
+				'Access-Control-Allow-Origin': '*',
+				'Access-Control-Allow-Methods': 'OPTIONS, POST, GET',
+				'Access-Control-Max-Age': 2592000, // 30 days
+				"Access-Control-Allow-Headers": "Content-Type",
+				"Content-Type": "text/html",
+			};
+
+			if (request.method == 'OPTIONS') {
+				resolve({
+					code: 204,
+					headers: headers,
+					body: null
+				});
+			} else if (['GET', 'POST'].indexOf(request.method) > -1) {
+				var requestUrl = request.url;
+				if (requestUrl.indexOf(DISCOVER_ENDPOINT) != -1) {
+					resolve({
+						code: 200,
+						headers: headers,
+						body: haxe.Json.stringify({pong: Os.hostname()})
+					});
+				} else if (requestUrl.indexOf(EDITOR_ENDPOINT) != -1 || requestUrl.endsWith('.js') || requestUrl.endsWith('.css')) {
+					var relativePath = '/${EDITOR_ENDPOINT}';
+					if (requestUrl.endsWith(EDITOR_ENDPOINT)) {
+						relativePath += '/index.html';
+					} else {
+						relativePath += '/${requestUrl}';
+					}
+					var absolutePath = '${Ideckia.getAppPath()}/$relativePath';
+					if (!sys.FileSystem.exists(absolutePath)) {
+						absolutePath = js.Node.__dirname + '$relativePath';
+					}
+					headers = {"Content-Type": "text/" + haxe.io.Path.extension(absolutePath)};
+					resolve({
+						code: 200,
+						headers: headers,
+						body: sys.io.File.getContent(absolutePath)
+					});
+				} else if (request.method == 'POST' && requestUrl.indexOf('/layout/append') != -1) {
+					trace('append layout');
+					var data = '';
+					request.on('data', chunck -> {
+						data += chunck;
+					});
+					request.on('end', chunck -> {
+						trace('data received: $data');
+						LayoutManager.appendLayout(tink.Json.parse(data));
+						sys.io.File.saveContent(LayoutManager.getLayoutPath(), LayoutManager.exportLayout());
+						resolve({
+							code: 200,
+							headers: headers,
+							body: data
+						});
+					});
+				} else if (request.method == 'POST' && requestUrl.indexOf('/directory/export') != -1) {
+					trace('directory/export');
+					var data = '';
+					request.on('data', chunck -> {
+						data += chunck;
+					});
+					request.on('end', chunck -> {
+						trace('data received: $data');
+						var dirNames:Array<String> = haxe.Json.parse(data);
+						switch LayoutManager.exportDirs(dirNames) {
+							case Some(exported):
+								Log.info('[${exported.processedDirNames.join(',')}] successfully exported.');
+								resolve({
+									code: 200,
+									headers: headers,
+									body: haxe.Json.stringify(exported.layout)
+								});
+							case None:
+								Log.info('Could not find [$dirNames] directories in the layout file.');
+								resolve({
+									code: 404,
+									headers: headers,
+									body: 'Could not find [$dirNames] directories in the layout file.'
+								});
+						};
+					});
+				} else {
+					resolve({
+						code: 404,
+						headers: headers,
+						body: null
+					});
+				}
+			} else {
+				resolve({
+					code: 405,
+					headers: headers,
+					body: '${request.method} is not allowed for the request.'
+				});
+			}
 		});
 	}
 

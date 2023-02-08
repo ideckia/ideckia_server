@@ -2,7 +2,7 @@ actions/**
 node_modules/*
 bin/ideckia.js
 ideckia-*
-ideckia.exe
+*.exe
 layout.json
 app.props
 gen.readme.md

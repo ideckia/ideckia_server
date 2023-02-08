@@ -13,6 +13,7 @@ jobs:
       PKG_NODE_VERSION: 16
       NODE_VERSION: 16
       HAXE_VERSION: latest
+      PKG_ARGS: --no-bytecode --public --public-packages '*' --compress Brotli
 
     steps:
     - uses: actions/checkout@v2
@@ -30,7 +31,7 @@ jobs:
             lix download
 
     - name: Compile server
-      run: haxe deploy_server.hxml
+      run: haxe deploy_server.hxml -D release
 
     - name: Compile editor
       run: haxe deploy_editor.hxml
@@ -38,11 +39,41 @@ jobs:
     - name: Install node.js dependencies
       run: npm install
 
+    - name: Get tray windows executable
+      uses: robinraju/release-downloader@v1
+      with:
+        repository: "ideckia/tray"
+        latest: true
+        tarBall: false
+        zipBall: false
+        fileName: "ideckia_tray.exe"
+        out-file-path: "bin/tray"
+
+    - name: Get tray linux executable
+      uses: robinraju/release-downloader@v1
+      with:
+        repository: "ideckia/tray"
+        latest: true
+        tarBall: false
+        zipBall: false
+        fileName: "ideckia_tray_linux"
+        out-file-path: "bin/tray"
+
+    - name: Get tray macos executable
+      uses: robinraju/release-downloader@v1
+      with:
+        repository: "ideckia/tray"
+        latest: true
+        tarBall: false
+        zipBall: false
+        fileName: "ideckia_tray_macos"
+        out-file-path: "bin/tray"
+
     - name: Install pkg
-      run: npm i -g pkg@5.3.1
-    
+      run: npm i -g pkg@5.8.0
+
     - name: Package with pkg
-      run: pkg . --targets node${{ env.PKG_NODE_VERSION }}-linux,node${{ env.PKG_NODE_VERSION }}-win,node${{ env.PKG_NODE_VERSION }}-macos --no-bytecode --public --public-packages '*'
+      run: pkg . --targets node${{ env.PKG_NODE_VERSION }}-linux,node${{ env.PKG_NODE_VERSION }}-win,node${{ env.PKG_NODE_VERSION }}-macos ${{ env.PKG_ARGS }}
 
     - name: Release
       uses: "marvinpinto/action-automatic-releases@latest"

@@ -1,14 +1,17 @@
-import js.html.Element;
-import js.html.SelectElement;
+import api.IdeckiaApi.TextPosition;
 import api.internal.ServerApi;
+import hx.Selectors.Cls;
+import hx.Selectors.Id;
+import hx.Selectors.Tag;
 import js.Browser.document;
+import js.html.Element;
 import js.html.Event;
 import js.html.ImageElement;
 import js.html.InputElement;
 import js.html.LIElement;
-import hx.Selectors.Cls;
-import hx.Selectors.Id;
-import hx.Selectors.Tag;
+import js.html.SelectElement;
+
+using StringTools;
 
 class StateEditor {
 	static var editingState:ServerState;
@@ -92,7 +95,8 @@ class StateEditor {
 								return;
 							}
 
-							var actionName = actionDescriptors[selectedActionIndex - 1].name;
+							var actionDescriptor = actionDescriptors[selectedActionIndex - 1];
+							var actionName = actionDescriptor.name;
 
 							function createAction(props:Any) {
 								if (state.actions == null) {
@@ -101,6 +105,7 @@ class StateEditor {
 
 								var action = {
 									name: actionName,
+									enabled: true,
 									props: props
 								};
 								state.actions.push(action);
@@ -115,7 +120,7 @@ class StateEditor {
 								resolve(true);
 							}
 
-							var actionPresets = actionDescriptors[selectedActionIndex - 1].presets;
+							var actionPresets = actionDescriptor.presets;
 							if (actionPresets != null) {
 								var selectedPresetIndex = Id.action_presets.as(SelectElement).selectedIndex;
 								if (selectedPresetIndex != 0) {
@@ -134,7 +139,17 @@ class StateEditor {
 								}
 							}
 
-							createAction({});
+							var actionDefaultProps = {};
+							var defValue;
+							for (p in actionDescriptor.props) {
+								defValue = (p.defaultValue == null) ? null : p.defaultValue.replace('"', '').replace("'", '');
+								if (p.type.contains('Bool'))
+									Reflect.setField(actionDefaultProps, p.name, defValue == 'true');
+								else
+									Reflect.setField(actionDefaultProps, p.name, defValue);
+							}
+
+							createAction(actionDefaultProps);
 						});
 					}, () -> {
 						Utils.removeListeners(selListener);
@@ -231,6 +246,10 @@ class StateEditor {
 		Id.bg_color.as(InputElement).value = bgColor == null ? '' : '#' + bgColor.substr(2);
 		var textSize = editingState.textSize;
 		Id.text_size.as(InputElement).value = Std.string(textSize == null ? App.editorData.layout.textSize : textSize);
+		var textPosition = editingState.textPosition;
+		if (textPosition == null)
+			textPosition = TextPosition.bottom;
+		Id.text_position.as(SelectElement).value = textPosition;
 
 		Utils.fillSelectElement(Id.icons.as(SelectElement), [for (i in 0...App.icons.length) {value: i, text: App.icons[i].name}]);
 
@@ -249,6 +268,7 @@ class StateEditor {
 		Utils.addListener(listeners, Id.text_color.get(), 'change', onTextColorChange);
 		Utils.addListener(listeners, Id.bg_color.get(), 'change', onBgColorChange);
 		Utils.addListener(listeners, Id.text_size.get(), 'change', onTextSizeChange);
+		Utils.addListener(listeners, Id.text_position.get(), 'change', onTextPositionChange);
 		Utils.addListener(listeners, Id.icons.get(), 'change', onIconChange);
 	}
 
@@ -261,7 +281,7 @@ class StateEditor {
 	static function setIconPreview(selectedIcon:App.IconData) {
 		if (selectedIcon != null && selectedIcon.name != '') {
 			Id.icon_preview.get().classList.remove(Cls.hidden);
-			Id.icon_preview.as(ImageElement).src = 'data:image/jpeg;base64,' + selectedIcon.base64;
+			Id.icon_preview.as(ImageElement).src = Utils.defaultBase64Prefix(selectedIcon.base64);
 		} else {
 			Id.icon_preview.get().classList.add(Cls.hidden);
 		}
@@ -301,6 +321,13 @@ class StateEditor {
 		if (editingState == null)
 			return;
 		editingState.textSize = Std.parseInt(Id.text_size.as(InputElement).value);
+		updateState();
+	}
+
+	static function onTextPositionChange(_) {
+		if (editingState == null)
+			return;
+		editingState.textPosition = Id.text_position.as(SelectElement).value;
 		updateState();
 	}
 

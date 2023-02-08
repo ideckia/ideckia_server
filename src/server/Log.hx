@@ -24,12 +24,6 @@ enum abstract Level(Int) from Int to Int {
 class Log {
 	public static var level:Level = ERROR;
 
-	#if sys
-	static var logger:Dynamic->Void = Sys.println;
-	#elseif js
-	static var logger:Dynamic->Void = js.html.Console.log;
-	#end
-
 	public static function debug(data:Dynamic, ?posInfos:haxe.PosInfos) {
 		if (level > DEBUG) {
 			return;
@@ -62,6 +56,6 @@ class Log {
 		var time = DateTools.format(Date.now(), '%H:%M:%S');
 		var filePath = posInfos.fileName;
 		var filename = StringTools.replace(filePath.substr(filePath.lastIndexOf('/') + 1), '.hx', '');
-		logger('$time [$levelString]-[$filename.${posInfos.methodName}:${posInfos.lineNumber}]: $data');
+		Sys.println('$time [$levelString]-[$filename.${posInfos.methodName}:${posInfos.lineNumber}]: $data');
 	}
 }

@@ -53,6 +53,7 @@ class ClientManager {
 					};
 					var promiseError = (error) -> {
 						Log.error('Error executing actions of the state [${currentState.id}]: $error');
+						Ideckia.dialog.error('Error executing actions of the state [${currentState.id}]', error);
 					};
 					// Action chaining: use the output of each action as input for the next action
 					Lambda.fold(actions, (action:IdeckiaAction, promise:Promise<ItemState>) -> {

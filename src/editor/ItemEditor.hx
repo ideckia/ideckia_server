@@ -23,9 +23,11 @@ class ItemEditor {
 
 		var cell = Utils.cloneElement(Id.layout_grid_item_tpl.get(), DivElement);
 		cell.dataset.item_id = Std.string(item.id.toUInt());
-		var callback:ServerItem->Void = (item) -> {};
+		var executionCallback:ServerItem->Void = (item) -> {};
+		var longPressCallback:ServerItem->Void = (item) -> {};
 
 		var text = '';
+		var textPosition = Cls.layout_bottom_text;
 		var textColor = 'white';
 		switch item.kind {
 			case null:
@@ -35,18 +37,18 @@ class ItemEditor {
 					case Some(cell_icon):
 						if (state.icon != null && state.icon != '') {
 							cell_icon.classList.remove(Cls.hidden);
-							switch Utils.getIconIndexByName(state.icon) {
-								case Some(index):
-									cast(cell_icon, ImageElement).src = 'data:image/jpeg;base64,' + App.icons[index].base64;
-								case None:
-									cast(cell_icon, ImageElement).src = 'data:image/jpeg;base64,' + state.icon;
-							};
+							cast(cell_icon, ImageElement).src = extractIcon(state);
 						} else {
 							cell_icon.classList.add(Cls.hidden);
 						}
 					case None:
 				}
 				text = state.text;
+				textPosition = switch state.textPosition {
+					case top: Cls.layout_top_text;
+					case center: Cls.layout_center_text;
+					default: Cls.layout_bottom_text;
+				}
 				if (state.textColor != null) {
 					textColor = '#' + state.textColor.substr(2);
 				}
@@ -63,18 +65,18 @@ class ItemEditor {
 					case Some(cell_icon):
 						if (state.icon != null && state.icon != '') {
 							cell_icon.classList.remove(Cls.hidden);
-							switch Utils.getIconIndexByName(state.icon) {
-								case Some(index):
-									cast(cell_icon, ImageElement).src = 'data:image/jpeg;base64,' + App.icons[index].base64;
-								case None:
-									cast(cell_icon, ImageElement).src = 'data:image/jpeg;base64,' + state.icon;
-							};
+							cast(cell_icon, ImageElement).src = extractIcon(state);
 						} else {
 							cell_icon.classList.add(Cls.hidden);
 						}
 					case None:
 				}
 				text = state.text;
+				textPosition = switch state.textPosition {
+					case top: Cls.layout_top_text;
+					case center: Cls.layout_center_text;
+					default: Cls.layout_bottom_text;
+				}
 				if (state.textColor != null) {
 					textColor = '#' + state.textColor.substr(2);
 				}
@@ -83,8 +85,15 @@ class ItemEditor {
 				} else {
 					cell.classList.add('states');
 				}
-				callback = (item) -> App.onItemClick(item.id.toUInt());
+				executionCallback = (item) -> App.onItemClick(item.id.toUInt());
+				longPressCallback = (item) -> App.onItemLongPress(item.id.toUInt());
 		};
+
+		switch Cls.item_text_div.firstFrom(cell) {
+			case Some(v):
+				v.classList.add(textPosition);
+			case None:
+		}
 
 		switch Tag.span.firstFrom(cell) {
 			case Some(v):
@@ -99,11 +108,25 @@ class ItemEditor {
 			Utils.selectElement(cell);
 			Utils.hideAllProps();
 
-			callback(item);
+			executionCallback(item);
 			edit(item, isFixed);
+		});
+		cell.addEventListener('contextmenu', (event:Event) -> {
+			longPressCallback(item);
 		});
 
 		return Some(cell);
+	}
+
+	static function extractIcon(state) {
+		var base64Icon = switch Utils.getIconIndexByName(state.icon) {
+			case Some(index):
+				App.icons[index].base64;
+			case None:
+				state.icon;
+		};
+
+		return Utils.defaultBase64Prefix(base64Icon);
 	}
 
 	public static function refresh() {
@@ -175,7 +198,6 @@ class ItemEditor {
 		}
 
 		Id.item_container.get().classList.remove(Cls.hidden);
-		Id.add_item_kind_btn.get().classList.add(Cls.hidden);
 		Id.add_state_btn.get().classList.add(Cls.hidden);
 		Id.clear_item_btn.get().classList.add(Cls.hidden);
 		Id.item_kind_changedir_properties.get().classList.add(Cls.hidden);

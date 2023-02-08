@@ -1,11 +1,11 @@
 package;
 
-import tink.semver.Version;
+import websocket.WebSocketServer;
 import api.internal.ServerApi;
-import dialog.Dialog;
 import managers.ActionManager;
 import managers.LayoutManager;
 import managers.MsgManager;
+import tink.semver.Version;
 
 using StringTools;
 
@@ -20,27 +20,45 @@ class Ideckia {
 	@:v('ideckia.actions-path:actions')
 	static var actionsPath:String;
 
-	static public inline final CURRENT_VERSION = Macros.getLastTagName() #if dev_build + Macros.getGitCommitHash() #end;
+	public static var dialog:api.dialog.IDialog;
+	public static var mediaPlayer:api.media.IMediaPlayer;
+
+	static public inline final CURRENT_VERSION = #if release Macros.getLastTagName() #else Macros.getGitCommitHash() #end;
 
 	function new() {
+		dialog = try {
+			var dialogsPath = getAppPath() + '/dialogs';
+			js.Syntax.code("var required = require({0})", dialogsPath);
+			js.Syntax.code('new required.Dialog()');
+		} catch (e:haxe.Exception) {
+			Log.info('External dialogs implementation not found. Loading the fallback dialogs module.');
+			new fallback.dialog.FallbackDialog();
+		}
+		var iconPath = haxe.io.Path.join([getAppPath(), 'icon.png']);
+		if (sys.FileSystem.exists(iconPath))
+			dialog.setDefaultOptions({windowIcon: iconPath});
+		mediaPlayer = try {
+			var mediaPath = getAppPath() + '/media';
+			js.Syntax.code("var required = require({0})", mediaPath);
+			js.Syntax.code('new required.MediaPlayer()');
+		} catch (e:haxe.Exception) {
+			Log.info('External media player implementation not found. Loading the fallback media player module.');
+			new fallback.media.FallbackMediaPlayer();
+		}
+
+		js.Node.process.on('uncaughtException', (error) -> {
+			Log.error('There was an uncaughtException. Please restart the server.');
+			Sys.println(error);
+		});
+		js.Node.process.on('unhandledRejection', (error, promise) -> {
+			Log.error('Rejection was not handled in the promise. Please restart the server.');
+			Sys.println(error);
+		});
+
 		var autoLauncher = new AutoLaunch({
 			name: 'Ideckia',
 			path: js.Node.process.execPath
 		});
-
-		js.Node.process.on('uncaughtException', (error) -> {
-			Log.error('There was an uncaughtException: $error');
-			Log.error('Please restart the server.');
-		});
-		js.Node.process.on('unhandledRejection', (error, promise) -> {
-			Log.error('Rejection was not handled in the promise: $promise');
-			Log.error('The error was: ', error);
-			Log.error('Please restart the server.');
-		});
-
-		#if debug
-		haxe.NativeStackTrace.wrapCallSite = js.Lib.require('source-map-support').wrapCallSite;
-		#end
 
 		autoLauncher.isEnabled().then((isEnabled) -> {
 			switch [isEnabled, autoLaunchEnabled] {
@@ -60,7 +78,7 @@ class Ideckia {
 		LayoutManager.load();
 		LayoutManager.watchForChanges();
 
-		var wsServer = new websocket.WebSocketServer();
+		var wsServer = new WebSocketServer();
 
 		wsServer.onConnect = (connection) -> {
 			MsgManager.send(connection, LayoutManager.currentDirForClient());
@@ -75,6 +93,8 @@ class Ideckia {
 			Log.info('Closing connection [code=$reasonCode]: $description');
 			connection.dispose();
 		}
+
+		Tray.show(WebSocketServer.port);
 	}
 
 	public static function getAppPath() {
@@ -85,9 +105,10 @@ class Ideckia {
 		var http = new haxe.http.HttpNodeJs('https://api.github.com/repos/ideckia/ideckia_server/releases');
 		http.addHeader("User-Agent", "ideckia");
 
-		var isDevIndex = CURRENT_VERSION.indexOf(Macros.DEV_COMMIT_PREFIX);
-		var currentVersionNumber = (isDevIndex != -1) ? CURRENT_VERSION.substring(0, isDevIndex) : CURRENT_VERSION;
-		var currentVersion = switch Version.parse(currentVersionNumber.replace('v', '')) {
+		if (CURRENT_VERSION.indexOf(Macros.DEV_COMMIT_PREFIX) != -1)
+			return;
+
+		var currentVersion = switch Version.parse(CURRENT_VERSION.replace('v', '')) {
 			case Success(ver):
 				ver;
 			case Failure(_):
@@ -125,7 +146,6 @@ class Ideckia {
 	static function main() {
 		appropos.Appropos.init(getAppPath() + '/app.props');
 		Log.level = logLevel;
-		Dialog.init();
 		checkNewerRelease();
 
 		var args = Sys.args();
@@ -147,6 +167,7 @@ class Ideckia {
 					state = {
 						actions: [
 							{
+								enabled: true,
 								name: param,
 								props: {}
 							}
@@ -163,22 +184,25 @@ class Ideckia {
 				sys.io.File.saveContent(LayoutManager.getLayoutPath(), LayoutManager.exportLayout());
 			} else if (exportDirsIndex != -1) {
 				var dirNames = args[exportDirsIndex + 1];
-				var dirNamesArray = dirNames.split(',');
-				LayoutManager.readLayout();
-				switch LayoutManager.exportDirs(dirNamesArray) {
-					case Some(response):
-						var filename = Ideckia.getAppPath() + '/dirs.export.json';
-						sys.io.File.saveContent(filename, response.layout);
-						Log.info('[${response.processedDirNames.join(',')}] successfully exported to [$filename].');
-					case None:
-						Log.info('Could not find [$dirNames] directories in the layout file.');
-				};
+				exportDirs(dirNames.split(','));
 			} else {
 				showHelp();
 			}
 		} else {
 			new Ideckia();
 		}
+	}
+
+	static public function exportDirs(dirNames:Array<String>) {
+		LayoutManager.readLayout();
+		switch LayoutManager.exportDirs(dirNames) {
+			case Some(response):
+				var filename = Ideckia.getAppPath() + '/dirs.export.json';
+				sys.io.File.saveContent(filename, response.layout);
+				Log.info('[${response.processedDirNames.join(',')}] successfully exported to [$filename].');
+			case None:
+				Log.info('Could not find [$dirNames] directories in the layout file.');
+		};
 	}
 
 	static function showHelp() {

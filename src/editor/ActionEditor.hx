@@ -16,11 +16,11 @@ import js.html.SpanElement;
 using StringTools;
 
 class ActionEditor {
-	static var editingAction:Action;
+	static var editingAction:ActionDef;
 	static var changeListeners:Array<{element:Element, changeListener:Event->Void}> = [];
 	static var listeners:Array<Utils.Listener> = [];
 
-	public static function show(action:Action, parentState:ServerState) {
+	public static function show(action:ActionDef, parentState:ServerState) {
 		var li = Utils.cloneElement(Id.action_list_item_tpl.get(), LIElement);
 		switch Tag.span.firstFrom(li) {
 			case Some(v):
@@ -33,6 +33,18 @@ class ActionEditor {
 			Utils.selectElement(li);
 			edit(action);
 		});
+
+		switch Cls.enable_check.firstFromAs(li, InputElement) {
+			case Some(v):
+				v.checked = action.enabled;
+				v.addEventListener('click', (event) -> {
+					App.dirtyData = true;
+					action.enabled = v.checked;
+					trace('oncheck: action.enabled: ${action.enabled}');
+				});
+			case None:
+				trace('No [${Cls.enable_check.selector()}] found in [${Id.action_list_item_tpl.selector()}]');
+		}
 
 		switch Cls.delete_btn.firstFrom(li) {
 			case Some(v):
@@ -57,7 +69,7 @@ class ActionEditor {
 		edit(editingAction);
 	}
 
-	public static function edit(action:Action) {
+	public static function edit(action:ActionDef) {
 		Utils.removeListeners(listeners);
 		switch App.getActionDescriptorByName(action.name) {
 			case None:
@@ -92,11 +104,10 @@ class ActionEditor {
 						});
 					} else if (!possibleValuesSelect.classList.contains(Cls.hidden)) {
 						var children = possibleValuesSelect.children;
-						for (cind in 0...children.length) {
-							if (children.item(cind).textContent == fieldValue) {
-								possibleValuesSelect.selectedIndex = cind;
-							}
-						}
+						if (children != null)
+							for (cind in 0...children.length)
+								if (children.item(cind).textContent == fieldValue)
+									possibleValuesSelect.selectedIndex = cind;
 
 						Utils.addListener(listeners, possibleValuesSelect, 'change', (_) -> {
 							Reflect.setField(editingAction.props, propertyName, children[possibleValuesSelect.selectedIndex].textContent);
@@ -181,9 +192,9 @@ class ActionEditor {
 							case None:
 						}
 
-						for (value in valuesArray) {
-							addArrayValue(value);
-						}
+						if (valuesArray != null)
+							for (value in valuesArray)
+								addArrayValue(value);
 					}
 
 					Id.action_props.get().appendChild(div);
@@ -216,7 +227,7 @@ class ActionEditor {
 				}
 
 				if (!found) {
-					var value = (prop.defaultValue == null) ? null : prop.defaultValue.replace('"', '');
+					var value = (prop.defaultValue == null) ? null : prop.defaultValue.replace('"', '').replace("'", '');
 					App.updateSharedValues({
 						key: sharedName,
 						value: value
@@ -236,6 +247,7 @@ class ActionEditor {
 			possibleValuesSelect = cast div.querySelector(Cls.prop_possible_values.selector());
 			booleanValueInput = cast div.querySelector(Cls.prop_bool_value.selector());
 			multiValuesDiv = cast div.querySelector(Cls.prop_multi_values.selector());
+			// TODO set default value
 			if (prop.values != null && prop.values.length != 0) {
 				possibleValuesSelect.classList.remove(Cls.hidden);
 				Utils.fillSelectElement(possibleValuesSelect, [for (i in 0...prop.values.length) {value: i, text: prop.values[i]}]);

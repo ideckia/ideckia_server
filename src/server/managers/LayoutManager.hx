@@ -5,7 +5,6 @@ import haxe.ds.Option;
 import js.node.Require;
 import tink.Json.parse as tinkJsonParse;
 import tink.Json.stringify as tinkJsonStringify;
-import websocket.WebSocketConnection;
 
 using api.IdeckiaApi;
 using api.internal.ServerApi;
@@ -16,14 +15,16 @@ class LayoutManager {
 
 	public static var layout:Layout;
 	public static var currentDir:Dir;
-	static var currentDirName:DirName;
+	static var currentDirName:DirName = new DirName(MAIN_DIR_ID);
 	static var isWatching:Bool = false;
 
 	static inline var DEFAULT_TEXT_SIZE = 15;
 	static inline var MAIN_DIR_ID = "_main_";
 
 	public static function getLayoutPath() {
-		return Ideckia.getAppPath() + '/' + layoutFilePath;
+		if (js.node.Path.isAbsolute(layoutFilePath))
+			return layoutFilePath;
+		return haxe.io.Path.join([Ideckia.getAppPath(), layoutFilePath]);
 	}
 
 	public static function readLayout() {
@@ -31,7 +32,6 @@ class LayoutManager {
 
 		Log.info('Loading layout from [$layoutFullPath]');
 		try {
-			currentDirName = new DirName(MAIN_DIR_ID);
 			layout = tinkJsonParse(sys.io.File.getContent(layoutFullPath));
 		} catch (e:haxe.Exception) {
 			Log.error(e);
@@ -116,7 +116,7 @@ class LayoutManager {
 				list[index];
 		}
 
-		Log.debug('State [id=${state.id}] of the item [id=$itemId]: [text=${state.text}], [icon=${state.icon}]');
+		Log.debug('State [id=${state.id}] of the item [id=$itemId]: [text=${state.text}],  [icon=${(state.icon == null) ? null : state.icon.substring(0, 50) + "..."}]');
 		return state;
 	}
 
@@ -159,6 +159,7 @@ class LayoutManager {
 				clientItem.text = currentState.text;
 				clientItem.textSize = currentState.textSize == null ? layout.textSize : currentState.textSize;
 				clientItem.textColor = currentState.textColor;
+				clientItem.textPosition = currentState.textPosition;
 				clientItem.icon = getIconData(currentState.icon);
 				clientItem.bgColor = currentState.bgColor;
 			}
@@ -194,7 +195,7 @@ class LayoutManager {
 
 	public static function changeDir(dirName:DirName) {
 		if (layout == null) {
-			throw new haxe.Exception('There is no loaded layout. First call LayoutManager.load().');
+			throw new haxe.Exception('There is no loaded layout. Call LayoutManager.load() first.');
 		}
 
 		Log.info('Switching dir to [$dirName]');
@@ -202,6 +203,7 @@ class LayoutManager {
 		var foundLength = foundDirs.length;
 		if (foundLength == 0) {
 			Log.error('Could not find dir with name [$dirName]');
+			Ideckia.dialog.error('Error switching directory', 'Could not find dir with name [$dirName]');
 			return;
 		} else if (foundLength > 1) {
 			Log.error('Found $foundLength dirs with name [$dirName]');
@@ -212,6 +214,7 @@ class LayoutManager {
 		}
 
 		currentDir = foundDirs[0];
+		currentDirName = currentDir.name;
 	}
 
 	static function addIds() {
@@ -247,28 +250,35 @@ class LayoutManager {
 
 		setItemAndStateIds(expItems, true);
 		setActionIds(expItems, true);
+		removeDefaults(expItems);
 
 		return tinkJsonStringify(expLayout);
 	}
 
 	public static function exportDirs(dirNames:Array<String>):Option<{processedDirNames:Array<String>, layout:String}> {
-		var foundDirs = layout.dirs.filter(d -> dirNames.indexOf(d.name.toString()) != -1);
+		var expLayout = Reflect.copy(layout);
+		var foundDirs = expLayout.dirs.filter(d -> dirNames.indexOf(d.name.toString()) != -1);
 		if (foundDirs.length == 0)
 			return None;
 
 		var dirIconNames = [];
+		var expItems = [];
 		for (dir in foundDirs) {
 			for (i in dir.items) {
+				expItems.push(i);
 				switch i.kind {
 					case ChangeDir(_, state) if (state.icon != null && !dirIconNames.contains(state.icon)):
 						dirIconNames.push(state.icon);
 					case States(_, list):
-						dirIconNames.concat(list.map(s -> s.icon).filter(i -> i != null && !dirIconNames.contains(i)));
-
+						dirIconNames = dirIconNames.concat(list.map(s -> s.icon).filter(i -> i != null && !dirIconNames.contains(i)));
 					case _:
 				}
 			}
 		}
+
+		setItemAndStateIds(expItems, true);
+		setActionIds(expItems, true);
+		removeDefaults(expItems);
 
 		return Some({
 			processedDirNames: foundDirs.map(f -> f.name.toString()),
@@ -310,6 +320,21 @@ class LayoutManager {
 							for (a in s.actions)
 								if (a != null)
 									a.id = toNull ? null : new ActionId(id++);
+					}
+					States(0, list);
+				case k:
+					k;
+			}
+	}
+
+	static function removeDefaults(items:Array<ServerItem>) {
+		var defaultTextSize = layout.textSize;
+		for (i in items)
+			i.kind = switch i.kind {
+				case States(_, list):
+					for (s in list) {
+						if (s.textSize == defaultTextSize)
+							s.textSize = null;
 					}
 					States(0, list);
 				case k:

@@ -6,6 +6,7 @@
 --library tink_json
 --library tink_semver
 
+-D server
 -D analyzer-optimize
 -D js-es=6
 --dce full

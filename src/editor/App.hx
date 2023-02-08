@@ -2,16 +2,7 @@ package;
 
 import api.internal.ServerApi;
 import js.Browser.document;
-import js.html.DataListElement;
-import js.html.DivElement;
-import js.html.DragEvent;
-import js.html.Element;
-import js.html.Event;
-import js.html.FileReader;
-import js.html.InputElement;
-import js.html.LabelElement;
-import js.html.SelectElement;
-import js.html.TextAreaElement;
+import js.html.*;
 
 using api.IdeckiaApi;
 using hx.Selectors;
@@ -119,14 +110,6 @@ class App {
 			});
 		});
 
-		Id.add_item_btn.get().addEventListener('click', (_) -> {
-			Utils.createNewItem().then(item -> {
-				@:privateAccess DirEditor.currentDir.items.push(item);
-				App.dirtyData = true;
-				DirEditor.refresh();
-			}).catchError(error -> trace(error));
-		});
-
 		Id.add_fixed_item_btn.get().addEventListener('click', (_) -> {
 			Utils.createNewItem().then(item -> {
 				if (editorData.layout.fixedItems == null)
@@ -147,42 +130,119 @@ class App {
 			}
 		});
 
-		var reader = new FileReader();
-		reader.onload = function(e) {
-			var cleanResult = new EReg("data:image/.*;base64,", "").replace(reader.result, '');
-			Id.new_icon_base64.as(TextAreaElement).value = cleanResult;
-		};
-		reader.onerror = function(e) {
-			trace('Error loading image: ' + e.type);
-			Id.new_icon_name.as(InputElement).value = '';
-		};
+		Id.append_layout_btn.get().addEventListener('click', (_) -> {
+			Id.append_layout_input.as(InputElement).value = '';
+			Dialog.show('Select the layout file to append', Id.append_layout.get(), () -> {
+				return new js.lib.Promise((resolve, reject) -> {
+					var reader = new FileReader();
+					var input = Id.append_layout_input.as(InputElement);
 
+					reader.onload = function(e) {
+						final port = js.Browser.location.port;
+						var http = new haxe.Http('http://localhost:$port/layout/append');
+						http.addHeader('Content-Type', 'application/json');
+						http.onError = (e) -> {
+							var msg = 'Error appending layout: $e';
+							js.Browser.alert(msg);
+							reject(msg);
+						};
+						http.onData = (d) -> {
+							js.Browser.alert('[${input.value}] file successfully appended.');
+							resolve(true);
+						};
+
+						var cleanResult = new EReg("data:application/json;base64,", "").replace(reader.result, '');
+						var layoutData = haxe.crypto.Base64.decode(cleanResult).toString();
+						http.setPostData(layoutData);
+						http.request(true);
+					};
+
+					reader.onerror = function(e) {
+						var msg = 'Error loading layout: ' + e.type;
+						trace(msg);
+						reject(msg);
+					};
+					var apLayout = input.files.item(0);
+					if (apLayout.type != 'application/json') {
+						var msg = 'Invalid layout type. Must be "application/json".';
+						js.Browser.alert(msg);
+						reject(msg);
+						return;
+					}
+					reader.readAsDataURL(apLayout);
+				});
+			});
+		});
+
+		Id.export_dir_btn.get().addEventListener('click', (_) -> {
+			var exportDirsSelect = Id.export_dir_select.as(SelectElement);
+			var options = exportDirsSelect.options;
+			exportDirsSelect.style.height = '${Std.int(options.length * 1.5)}em';
+
+			Dialog.show('Select directories to export', Id.export_dir.get(), () -> {
+				return new js.lib.Promise((resolve, reject) -> {
+					var option:OptionElement;
+					var selectedDirNames = [];
+					for (i in 0...options.length) {
+						option = cast options.item(i);
+						if (option.selected) {
+							trace(option);
+							selectedDirNames.push(option.text);
+						}
+					}
+
+					final port = js.Browser.location.port;
+					var http = new haxe.Http('http://localhost:$port/directory/export');
+					http.addHeader('Content-Type', 'application/json');
+					http.onError = (e) -> js.Browser.alert('Error exporting directory: $e');
+					http.onData = (d) -> {
+						var anchor = document.createAnchorElement();
+						anchor.href = 'data:application/json;charset=utf-8,' + haxe.Json.parse(d);
+						anchor.download = 'ideckia-exported-dirs.json';
+						anchor.style.display = 'none';
+						document.body.appendChild(anchor);
+
+						anchor.click();
+
+						document.body.removeChild(anchor);
+					}
+					http.setPostData(haxe.Json.stringify(selectedDirNames));
+					http.request(true);
+
+					resolve(true);
+				});
+			});
+		});
 		Id.add_icon_btn.get().addEventListener('click', (_) -> {
+			var reader = new FileReader();
+
+			reader.onload = function(e) {
+				Id.new_icon_base64.as(TextAreaElement).value = reader.result;
+			};
+
+			reader.onerror = function(e) {
+				trace('Error loading image: ' + e.type);
+				Id.new_icon_name.as(InputElement).value = '';
+			};
+
 			Id.new_icon_name.as(InputElement).value = '';
 			Id.new_icon_base64.as(TextAreaElement).value = '';
-
 			Id.new_icon_drop_img.get().addEventListener('drop', (e:DragEvent) -> {
 				Utils.stopPropagation(e);
-
 				var dataTransfer = e.dataTransfer;
-
 				if (dataTransfer.files.length > 0) {
 					var image = dataTransfer.files.item(0);
 					var validTypes = ['image/jpeg', 'image/png', 'image/gif'];
-
 					if (validTypes.indexOf(image.type) == -1) {
 						js.Browser.alert('Invalid file type. Must be one of [${validTypes.join(', ')}].');
 						return;
 					}
-
 					var maxSizeInBytes = 10e6; // 10MB
 					if (image.size > maxSizeInBytes) {
 						js.Browser.alert("File too large");
 						return;
 					}
-
 					Id.new_icon_name.as(InputElement).value = image.name;
-
 					reader.readAsDataURL(image);
 				}
 			});
@@ -199,38 +259,115 @@ class App {
 				return new js.lib.Promise((resolve, reject) -> {
 					var iconName = Id.new_icon_name.as(InputElement).value;
 					var iconData = Id.new_icon_base64.as(TextAreaElement).value;
-
 					if (iconName == null || iconName == '') {
 						js.Browser.alert('The name of the icon can not be empty.');
 						resolve(false);
 						return;
 					}
-
 					if (icons.filter(i -> i.name == iconName).length > 0) {
 						js.Browser.alert('Already exists [$iconName] icon in the current list. Select another name, please.');
 						resolve(false);
 						return;
 					}
-
 					if (iconData == null || iconData == '') {
 						js.Browser.alert('The base64 of the icon can not be empty. Drag&Drop an image to the area or paste the base64 in the textarea.');
 						resolve(false);
 						return;
 					}
-
 					editorData.layout.icons.push({
 						key: iconName,
 						value: iconData
 					});
-
 					updateIcons();
-
 					App.dirtyData = true;
 					resolve(true);
 				});
 			});
 		});
+		Id.remove_icon_btn.get().addEventListener('click', (_) -> {
+			var container = document.createDivElement();
+			var tplClone, cbId;
+			for (i in icons) {
+				if (i.name == '')
+					continue;
+				tplClone = Utils.cloneElement(Id.remove_icon_tpl.get(), DivElement);
+				cbId = 'remove-${i.name}-icon';
+				switch Cls.remove_icon_name_cb.firstFrom(tplClone) {
+					case Some(cb):
+						cb.id = cbId;
+					case None:
+				}
+				switch Cls.icon_name_label.firstFromAs(tplClone, LabelElement) {
+					case Some(label):
+						label.innerText = i.name;
+						label.htmlFor = cbId;
+					case None:
+				}
+				switch Cls.icon_preview.firstFromAs(tplClone, ImageElement) {
+					case Some(img):
+						img.src = Utils.defaultBase64Prefix(i.base64);
+					case None:
+				}
 
+				container.appendChild(tplClone);
+			}
+			Dialog.show('Select icons to remove', container, () -> {
+				return new js.lib.Promise((resolve, reject) -> {
+					var removed = [];
+					for (c in container.children) {
+						switch Cls.remove_icon_name_cb.firstFromAs(c, InputElement) {
+							case Some(cb):
+								if (cb.checked) {
+									switch Cls.icon_name_label.firstFrom(c) {
+										case Some(lbl):
+											removed.push(lbl.innerText);
+										case None:
+									}
+								}
+							case None:
+						}
+					}
+					if (removed.length != 0) {
+						for (r in removed) {
+							// remove from the editor icon list
+							var foundIcons = icons.filter(i -> i.name == r);
+							if (foundIcons.length != 0) {
+								for (fi in foundIcons)
+									icons.remove(fi);
+							}
+							var foundLayoutIcons = editorData.layout.icons.filter(i -> i.key == r);
+							if (foundLayoutIcons.length != 0) {
+								var iconNames = [];
+								// remove from the layout icon list
+								for (fli in foundLayoutIcons) {
+									editorData.layout.icons.remove(fli);
+									iconNames.push(fli.key);
+								}
+
+								// remove those icon references from states
+								for (d in editorData.layout.dirs) {
+									for (i in d.items) {
+										switch i.kind {
+											case null:
+											case ChangeDir(_, state):
+												if (state != null && state.icon != null && iconNames.indexOf(state.icon) != -1) state.icon = null;
+											case States(_, list):
+												for (s in list)
+													if (s != null && s.icon != null && iconNames.indexOf(s.icon) != -1)
+														s.icon = null;
+										}
+									}
+								}
+							}
+						}
+
+						js.Browser.window.alert('Icons removed: ${removed.join(',')}');
+						App.dirtyData = true;
+					}
+					resolve(true);
+				});
+			});
+		});
 		Id.edit_shared_btn.get().addEventListener('click', (_) -> {
 			var container:Element = document.createDivElement();
 			var div;
@@ -257,13 +394,10 @@ class App {
 			for (sv in editorData.layout.sharedVars) {
 				container.appendChild(createSharedDataDiv(sv.key, sv.value));
 			}
-
 			Dialog.show('Shared values', container, () -> {
 				return new js.lib.Promise((resolveDialog, _) -> {
 					var svDivs = Cls.shared_var_edit.from(container);
-
 					var newSharedVars = [];
-
 					for (svDiv in svDivs) {
 						switch Cls.shared_var_edit_key.firstFromAs(svDiv, InputElement) {
 							case Some(svKey):
@@ -274,35 +408,31 @@ class App {
 										case None:
 									}
 								}
-
 							case None:
 						}
 					}
-
 					editorData.layout.sharedVars = newSharedVars;
 					App.dirtyData = true;
-
 					Dialog.clear(true);
-
 					resolveDialog(true);
 				});
 			});
 		});
-
 		Id.update_server_layout_btn.get().addEventListener('click', (_) -> {
 			var rows, columns, maxLength;
+
 			for (dir in editorData.layout.dirs) {
 				rows = dir.rows == null ? App.editorData.layout.rows : dir.rows;
 				columns = dir.columns == null ? App.editorData.layout.columns : dir.columns;
 				maxLength = rows * columns;
 				dir.items.splice(maxLength, dir.items.length);
 			}
-
 			var msg:EditorMsg = {
 				type: EditorMsgType.saveLayout,
 				whoami: editor,
 				layout: editorData.layout
 			};
+
 			websocket.send(tink.Json.stringify(msg));
 			dirtyData = false;
 			Id.layout_updated.get().classList.remove(Cls.hidden);
@@ -435,6 +565,16 @@ class App {
 		if (Id.execute_actions_cb.as(InputElement).checked) {
 			websocket.send(haxe.Json.stringify({
 				type: click,
+				whoami: client,
+				itemId: itemId,
+			}));
+		}
+	}
+
+	public static function onItemLongPress(itemId:UInt) {
+		if (Id.execute_actions_cb.as(InputElement).checked) {
+			websocket.send(haxe.Json.stringify({
+				type: longPress,
 				whoami: client,
 				itemId: itemId,
 			}));

@@ -1,7 +1,6 @@
 package managers;
 
 import haxe.ds.Option;
-import dialog.Dialog;
 
 using api.IdeckiaApi;
 using api.internal.ServerApi;
@@ -13,6 +12,12 @@ class ActionManager {
 	static var clientActions:Map<StateId, Array<IdeckiaAction>>;
 
 	static var actionDescriptors:Array<ActionDescriptor>;
+
+	public static function getActionsPath() {
+		if (js.node.Path.isAbsolute(actionsPath))
+			return actionsPath;
+		return haxe.io.Path.join([Ideckia.getAppPath(), actionsPath]);
+	}
 
 	static function loadAndInitAction(itemId:ItemId, state:ServerState):Option<Array<IdeckiaAction>> {
 		var actions = state.actions;
@@ -29,16 +34,14 @@ class ActionManager {
 						debug: actionLog.bind(Log.debug, name),
 						info: actionLog.bind(Log.info, name)
 					},
-					dialog: {
-						info: (text:String) -> Dialog.show(Info, name, text),
-						error: (text:String) -> Dialog.show(Error, name, text),
-						question: (text:String) -> Dialog.show(Question, name, text),
-						entry: (text:String) -> Dialog.show(Entry, name, text),
-						fileselect: (text:String) -> Dialog.show(FileSelect, name, text)
-					},
+					dialog: Ideckia.dialog,
+					mediaPlayer: Ideckia.mediaPlayer,
 					updateClientState: ClientManager.fromActionToClient.bind(itemId, name)
 				};
-				var actionPath = Ideckia.getAppPath() + '/${actionsPath}/$name';
+				if (!action.enabled) {
+					continue;
+				}
+				var actionPath = getActionsPath() + '/$name';
 				var ideckiaAction:IdeckiaAction = requireAction(actionPath);
 
 				var propFieldValue;
@@ -85,7 +88,7 @@ class ActionManager {
 		actionDescriptors = null;
 
 		inline function getActionFromState(itemId:ItemId, state:ServerState) {
-			Log.debug('item [$itemId] / state [id=${state.id}] [text=${state.text}], [icon=${state.icon}]');
+			Log.debug('item [$itemId] / state [id=${state.id}] [text=${state.text}], [icon=${(state.icon == null) ? null : state.icon.substring(0, 50) + "..."}]');
 			switch loadAndInitAction(itemId, state) {
 				case Some(actions):
 					clientActions.set(state.id, actions);
@@ -108,7 +111,7 @@ class ActionManager {
 	}
 
 	public static function getEditorActionDescriptors() {
-		var actionPath = Ideckia.getAppPath() + '/${actionsPath}/';
+		var actionPath = getActionsPath();
 		if (actionDescriptors == null) {
 			actionDescriptors = [];
 			var desc:ActionDescriptor;
