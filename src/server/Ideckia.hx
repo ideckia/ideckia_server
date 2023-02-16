@@ -1,5 +1,6 @@
 package;
 
+import managers.UpdateManager;
 import websocket.WebSocketServer;
 import api.internal.ServerApi;
 import managers.ActionManager;
@@ -26,25 +27,30 @@ class Ideckia {
 	static public inline final CURRENT_VERSION = #if release Macros.getLastTagName() #else Macros.getGitCommitHash() #end;
 
 	function new() {
+		var appPath = getAppPath();
 		dialog = try {
-			var dialogsPath = getAppPath() + '/dialogs';
+			var dialogsPath = appPath + '/dialogs';
 			js.Syntax.code("var required = require({0})", dialogsPath);
 			js.Syntax.code('new required.Dialog()');
 		} catch (e:haxe.Exception) {
 			Log.info('External dialogs implementation not found. Loading the fallback dialogs module.');
 			new fallback.dialog.FallbackDialog();
 		}
-		var iconPath = haxe.io.Path.join([getAppPath(), 'icon.png']);
+		UpdateManager.checkUpdates(appPath, 'dialgos');
+
+		var iconPath = haxe.io.Path.join([appPath, 'icon.png']);
 		if (sys.FileSystem.exists(iconPath))
 			dialog.setDefaultOptions({windowIcon: iconPath});
+
 		mediaPlayer = try {
-			var mediaPath = getAppPath() + '/media';
+			var mediaPath = appPath + '/media';
 			js.Syntax.code("var required = require({0})", mediaPath);
 			js.Syntax.code('new required.MediaPlayer()');
 		} catch (e:haxe.Exception) {
 			Log.info('External media player implementation not found. Loading the fallback media player module.');
 			new fallback.media.FallbackMediaPlayer();
 		}
+		UpdateManager.checkUpdates(appPath, 'media');
 
 		js.Node.process.on('uncaughtException', (error) -> {
 			Log.error('There was an uncaughtException. Please restart the server.');

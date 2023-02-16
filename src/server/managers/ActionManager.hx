@@ -25,6 +25,7 @@ class ActionManager {
 			return None;
 
 		var retActions = [];
+		var actionsBasePath = getActionsPath();
 		for (action in actions) {
 			try {
 				var name = action.name;
@@ -41,7 +42,8 @@ class ActionManager {
 				if (!action.enabled) {
 					continue;
 				}
-				var actionPath = getActionsPath() + '/$name';
+				var actionPath = actionsBasePath + '/$name';
+				UpdateManager.checkUpdates(actionsBasePath, name);
 				var ideckiaAction:IdeckiaAction = requireAction(actionPath);
 
 				var propFieldValue;

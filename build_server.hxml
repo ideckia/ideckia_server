@@ -5,10 +5,12 @@
 --library appropos
 --library tink_json
 --library tink_semver
+--library tink_http
 
 -D server
 -D analyzer-optimize
 -D js-es=6
+-D no-deprecation-warnings
 --dce full
 
 --resource banner.txt@banner
