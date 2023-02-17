@@ -36,7 +36,7 @@ class Ideckia {
 			Log.info('External dialogs implementation not found. Loading the fallback dialogs module.');
 			new fallback.dialog.FallbackDialog();
 		}
-		UpdateManager.checkUpdates(appPath, 'dialgos');
+		UpdateManager.checkUpdates(appPath, 'dialogs');
 
 		var iconPath = haxe.io.Path.join([appPath, 'icon.png']);
 		if (sys.FileSystem.exists(iconPath))
@@ -103,56 +103,17 @@ class Ideckia {
 		Tray.show(WebSocketServer.port);
 	}
 
-	public static function getAppPath() {
-		return haxe.io.Path.directory(js.Node.process.execPath);
-	}
-
-	static function checkNewerRelease() {
-		var http = new haxe.http.HttpNodeJs('https://api.github.com/repos/ideckia/ideckia_server/releases');
-		http.addHeader("User-Agent", "ideckia");
-
-		if (CURRENT_VERSION.indexOf(Macros.DEV_COMMIT_PREFIX) != -1)
-			return;
-
-		var currentVersion = switch Version.parse(CURRENT_VERSION.replace('v', '')) {
-			case Success(ver):
-				ver;
-			case Failure(_):
-				new Version(0, 0, 0);
-		};
-
-		http.onError = (e) -> trace('Error checking the releases: ' + e);
-		http.onData = (data) -> {
-			var releases:Array<{tag_name:String, prerelease:Bool, html_url:String}> = haxe.Json.parse(data);
-			var lastReleaseVersion:Version = new Version(0, 0, 0);
-			var releaseNumber:String;
-			var lastReleaseUrl:String = '';
-			for (r in releases) {
-				if (r.prerelease)
-					continue;
-
-				releaseNumber = r.tag_name.replace('v', '');
-				switch Version.parse(releaseNumber) {
-					case Success(releaseVersion):
-						if (releaseVersion > lastReleaseVersion) {
-							lastReleaseVersion = releaseVersion;
-							lastReleaseUrl = r.html_url;
-						}
-					case Failure(_):
-				};
-			}
-
-			if (lastReleaseVersion > currentVersion)
-				Log.info('New ideckia version [$lastReleaseVersion] is available for download. Get it from $lastReleaseUrl');
-		};
-
-		http.request();
+	public static function getAppPath(subPath:String = null) {
+		var dir = [haxe.io.Path.directory(js.Node.process.execPath)];
+		if (subPath != null)
+			dir.push(subPath);
+		return haxe.io.Path.join(dir);
 	}
 
 	static function main() {
-		appropos.Appropos.init(getAppPath() + '/app.props');
+		appropos.Appropos.init(getAppPath('app.props'));
 		Log.level = logLevel;
-		checkNewerRelease();
+		UpdateManager.checkServerRelease();
 
 		var args = Sys.args();
 		if (args.length > 0) {
@@ -184,7 +145,7 @@ class Ideckia {
 				ActionManager.runAction(state);
 			} else if (appendLayoutIndex != -1) {
 				var newLayoutFile = args[appendLayoutIndex + 1];
-				var newLayout:Layout = tink.Json.parse(sys.io.File.getContent(sys.FileSystem.absolutePath(Ideckia.getAppPath() + '/' + newLayoutFile)));
+				var newLayout:Layout = tink.Json.parse(sys.io.File.getContent(sys.FileSystem.absolutePath(Ideckia.getAppPath(newLayoutFile))));
 				LayoutManager.readLayout();
 				LayoutManager.appendLayout(newLayout);
 				sys.io.File.saveContent(LayoutManager.getLayoutPath(), LayoutManager.exportLayout());
@@ -203,7 +164,7 @@ class Ideckia {
 		LayoutManager.readLayout();
 		switch LayoutManager.exportDirs(dirNames) {
 			case Some(response):
-				var filename = Ideckia.getAppPath() + '/dirs.export.json';
+				var filename = Ideckia.getAppPath('/dirs.export.json');
 				sys.io.File.saveContent(filename, response.layout);
 				Log.info('[${response.processedDirNames.join(',')}] successfully exported to [$filename].');
 			case None:

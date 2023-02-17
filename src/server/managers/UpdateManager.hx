@@ -12,7 +12,7 @@ typedef Info = {
 	var version:String;
 }
 
-typedef GHRelease = {
+typedef GhRelease = {
 	var tag_name:String;
 	var assets:Array<{
 		id:String,
@@ -31,10 +31,10 @@ class UpdateManager {
 			return;
 		checked.push(moduleName);
 		var infoPath = Path.join([path, moduleName, '.info']);
-		Log.debug('Checking updates for [$moduleName]');
 		if (!sys.FileSystem.exists(infoPath))
 			return;
 
+		Log.debug('Checking updates for [$moduleName]');
 		var content = try sys.io.File.getContent(infoPath) catch (e) '';
 		var info:Info = haxe.Json.parse(content);
 
@@ -46,46 +46,94 @@ class UpdateManager {
 		if (githubEreg.match(info.repository)) {
 			var owner = githubEreg.matched(1);
 			var repo = githubEreg.matched(2);
-			getGithubRelease(path, moduleName, info, owner, repo);
+			checkActionGithubRelease(path, moduleName, info, owner, repo);
 		}
 	}
 
-	static function getGithubRelease(path:String, moduleName:String, info:Info, owner:String, repo:String) {
-		var endpoint = 'https://api.github.com/repos/$owner/$repo/releases/latest';
+	public static function checkServerRelease() {
+		if (Ideckia.CURRENT_VERSION.indexOf(Macros.DEV_COMMIT_PREFIX) != -1)
+			return;
+		var ext = switch Sys.systemName() {
+			case "Linux": 'linux';
+			case "Mac": 'macos';
+			case "Windows": 'win.exe';
+			case _: '';
+		};
+		var filename = 'ideckia-$ext';
+		checkGithubRemoteVersion('ideckia_server', filename, extractSemVer(Ideckia.CURRENT_VERSION), 'ideckia', 'ideckia_server').then(downloadUrl -> {
+			downloadRemoteAsset('ideckia_server', downloadUrl).then(bytes -> {
+				try {
+					var updateDir = Ideckia.getAppPath('server_update');
+					if (!sys.FileSystem.exists(updateDir))
+						sys.FileSystem.createDirectory(updateDir);
+					var savePath = haxe.io.Path.join([updateDir, filename]);
+					sys.io.File.saveBytes(savePath, bytes);
+					Log.info('Successful download of [$savePath]. Please override the main executable with it.');
+				} catch (e:Any) {
+					Log.error('Error saving [ideckia_server] update: $e');
+				}
+			});
+		});
+	}
 
-		var http = new haxe.http.HttpNodeJs(endpoint);
-		http.addHeader("User-Agent", "ideckia");
+	static function checkActionGithubRelease(path:String, moduleName:String, info:Info, owner:String, repo:String) {
+		checkGithubRemoteVersion(moduleName, info.filename, extractSemVer(info.version), owner, repo).then(downloadUrl -> {
+			downloadRemoteAsset(moduleName, downloadUrl).then(bytes -> {
+				try {
+					unzip(bytes, path);
+				} catch (e:Any) {
+					Log.error('Error unzipping [$moduleName] update: $e');
+				}
+			});
+		});
+	}
 
-		http.onError = (e) -> trace('Error checking the releases: ' + e);
-		http.onData = (data) -> {
-			var ghRelease = (haxe.Json.parse(data.toString()) : GHRelease);
-			var localVersion = extractSemVer(info.version);
-			var remoteVersion = extractSemVer(ghRelease.tag_name);
-			if (remoteVersion > localVersion) {
-				Ideckia.dialog.question('New version available', 'Newer version of [$moduleName] found: Local [$localVersion] / Remote [$remoteVersion]')
-					.then(isOk -> {
-						if (isOk) {
+	static function checkGithubRemoteVersion(moduleName:String, filename:String, currentVersion:Version, owner:String, repo:String):js.lib.Promise<String> {
+		return new js.lib.Promise<String>((resolve, reject) -> {
+			var http = new haxe.http.HttpNodeJs('https://api.github.com/repos/$owner/$repo/releases/latest');
+			http.addHeader("User-Agent", "ideckia");
+
+			http.onError = (e) -> Log.error('Error checking the releases of [$moduleName]: ' + e);
+			http.onData = (data) -> {
+				var ghRelease = (haxe.Json.parse(data.toString()) : GhRelease);
+				var remoteVersion = extractSemVer(ghRelease.tag_name);
+				if (remoteVersion > currentVersion) {
+					Ideckia.dialog.question('New version available', 'Newer version of [$moduleName] found: Local [$currentVersion] / Remote [$remoteVersion]')
+						.then(isOk -> {
 							var downloadUrl = '';
 							for (asset in ghRelease.assets) {
-								if (asset.name == info.filename) {
+								if (asset.name == filename) {
 									downloadUrl = asset.browser_download_url;
 									break;
 								}
 							}
-							if (downloadUrl != '') {
-								Log.debug('Downloading $downloadUrl');
-								fetch(downloadUrl).all().handle(o -> switch o {
-									case Success(res):
-										if (res.header.statusCode == 200) unzip(res.body.toBytes(), path);
-									case Failure(e):
-										trace('Error getting the release: ' + e);
-								});
-							}
-						}
-					});
-			}
-		};
-		http.request();
+							resolve(downloadUrl);
+						});
+				} else {
+					Log.debug('No updates found for [$moduleName]');
+				}
+			};
+			http.request();
+		});
+	}
+
+	static function downloadRemoteAsset(moduleName:String, downloadUrl:String) {
+		return new js.lib.Promise<haxe.io.Bytes>((resolve, reject) -> {
+			Log.debug('Downloading $downloadUrl');
+			if (downloadUrl == '')
+				return;
+			fetch(downloadUrl).all().handle(o -> switch o {
+				case Success(res):
+					var statusCode = res.header.statusCode;
+					if (statusCode == 200) {
+						resolve(res.body.toBytes());
+					} else {
+						Log.error('Something went wrong downloading [$moduleName]. Status: [$statusCode]');
+					}
+				case Failure(e):
+					Log.error('Error getting the release of [$moduleName]: ' + e);
+			});
+		});
 	}
 
 	static function extractSemVer(version:String) {
@@ -120,7 +168,7 @@ class UpdateManager {
 					if (file == "") {
 						if (path != "")
 							Log.debug("created " + path);
-						continue; // was just a directory
+						continue;
 					}
 					path += file;
 					Log.debug("unzip " + path);
@@ -131,9 +179,6 @@ class UpdateManager {
 					f.close();
 				}
 			}
-		} // entry
-
-		Sys.println('');
-		Sys.println('unzipped successfully to ${dest}');
-	} // unzip
+		}
+	}
 }

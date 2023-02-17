@@ -24,7 +24,7 @@ class LayoutManager {
 	public static function getLayoutPath() {
 		if (js.node.Path.isAbsolute(layoutFilePath))
 			return layoutFilePath;
-		return haxe.io.Path.join([Ideckia.getAppPath(), layoutFilePath]);
+		return Ideckia.getAppPath(layoutFilePath);
 	}
 
 	public static function readLayout() {

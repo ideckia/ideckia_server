@@ -81,7 +81,7 @@ class WebSocketServer {
 					} else {
 						relativePath += '/${requestUrl}';
 					}
-					var absolutePath = '${Ideckia.getAppPath()}/$relativePath';
+					var absolutePath = Ideckia.getAppPath(relativePath);
 					if (!sys.FileSystem.exists(absolutePath)) {
 						absolutePath = js.Node.__dirname + '$relativePath';
 					}

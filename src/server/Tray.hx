@@ -46,7 +46,7 @@ class Tray {
 	**/
 	@:noCompletion
 	public static function init() {
-		var trayDir = haxe.io.Path.join([Ideckia.getAppPath(), TRAY_DIR_NAME]);
+		var trayDir = Ideckia.getAppPath(TRAY_DIR_NAME);
 
 		if (!sys.FileSystem.exists(trayDir))
 			sys.FileSystem.createDirectory(trayDir);

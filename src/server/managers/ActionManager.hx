@@ -16,7 +16,7 @@ class ActionManager {
 	public static function getActionsPath() {
 		if (js.node.Path.isAbsolute(actionsPath))
 			return actionsPath;
-		return haxe.io.Path.join([Ideckia.getAppPath(), actionsPath]);
+		return Ideckia.getAppPath(actionsPath);
 	}
 
 	static function loadAndInitAction(itemId:ItemId, state:ServerState):Option<Array<IdeckiaAction>> {
