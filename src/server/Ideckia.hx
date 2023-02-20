@@ -10,7 +10,6 @@ import tink.semver.Version;
 
 using StringTools;
 
-@:build(appropos.Appropos.generate())
 class Ideckia {
 	@:v('ideckia.log-level:ERROR')
 	static var logLevel:String;
@@ -112,6 +111,7 @@ class Ideckia {
 
 	static function main() {
 		appropos.Appropos.init(getAppPath('app.props'));
+		Log.init();
 		Log.level = logLevel;
 		UpdateManager.checkServerRelease();
 
