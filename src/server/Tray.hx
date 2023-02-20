@@ -6,6 +6,10 @@ class Tray {
 	static var trayExePath = '';
 	static var trayIconPath = '';
 
+	@:v('ideckia.client-path')
+	static var clientPath:String;
+	static var clientFullPath:String;
+
 	public static function show(port:Int) {
 		init();
 
@@ -15,19 +19,32 @@ class Tray {
 		}
 
 		var args = [trayIconPath, Std.string(port)];
+		if (clientFullPath != null && sys.FileSystem.exists(clientFullPath))
+			args.push(clientFullPath);
 
 		var trayProcess = js.node.ChildProcess.spawn(trayExePath, args, {shell: true});
 
 		trayProcess.stdout.on('data', d -> {
 			var out = Std.string(d);
-			if (out.startsWith('editor')) {
+			var isEditor = out.startsWith('editor');
+			var isLogs = out.startsWith('logs');
+			var isClient = out.startsWith('client');
+			if (isEditor || isLogs || isClient) {
 				var launchCmd = switch Sys.systemName() {
 					case "Linux": 'xdg-open';
 					case "Mac": 'open';
 					case "Windows": 'start';
 					case _: '';
 				};
-				js.node.ChildProcess.spawn('$launchCmd http://localhost:${port}/editor', {shell: true});
+
+				var launchApp = if (isEditor) {
+					'http://localhost:${port}/editor';
+				} else if (isLogs) {
+					Log.getLogsPath();
+				} else {
+					clientFullPath;
+				}
+				js.node.ChildProcess.spawn('$launchCmd $launchApp', {shell: true});
 			} else if (out.startsWith('quit')) {
 				Sys.exit(0);
 			}
@@ -79,6 +96,14 @@ class Tray {
 			var src = haxe.io.Path.join([js.Node.__dirname, TRAY_DIR_NAME, iconFilename]);
 			Log.info('Copying tray icon [$iconFilename] to $trayIconPath');
 			sys.io.File.copy(src, trayIconPath);
+		}
+
+		clientFullPath = if (clientPath == null) {
+			null;
+		} else if (js.node.Path.isAbsolute(clientPath)) {
+			clientPath;
+		} else {
+			Ideckia.getAppPath(clientPath);
 		}
 	}
 }
