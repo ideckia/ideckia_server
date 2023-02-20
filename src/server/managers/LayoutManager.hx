@@ -2,7 +2,6 @@ package managers;
 
 import exceptions.ItemNotFoundException;
 import haxe.ds.Option;
-import js.node.Require;
 import tink.Json.parse as tinkJsonParse;
 import tink.Json.stringify as tinkJsonStringify;
 
@@ -61,10 +60,7 @@ class LayoutManager {
 			return;
 
 		Chokidar.watch(getLayoutPath()).on('change', (_, _) -> {
-			for (module in Require.cache)
-				if (module != null && StringTools.endsWith(module.id, '.js'))
-					Require.cache.remove(module.id);
-
+			ActionManager.unloadActions();
 			Log.info('Layout file changed, reloading...');
 			load();
 			MsgManager.sendToAll(LayoutManager.currentDirForClient());

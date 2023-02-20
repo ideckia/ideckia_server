@@ -1,17 +1,19 @@
 package managers;
 
 import haxe.ds.Option;
+import js.node.Require;
 
 using api.IdeckiaApi;
 using api.internal.ServerApi;
+using StringTools;
 
 class ActionManager {
 	@:v('ideckia.actions-path:actions')
 	static var actionsPath:String;
 
 	static var clientActions:Map<StateId, Array<IdeckiaAction>>;
-
 	static var actionDescriptors:Array<ActionDescriptor>;
+	static var isWatching:Bool = false;
 
 	public static function getActionsPath() {
 		if (js.node.Path.isAbsolute(actionsPath))
@@ -106,6 +108,30 @@ class ActionManager {
 				default:
 			}
 		}
+	}
+
+	public static function unloadActions() {
+		for (module in Require.cache) {
+			if (module == null || !module.id.startsWith(getActionsPath()))
+				continue;
+			if (module.id.endsWith('.js'))
+				Require.cache.remove(module.id);
+		}
+	}
+
+	public static function watchForChanges() {
+		if (isWatching)
+			return;
+
+		Chokidar.watch(ActionManager.getActionsPath()).on('change', (path) -> {
+			var actionDir = haxe.io.Path.directory(path);
+			var actionName = haxe.io.Path.withoutDirectory(actionDir);
+			Log.info('Change detected in [$actionName] action, reloading...');
+			unloadActions();
+			initClientActions();
+		});
+
+		isWatching = true;
 	}
 
 	static function actionLog(log:(data:Dynamic, ?posInfos:haxe.PosInfos) -> Void, actionName:String, v:Dynamic, ?posInfos:haxe.PosInfos) {
