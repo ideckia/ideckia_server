@@ -24,12 +24,18 @@ enum abstract Level(Int) from Int to Int {
 }
 
 class Log {
-	public static var level:Level = ERROR;
+	static var level:Level = ERROR;
 
 	static var logStream:js.node.fs.WriteStream;
 
-	@:v('ideckia.logs-path:logs')
+	@:v('ideckia.logs.level:ERROR')
+	static var confLevel:String;
+
+	@:v('ideckia.logs.path:logs')
 	static var logsPath:String;
+
+	@:v('ideckia.logs.days-of-life:7')
+	static var logsLife:Int;
 
 	public static function getLogsPath() {
 		if (js.node.Path.isAbsolute(logsPath))
@@ -38,10 +44,13 @@ class Log {
 	}
 
 	public static function init() {
+		Log.level = confLevel;
 		var time = DateTools.format(Date.now(), '%F %T').replace(':', '.');
 		var logsPath = getLogsPath();
 		if (!sys.FileSystem.exists(logsPath))
 			sys.FileSystem.createDirectory(logsPath);
+		else
+			deleteOldLogs();
 		var logFile = haxe.io.Path.join([logsPath, '$time.log']);
 		sys.io.File.saveContent(logFile, '');
 
@@ -100,5 +109,23 @@ class Log {
 
 	static private function toConsole(data:String) {
 		Sys.println(data);
+	}
+
+	static function deleteOldLogs() {
+		if (logsLife < 0)
+			return;
+
+		var oldestModificationAllowed = datetime.DateTime.now().add(Day(-logsLife));
+		var logsDir = getLogsPath();
+		var stat, lastModification, lPath;
+		for (l in sys.FileSystem.readDirectory(logsDir)) {
+			lPath = haxe.io.Path.join([logsDir, l]);
+			stat = sys.FileSystem.stat(lPath);
+			lastModification = datetime.DateTime.fromDate(stat.mtime);
+			if (lastModification < oldestModificationAllowed) {
+				debug('Deleting old log file [$lPath]');
+				sys.FileSystem.deleteFile(lPath);
+			}
+		}
 	}
 }

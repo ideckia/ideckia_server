@@ -6,14 +6,10 @@ import api.internal.ServerApi;
 import managers.ActionManager;
 import managers.LayoutManager;
 import managers.MsgManager;
-import tink.semver.Version;
 
 using StringTools;
 
 class Ideckia {
-	@:v('ideckia.log-level:ERROR')
-	static var logLevel:String;
-
 	@:v('ideckia.auto-launch-enabled:true')
 	static var autoLaunchEnabled:Bool;
 
@@ -113,7 +109,6 @@ class Ideckia {
 	static function main() {
 		appropos.Appropos.init(getAppPath('app.props'));
 		Log.init();
-		Log.level = logLevel;
 		UpdateManager.checkServerRelease();
 
 		var args = Sys.args();
