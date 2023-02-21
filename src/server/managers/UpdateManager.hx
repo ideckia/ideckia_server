@@ -68,9 +68,12 @@ class UpdateManager {
 						sys.FileSystem.createDirectory(updateDir);
 					var savePath = haxe.io.Path.join([updateDir, filename]);
 					sys.io.File.saveBytes(savePath, bytes);
-					Log.info('Successful download of [$savePath]. Please override the main executable with it.');
-				} catch (e:Any) {
-					Log.error('Error saving [ideckia_server] update: $e');
+					Ideckia.dialog.info('New version of ideckia_server downloaded', 'Please quit Ideckia and override the executable with [$savePath].');
+				} catch (e:haxe.Exception) {
+					var msg = 'Error saving [ideckia_server] update: ${e.message}';
+					Ideckia.dialog.error('Error when updating', msg);
+					Log.error(msg);
+					Log.raw(e);
 				}
 			});
 		});
@@ -81,8 +84,10 @@ class UpdateManager {
 			downloadRemoteAsset(moduleName, downloadUrl).then(bytes -> {
 				try {
 					unzip(bytes, path);
-				} catch (e:Any) {
-					Log.error('Error unzipping [$moduleName] update: $e');
+				} catch (e:haxe.Exception) {
+					var msg = 'Error unzipping [$moduleName] update: ${e.message}';
+					Ideckia.dialog.error('Error when updating', msg);
+					Log.error(e);
 				}
 			});
 		});
@@ -93,7 +98,10 @@ class UpdateManager {
 			var http = new haxe.http.HttpNodeJs('https://api.github.com/repos/$owner/$repo/releases/latest');
 			http.addHeader("User-Agent", "ideckia");
 
-			http.onError = (e) -> Log.error('Error checking the releases of [$moduleName]: ' + e);
+			http.onError = (e) -> {
+				Log.error('Error checking the releases of [$moduleName].');
+				Log.raw(e);
+			};
 			http.onData = (data) -> {
 				var ghRelease = (haxe.Json.parse(data.toString()) : GhRelease);
 				var remoteVersion = extractSemVer(ghRelease.tag_name);
@@ -131,7 +139,8 @@ class UpdateManager {
 						Log.error('Something went wrong downloading [$moduleName]. Status: [$statusCode]');
 					}
 				case Failure(e):
-					Log.error('Error getting the release of [$moduleName]: ' + e);
+					Log.error('Error getting the release of [$moduleName]: ' + e.message);
+					Log.raw(e);
 			});
 		});
 	}

@@ -96,6 +96,11 @@ class Log {
 		toConsole(logData);
 	}
 
+	public static function raw(data:Dynamic) {
+		toFile(data);
+		toConsole(data);
+	}
+
 	static private function getLogData(levelString:String, data:Dynamic, posInfos:haxe.PosInfos) {
 		var time = DateTools.format(Date.now(), '%H:%M:%S');
 		var filePath = posInfos.fileName;

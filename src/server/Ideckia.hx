@@ -49,11 +49,11 @@ class Ideckia {
 
 		js.Node.process.on('uncaughtException', (error) -> {
 			Log.error('There was an uncaughtException. Please restart the server.');
-			Sys.println(error);
+			Log.raw(error);
 		});
 		js.Node.process.on('unhandledRejection', (error, promise) -> {
 			Log.error('Rejection was not handled in the promise. Please restart the server.');
-			Sys.println(error);
+			Log.raw(error);
 		});
 
 		var autoLauncher = new AutoLaunch({
@@ -74,6 +74,7 @@ class Ideckia {
 			}
 		}).catchError((error) -> {
 			Log.error('Error with AutoLaunch: $error');
+			Log.raw(error);
 		});
 
 		LayoutManager.load();

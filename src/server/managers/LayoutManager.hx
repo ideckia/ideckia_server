@@ -33,7 +33,7 @@ class LayoutManager {
 		try {
 			layout = tinkJsonParse(sys.io.File.getContent(layoutFullPath));
 		} catch (e:haxe.Exception) {
-			Log.error(e);
+			Log.raw(e);
 			layout = {
 				rows: 0,
 				columns: 0,
