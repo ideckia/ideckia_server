@@ -76,12 +76,14 @@ class ActionManager {
 						state.bgColor = newState.bgColor;
 					}
 				}).catchError((error) -> {
-					Log.error('Error initializing [${name}] action of the state [id=${state.id}]: $error');
+					Log.error('Error initializing [${name}] action of the state [id=${state.id}]');
+					Log.raw(error);
 				});
 
 				retActions.push(ideckiaAction);
 			} catch (e:haxe.Exception) {
 				Log.error('Error creating [${action.name}] action: ${e.message}');
+				Log.raw(e);
 			}
 		}
 		return Some(retActions);
@@ -111,11 +113,14 @@ class ActionManager {
 	}
 
 	public static function unloadActions() {
+		var normalizedActionsPath = haxe.io.Path.normalize(getActionsPath()).toLowerCase();
 		for (module in Require.cache) {
-			if (module == null || !module.id.startsWith(getActionsPath()))
+			if (module == null || !haxe.io.Path.normalize(module.id.toLowerCase()).startsWith(normalizedActionsPath))
 				continue;
-			if (module.id.endsWith('.js'))
+			if (module.id.endsWith('.js')) {
+				Log.debug('Unloading [${module.id}]');
 				Require.cache.remove(module.id);
+			}
 		}
 	}
 
@@ -154,7 +159,8 @@ class ActionManager {
 					desc.id = cId++;
 					actionDescriptors.push(desc);
 				} catch (e:haxe.Exception) {
-					Log.error('Error reading action descriptor of $c: $e');
+					Log.error('Error reading action descriptor of $c: ${e.message}');
+					Log.raw(e);
 				}
 			}
 		}
