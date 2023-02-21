@@ -13,6 +13,7 @@ jobs:
       PKG_NODE_VERSION: 16
       NODE_VERSION: 16
       HAXE_VERSION: latest
+      JS_VERSION_NAME: ideckia-js
       PKG_ARGS: --no-bytecode --public --public-packages '*' --compress Brotli
 
     steps:
@@ -25,10 +26,10 @@ jobs:
 
     - name: Install lix, haxe ${{ env.HAXE_VERSION }} and dependencies
       run: |
-            npm install
-            npm i -g lix
-            lix install haxe ${{ env.HAXE_VERSION }}
-            lix download
+        npm install
+        npm i -g lix
+        lix install haxe ${{ env.HAXE_VERSION }}
+        lix download
 
     - name: Compile server
       run: haxe deploy_server.hxml -D release
@@ -73,7 +74,12 @@ jobs:
       run: npm i -g pkg@5.8.0
 
     - name: Package with pkg
-      run: pkg . --targets node${{ env.PKG_NODE_VERSION }}-linux,node${{ env.PKG_NODE_VERSION }}-win,node${{ env.PKG_NODE_VERSION }}-macos ${{ env.PKG_ARGS }}
+      run: |
+        mkdir ${{ env.JS_VERSION_NAME }}
+        cp bin/ideckia.js ${{ env.JS_VERSION_NAME }}
+        cp bin/editor ${{ env.JS_VERSION_NAME }}
+        zip -r ${{ env.JS_VERSION_NAME }} ${{ env.JS_VERSION_NAME }}
+        pkg . --targets node${{ env.PKG_NODE_VERSION }}-linux,node${{ env.PKG_NODE_VERSION }}-win,node${{ env.PKG_NODE_VERSION }}-macos ${{ env.PKG_ARGS }}
 
     - name: Release
       uses: "marvinpinto/action-automatic-releases@latest"
@@ -84,5 +90,6 @@ jobs:
           ideckia-linux
           ideckia-macos
           ideckia-win.exe
+          ${{ env.JS_VERSION_NAME }}.zip
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
