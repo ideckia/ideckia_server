@@ -82,7 +82,7 @@ class WebSocketServer {
 						relativePath += '/${requestUrl}';
 					}
 					var absolutePath = Ideckia.getAppPath(relativePath);
-					if (!sys.FileSystem.exists(absolutePath)) {
+					if (!sys.FileSystem.exists(absolutePath) && Ideckia.isPkg()) {
 						absolutePath = js.Node.__dirname + '$relativePath';
 					}
 					headers = {"Content-Type": "text/" + haxe.io.Path.extension(absolutePath)};
@@ -92,7 +92,6 @@ class WebSocketServer {
 						body: sys.io.File.getContent(absolutePath)
 					});
 				} else if (request.method == 'POST' && requestUrl.indexOf('/layout/append') != -1) {
-					trace('append layout');
 					var data = '';
 					request.on('data', chunck -> {
 						data += chunck;

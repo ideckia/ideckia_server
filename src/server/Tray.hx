@@ -65,6 +65,17 @@ class Tray {
 	**/
 	@:noCompletion
 	public static function init() {
+		clientFullPath = if (clientPath == null) {
+			null;
+		} else if (js.node.Path.isAbsolute(clientPath)) {
+			clientPath;
+		} else {
+			Ideckia.getAppPath(clientPath);
+		}
+
+		if (!Ideckia.isPkg())
+			return;
+
 		var trayDir = Ideckia.getAppPath(TRAY_DIR_NAME);
 
 		if (!sys.FileSystem.exists(trayDir))
@@ -98,14 +109,6 @@ class Tray {
 			var src = haxe.io.Path.join([js.Node.__dirname, TRAY_DIR_NAME, iconFilename]);
 			Log.info('Copying tray icon [$iconFilename] to $trayIconPath');
 			sys.io.File.copy(src, trayIconPath);
-		}
-
-		clientFullPath = if (clientPath == null) {
-			null;
-		} else if (js.node.Path.isAbsolute(clientPath)) {
-			clientPath;
-		} else {
-			Ideckia.getAppPath(clientPath);
 		}
 	}
 }

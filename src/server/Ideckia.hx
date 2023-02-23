@@ -107,6 +107,10 @@ class Ideckia {
 		return haxe.io.Path.join(dir);
 	}
 
+	public static function isPkg() {
+		return js.Syntax.code('process.pkg != undefined');
+	}
+
 	static function main() {
 		appropos.Appropos.init(getAppPath('app.props'));
 		Log.init();
