@@ -1,0 +1,41 @@
+{
+	"title": "About Ideckia",
+	"window_size": [
+		360,
+		210
+	],
+	"body": [
+		{
+			"label": {
+				"text": "Ideckia server ::version::"
+			}
+		},
+		{
+			"label": {
+				"text": "Here you can find the code of all the Ideckia project"
+			}
+		},
+		{
+			"link": {
+				"label": "https://github.com/ideckia",
+				"url": "https://github.com/ideckia"
+			}
+		},
+		{
+			"label": {
+				"text": "If you have any problems or issues, please report them here:"
+			}
+		},
+		{
+			"link": {
+				"label": "Report an issue",
+				"url": "https://github.com/ideckia/ideckia/issues/new"
+			}
+		},
+		{
+			"label": {
+				"text": "Created by Josu Igoa"
+			}
+		}
+	]
+}

@@ -3,8 +3,10 @@ using StringTools;
 class Tray {
 	inline static var TRAY_DIR_NAME = 'tray';
 
-	static var trayExePath = '';
-	static var trayIconPath = '';
+	static var exePath = '';
+	static var iconPath = '';
+	static var menuPath = '';
+	static var aboutDialogPath = '';
 
 	@:v('ideckia.client-path')
 	static var clientPath:String;
@@ -13,16 +15,25 @@ class Tray {
 	public static function show(port:Int) {
 		init();
 
-		if (!sys.FileSystem.exists(trayExePath)) {
-			Log.error('Tray executable [$trayExePath] not found.');
+		if (!sys.FileSystem.exists(exePath)) {
+			Log.error('Tray executable [$exePath] not found.');
 			return;
 		}
 
-		var args = [trayIconPath, Std.string(port)];
-		if (clientFullPath != null && sys.FileSystem.exists(clientFullPath))
-			args.push(clientFullPath);
+		if (!sys.FileSystem.exists(menuPath)) {
+			Log.error('Tray menu definition [$menuPath] not found.');
+			return;
+		}
 
-		var trayProcess = js.node.ChildProcess.spawn(trayExePath, args, {shell: true});
+		var menuDefContent = sys.io.File.getContent(menuPath);
+		menuDefContent = menuDefContent.replace('::icon_path::', iconPath);
+		menuDefContent = menuDefContent.replace('::port::', Std.string(port));
+		menuDefContent = menuDefContent.replace('::client_disabled::', (sys.FileSystem.exists(clientFullPath)) ? '0' : '1');
+		var menuDef:MenuDef = haxe.Json.parse(menuDefContent);
+
+		menuDefContent = haxe.Json.stringify(menuDef).replace('"', '\\"');
+
+		var trayProcess = js.node.ChildProcess.spawn(exePath, ['"$menuDefContent"'], {shell: true});
 
 		trayProcess.stdout.on('data', d -> {
 			var out = Std.string(d);
@@ -45,6 +56,8 @@ class Tray {
 					clientFullPath;
 				}
 				js.node.ChildProcess.spawn('$launchCmd $launchApp', {shell: true});
+			} else if (out.startsWith('about')) {
+				Ideckia.dialog.custom(aboutDialogPath);
 			} else if (out.startsWith('quit')) {
 				Sys.exit(0);
 			}
@@ -97,18 +110,41 @@ class Tray {
 				'';
 		}
 
-		trayExePath = haxe.io.Path.join([trayDir, execFilename]);
-		if (execFilename != '' && !sys.FileSystem.exists(trayExePath)) {
+		exePath = haxe.io.Path.join([trayDir, execFilename]);
+		if (execFilename != '' && !sys.FileSystem.exists(exePath)) {
 			var src = haxe.io.Path.join([js.Node.__dirname, TRAY_DIR_NAME, execFilename]);
-			Log.info('Copying tray executable [$execFilename] to $trayExePath');
-			sys.io.File.copy(src, trayExePath);
+			Log.info('Copying tray executable [$execFilename] to $exePath');
+			sys.io.File.copy(src, exePath);
 		}
 
-		trayIconPath = haxe.io.Path.join([trayDir, iconFilename]);
-		if (iconFilename != '' && !sys.FileSystem.exists(trayIconPath)) {
+		iconPath = haxe.io.Path.join([trayDir, iconFilename]);
+		if (iconFilename != '' && !sys.FileSystem.exists(iconPath)) {
 			var src = haxe.io.Path.join([js.Node.__dirname, TRAY_DIR_NAME, iconFilename]);
-			Log.info('Copying tray icon [$iconFilename] to $trayIconPath');
-			sys.io.File.copy(src, trayIconPath);
+			Log.info('Copying tray icon [$iconFilename] to $iconPath');
+			sys.io.File.copy(src, iconPath);
 		}
+
+		menuPath = haxe.io.Path.join([js.Node.__dirname, TRAY_DIR_NAME, 'menu_tpl.json']);
+
+		var aboutFilename = 'about.json';
+		var aboutContent = sys.io.File.getContent(haxe.io.Path.join([js.Node.__dirname, TRAY_DIR_NAME, 'about_tpl.json']));
+		aboutContent = aboutContent.replace('::version::', Ideckia.CURRENT_VERSION);
+		aboutDialogPath = haxe.io.Path.join([trayDir, aboutFilename]);
+		Log.info('Copying "about" dialog [$aboutFilename] to $aboutDialogPath');
+		sys.io.File.saveContent(aboutDialogPath, aboutContent);
 	}
+}
+
+typedef MenuDef = {
+	var icon:String;
+	var menu:Array<MenuDefItem>;
+}
+
+typedef MenuDefItem = {
+	var text:String;
+	var disabled:UInt;
+	var checked:UInt;
+	var checkbox:UInt;
+	var exit:UInt;
+	var ?menu:Array<MenuDefItem>;
 }
