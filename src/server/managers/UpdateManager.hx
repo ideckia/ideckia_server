@@ -109,10 +109,12 @@ class UpdateManager {
 					Ideckia.dialog.question('New version available', 'Newer version of [$moduleName] found: Local [$currentVersion] / Remote [$remoteVersion]')
 						.then(isOk -> {
 							var downloadUrl = '';
-							for (asset in ghRelease.assets) {
-								if (asset.name == filename) {
-									downloadUrl = asset.browser_download_url;
-									break;
+							if (isOk) {
+								for (asset in ghRelease.assets) {
+									if (asset.name == filename) {
+										downloadUrl = asset.browser_download_url;
+										break;
+									}
 								}
 							}
 							resolve(downloadUrl);
