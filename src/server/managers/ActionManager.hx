@@ -1,22 +1,24 @@
 package managers;
 
 import haxe.ds.Option;
+import js.node.Require;
 
 using api.IdeckiaApi;
 using api.internal.ServerApi;
+using StringTools;
 
 class ActionManager {
 	@:v('ideckia.actions-path:actions')
 	static var actionsPath:String;
 
 	static var clientActions:Map<StateId, Array<IdeckiaAction>>;
-
 	static var actionDescriptors:Array<ActionDescriptor>;
+	static var isWatching:Bool = false;
 
 	public static function getActionsPath() {
 		if (js.node.Path.isAbsolute(actionsPath))
 			return actionsPath;
-		return haxe.io.Path.join([Ideckia.getAppPath(), actionsPath]);
+		return Ideckia.getAppPath(actionsPath);
 	}
 
 	static function loadAndInitAction(itemId:ItemId, state:ServerState):Option<Array<IdeckiaAction>> {
@@ -25,6 +27,7 @@ class ActionManager {
 			return None;
 
 		var retActions = [];
+		var actionsBasePath = getActionsPath();
 		for (action in actions) {
 			try {
 				var name = action.name;
@@ -41,7 +44,8 @@ class ActionManager {
 				if (!action.enabled) {
 					continue;
 				}
-				var actionPath = getActionsPath() + '/$name';
+				var actionPath = actionsBasePath + '/$name';
+				UpdateManager.checkUpdates(actionsBasePath, name);
 				var ideckiaAction:IdeckiaAction = requireAction(actionPath);
 
 				var propFieldValue;
@@ -72,12 +76,14 @@ class ActionManager {
 						state.bgColor = newState.bgColor;
 					}
 				}).catchError((error) -> {
-					Log.error('Error initializing [${name}] action of the state [id=${state.id}]: $error');
+					Log.error('Error initializing [${name}] action of the state [id=${state.id}]');
+					Log.raw(error);
 				});
 
 				retActions.push(ideckiaAction);
 			} catch (e:haxe.Exception) {
 				Log.error('Error creating [${action.name}] action: ${e.message}');
+				Log.raw(e);
 			}
 		}
 		return Some(retActions);
@@ -106,6 +112,33 @@ class ActionManager {
 		}
 	}
 
+	public static function unloadActions() {
+		var normalizedActionsPath = haxe.io.Path.normalize(getActionsPath()).toLowerCase();
+		for (module in Require.cache) {
+			if (module == null || !haxe.io.Path.normalize(module.id.toLowerCase()).startsWith(normalizedActionsPath))
+				continue;
+			if (module.id.endsWith('.js')) {
+				Log.debug('Unloading [${module.id}]');
+				Require.cache.remove(module.id);
+			}
+		}
+	}
+
+	public static function watchForChanges() {
+		if (isWatching)
+			return;
+
+		Chokidar.watch(ActionManager.getActionsPath()).on('change', (path) -> {
+			var actionDir = haxe.io.Path.directory(path);
+			var actionName = haxe.io.Path.withoutDirectory(actionDir);
+			Log.info('Change detected in [$actionName] action, reloading...');
+			unloadActions();
+			initClientActions();
+		});
+
+		isWatching = true;
+	}
+
 	static function actionLog(log:(data:Dynamic, ?posInfos:haxe.PosInfos) -> Void, actionName:String, v:Dynamic, ?posInfos:haxe.PosInfos) {
 		log('[$actionName]: $v', posInfos);
 	}
@@ -126,7 +159,8 @@ class ActionManager {
 					desc.id = cId++;
 					actionDescriptors.push(desc);
 				} catch (e:haxe.Exception) {
-					Log.error('Error reading action descriptor of $c: $e');
+					Log.error('Error reading action descriptor of $c: ${e.message}');
+					Log.raw(e);
 				}
 			}
 		}

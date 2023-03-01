@@ -1,4 +1,5 @@
 actions/**
+logs/**
 node_modules/*
 bin/ideckia.js
 ideckia-*

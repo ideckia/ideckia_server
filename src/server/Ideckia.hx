@@ -1,19 +1,15 @@
 package;
 
+import managers.UpdateManager;
 import websocket.WebSocketServer;
 import api.internal.ServerApi;
 import managers.ActionManager;
 import managers.LayoutManager;
 import managers.MsgManager;
-import tink.semver.Version;
 
 using StringTools;
 
-@:build(appropos.Appropos.generate())
 class Ideckia {
-	@:v('ideckia.log-level:ERROR')
-	static var logLevel:String;
-
 	@:v('ideckia.auto-launch-enabled:true')
 	static var autoLaunchEnabled:Bool;
 
@@ -26,33 +22,38 @@ class Ideckia {
 	static public inline final CURRENT_VERSION = #if release Macros.getLastTagName() #else Macros.getGitCommitHash() #end;
 
 	function new() {
+		var appPath = getAppPath();
 		dialog = try {
-			var dialogsPath = getAppPath() + '/dialogs';
+			var dialogsPath = appPath + '/dialogs';
 			js.Syntax.code("var required = require({0})", dialogsPath);
 			js.Syntax.code('new required.Dialog()');
 		} catch (e:haxe.Exception) {
 			Log.info('External dialogs implementation not found. Loading the fallback dialogs module.');
 			new fallback.dialog.FallbackDialog();
 		}
-		var iconPath = haxe.io.Path.join([getAppPath(), 'icon.png']);
+		UpdateManager.checkUpdates(appPath, 'dialogs');
+
+		var iconPath = haxe.io.Path.join([appPath, 'icon.png']);
 		if (sys.FileSystem.exists(iconPath))
 			dialog.setDefaultOptions({windowIcon: iconPath});
+
 		mediaPlayer = try {
-			var mediaPath = getAppPath() + '/media';
+			var mediaPath = appPath + '/media';
 			js.Syntax.code("var required = require({0})", mediaPath);
 			js.Syntax.code('new required.MediaPlayer()');
 		} catch (e:haxe.Exception) {
 			Log.info('External media player implementation not found. Loading the fallback media player module.');
 			new fallback.media.FallbackMediaPlayer();
 		}
+		UpdateManager.checkUpdates(appPath, 'media');
 
 		js.Node.process.on('uncaughtException', (error) -> {
 			Log.error('There was an uncaughtException. Please restart the server.');
-			Sys.println(error);
+			Log.raw(error);
 		});
 		js.Node.process.on('unhandledRejection', (error, promise) -> {
 			Log.error('Rejection was not handled in the promise. Please restart the server.');
-			Sys.println(error);
+			Log.raw(error);
 		});
 
 		var autoLauncher = new AutoLaunch({
@@ -73,10 +74,12 @@ class Ideckia {
 			}
 		}).catchError((error) -> {
 			Log.error('Error with AutoLaunch: $error');
+			Log.raw(error);
 		});
 
 		LayoutManager.load();
 		LayoutManager.watchForChanges();
+		ActionManager.watchForChanges();
 
 		var wsServer = new WebSocketServer();
 
@@ -97,56 +100,21 @@ class Ideckia {
 		Tray.show(WebSocketServer.port);
 	}
 
-	public static function getAppPath() {
-		return haxe.io.Path.directory(js.Node.process.execPath);
+	public static function getAppPath(subPath:String = null) {
+		var dir = [haxe.io.Path.directory(js.Node.process.execPath)];
+		if (subPath != null)
+			dir.push(subPath);
+		return haxe.io.Path.join(dir);
 	}
 
-	static function checkNewerRelease() {
-		var http = new haxe.http.HttpNodeJs('https://api.github.com/repos/ideckia/ideckia_server/releases');
-		http.addHeader("User-Agent", "ideckia");
-
-		if (CURRENT_VERSION.indexOf(Macros.DEV_COMMIT_PREFIX) != -1)
-			return;
-
-		var currentVersion = switch Version.parse(CURRENT_VERSION.replace('v', '')) {
-			case Success(ver):
-				ver;
-			case Failure(_):
-				new Version(0, 0, 0);
-		};
-
-		http.onError = (e) -> trace('Error checking the releases: ' + e);
-		http.onData = (data) -> {
-			var releases:Array<{tag_name:String, prerelease:Bool, html_url:String}> = haxe.Json.parse(data);
-			var lastReleaseVersion:Version = new Version(0, 0, 0);
-			var releaseNumber:String;
-			var lastReleaseUrl:String = '';
-			for (r in releases) {
-				if (r.prerelease)
-					continue;
-
-				releaseNumber = r.tag_name.replace('v', '');
-				switch Version.parse(releaseNumber) {
-					case Success(releaseVersion):
-						if (releaseVersion > lastReleaseVersion) {
-							lastReleaseVersion = releaseVersion;
-							lastReleaseUrl = r.html_url;
-						}
-					case Failure(_):
-				};
-			}
-
-			if (lastReleaseVersion > currentVersion)
-				Log.info('New ideckia version [$lastReleaseVersion] is available for download. Get it from $lastReleaseUrl');
-		};
-
-		http.request();
+	public static function isPkg() {
+		return js.Syntax.code('process.pkg != undefined');
 	}
 
 	static function main() {
-		appropos.Appropos.init(getAppPath() + '/app.props');
-		Log.level = logLevel;
-		checkNewerRelease();
+		appropos.Appropos.init(getAppPath('app.props'));
+		Log.init();
+		UpdateManager.checkServerRelease();
 
 		var args = Sys.args();
 		if (args.length > 0) {
@@ -178,7 +146,7 @@ class Ideckia {
 				ActionManager.runAction(state);
 			} else if (appendLayoutIndex != -1) {
 				var newLayoutFile = args[appendLayoutIndex + 1];
-				var newLayout:Layout = tink.Json.parse(sys.io.File.getContent(sys.FileSystem.absolutePath(Ideckia.getAppPath() + '/' + newLayoutFile)));
+				var newLayout:Layout = tink.Json.parse(sys.io.File.getContent(sys.FileSystem.absolutePath(Ideckia.getAppPath(newLayoutFile))));
 				LayoutManager.readLayout();
 				LayoutManager.appendLayout(newLayout);
 				sys.io.File.saveContent(LayoutManager.getLayoutPath(), LayoutManager.exportLayout());
@@ -197,7 +165,7 @@ class Ideckia {
 		LayoutManager.readLayout();
 		switch LayoutManager.exportDirs(dirNames) {
 			case Some(response):
-				var filename = Ideckia.getAppPath() + '/dirs.export.json';
+				var filename = Ideckia.getAppPath('/dirs.export.json');
 				sys.io.File.saveContent(filename, response.layout);
 				Log.info('[${response.processedDirNames.join(',')}] successfully exported to [$filename].');
 			case None:

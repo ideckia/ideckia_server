@@ -2,7 +2,6 @@ package managers;
 
 import exceptions.ItemNotFoundException;
 import haxe.ds.Option;
-import js.node.Require;
 import tink.Json.parse as tinkJsonParse;
 import tink.Json.stringify as tinkJsonStringify;
 
@@ -24,7 +23,7 @@ class LayoutManager {
 	public static function getLayoutPath() {
 		if (js.node.Path.isAbsolute(layoutFilePath))
 			return layoutFilePath;
-		return haxe.io.Path.join([Ideckia.getAppPath(), layoutFilePath]);
+		return Ideckia.getAppPath(layoutFilePath);
 	}
 
 	public static function readLayout() {
@@ -34,7 +33,7 @@ class LayoutManager {
 		try {
 			layout = tinkJsonParse(sys.io.File.getContent(layoutFullPath));
 		} catch (e:haxe.Exception) {
-			Log.error(e);
+			Log.raw(e);
 			layout = {
 				rows: 0,
 				columns: 0,
@@ -61,10 +60,7 @@ class LayoutManager {
 			return;
 
 		Chokidar.watch(getLayoutPath()).on('change', (_, _) -> {
-			for (module in Require.cache)
-				if (module != null && StringTools.endsWith(module.id, '.js'))
-					Require.cache.remove(module.id);
-
+			ActionManager.unloadActions();
 			Log.info('Layout file changed, reloading...');
 			load();
 			MsgManager.sendToAll(LayoutManager.currentDirForClient());

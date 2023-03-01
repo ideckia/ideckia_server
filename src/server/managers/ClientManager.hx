@@ -52,7 +52,8 @@ class ClientManager {
 						MsgManager.sendToAll(LayoutManager.currentDirForClient());
 					};
 					var promiseError = (error) -> {
-						Log.error('Error executing actions of the state [${currentState.id}]: $error');
+						Log.error('Error executing actions of the state [${currentState.id}]');
+						Log.raw(error);
 						Ideckia.dialog.error('Error executing actions of the state [${currentState.id}]', error);
 					};
 					// Action chaining: use the output of each action as input for the next action

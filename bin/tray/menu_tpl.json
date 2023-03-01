@@ -1,0 +1,34 @@
+{
+	"icon": "::icon_path::",
+	"menu": [
+		{
+			"text": "ideckia port: ::port::",
+			"disabled": 1
+		},
+		{
+			"text": "open",
+			"menu": [
+				{
+					"text": "client",
+					"disabled": ::client_disabled::
+				},
+				{
+					"text": "editor"
+				},
+				{
+					"text": "logs"
+				}
+			]
+		},
+		{
+			"text": "about"
+		},
+		{
+			"text": "-"
+		},
+		{
+			"text": "quit",
+			"exit": 1
+		}
+	]
+}
