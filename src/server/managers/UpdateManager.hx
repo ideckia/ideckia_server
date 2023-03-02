@@ -108,13 +108,14 @@ class UpdateManager {
 				if (remoteVersion > currentVersion) {
 					Ideckia.dialog.question('New version available', 'Newer version of [$moduleName] found: Local [$currentVersion] / Remote [$remoteVersion]')
 						.then(isOk -> {
+							if (!isOk)
+								return;
+
 							var downloadUrl = '';
-							if (isOk) {
-								for (asset in ghRelease.assets) {
-									if (asset.name == filename) {
-										downloadUrl = asset.browser_download_url;
-										break;
-									}
+							for (asset in ghRelease.assets) {
+								if (asset.name == filename) {
+									downloadUrl = asset.browser_download_url;
+									break;
 								}
 							}
 							resolve(downloadUrl);
@@ -129,9 +130,9 @@ class UpdateManager {
 
 	static function downloadRemoteAsset(moduleName:String, downloadUrl:String) {
 		return new js.lib.Promise<haxe.io.Bytes>((resolve, reject) -> {
-			Log.debug('Downloading $downloadUrl');
 			if (downloadUrl == '')
 				return;
+			Log.debug('Downloading [$downloadUrl]');
 			fetch(downloadUrl).all().handle(o -> switch o {
 				case Success(res):
 					var statusCode = res.header.statusCode;
