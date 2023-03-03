@@ -24,9 +24,15 @@ typedef GhRelease = {
 }
 
 class UpdateManager {
+	@:v('ideckia.check-updates:true')
+	static var checkUpdatesFlag:Bool;
+
 	static var checked:Array<String> = [];
 
 	public static function checkUpdates(path:String, moduleName:String) {
+		if (!checkUpdatesFlag)
+			return;
+
 		if (checked.contains(moduleName))
 			return;
 		checked.push(moduleName);
@@ -51,6 +57,9 @@ class UpdateManager {
 	}
 
 	public static function checkServerRelease() {
+		if (!checkUpdatesFlag)
+			return;
+
 		if (Ideckia.CURRENT_VERSION.indexOf(Macros.DEV_COMMIT_PREFIX) != -1)
 			return;
 		var ext = switch Sys.systemName() {
