@@ -89,9 +89,14 @@ class LayoutManager {
 	}
 
 	public static function getItem(itemId:ItemId) {
-		for (i in getAllItems())
-			if (i.id == itemId)
-				return i;
+		for (f in layout.dirs)
+			for (i in f.items)
+				if (i.id == itemId)
+					return i;
+		if (layout.fixedItems != null)
+			for (fi in layout.fixedItems)
+				if (fi.id == itemId)
+					return fi;
 
 		throw new ItemNotFoundException('Could not find [$itemId] item');
 	}
@@ -203,10 +208,6 @@ class LayoutManager {
 			return;
 		} else if (foundLength > 1) {
 			Log.error('Found $foundLength dirs with name [$dirName]');
-		}
-
-		if (currentDir != null && dirName == currentDir.name) {
-			return;
 		}
 
 		currentDir = foundDirs[0];

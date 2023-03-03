@@ -21,7 +21,8 @@ class ActionManager {
 		return Ideckia.getAppPath(actionsPath);
 	}
 
-	static function loadAndInitAction(itemId:ItemId, state:ServerState):Option<Array<IdeckiaAction>> {
+	public static function loadAndInitAction(itemId:ItemId, state:ServerState, addToCache:Bool = true):Option<Array<IdeckiaAction>> {
+		Log.debug('Load actions from item [$itemId] / state [id=${state.id}] [text=${state.text}], [icon=${(state.icon == null) ? null : state.icon.substring(0, 50) + "..."}]');
 		var actions = state.actions;
 		if (actions == null || actions.length == 0)
 			return None;
@@ -86,6 +87,9 @@ class ActionManager {
 				Log.raw(e);
 			}
 		}
+
+		if (addToCache)
+			clientActions.set(state.id, retActions);
 		return Some(retActions);
 	}
 
@@ -93,20 +97,11 @@ class ActionManager {
 		clientActions = new Map();
 		actionDescriptors = null;
 
-		inline function getActionFromState(itemId:ItemId, state:ServerState) {
-			Log.debug('item [$itemId] / state [id=${state.id}] [text=${state.text}], [icon=${(state.icon == null) ? null : state.icon.substring(0, 50) + "..."}]');
-			switch loadAndInitAction(itemId, state) {
-				case Some(actions):
-					clientActions.set(state.id, actions);
-				case None:
-			};
-		}
-
 		for (i in LayoutManager.getAllItems()) {
 			switch i.kind {
 				case States(_, list):
 					for (state in list)
-						getActionFromState(i.id, state);
+						loadAndInitAction(i.id, state);
 				default:
 			}
 		}
@@ -182,7 +177,7 @@ class ActionManager {
 	}
 
 	public static function runAction(state:ServerState) {
-		switch loadAndInitAction(new ItemId(-1), state) {
+		switch loadAndInitAction(new ItemId(-1), state, false) {
 			case Some(actions):
 				for (action in actions)
 					action.execute(state);
