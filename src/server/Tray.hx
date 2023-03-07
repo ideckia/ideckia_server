@@ -65,11 +65,11 @@ class Tray {
 		});
 		trayProcess.stderr.on('data', e -> {
 			Log.error('Tray error');
-			Log.raw(e);
+			Log.raw(e.stack);
 		});
 		trayProcess.on('error', err -> {
 			Log.error('Tray error');
-			Log.raw(err);
+			Log.raw(err.stack);
 		});
 	}
 

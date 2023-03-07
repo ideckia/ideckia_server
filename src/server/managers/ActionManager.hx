@@ -78,13 +78,13 @@ class ActionManager {
 					}
 				}).catchError((error) -> {
 					Log.error('Error initializing [${name}] action of the state [id=${state.id}]');
-					Log.raw(error);
+					Log.raw(error.stack);
 				});
 
 				retActions.push(ideckiaAction);
 			} catch (e:haxe.Exception) {
 				Log.error('Error creating [${action.name}] action: ${e.message}');
-				Log.raw(e);
+				Log.raw(e.stack);
 			}
 		}
 
@@ -155,7 +155,7 @@ class ActionManager {
 					actionDescriptors.push(desc);
 				} catch (e:haxe.Exception) {
 					Log.error('Error reading action descriptor of $c: ${e.message}');
-					Log.raw(e);
+					Log.raw(e.stack);
 				}
 			}
 		}

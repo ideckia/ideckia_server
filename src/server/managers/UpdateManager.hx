@@ -82,7 +82,7 @@ class UpdateManager {
 					var msg = 'Error saving [ideckia_server] update: ${e.message}';
 					Ideckia.dialog.error('Error when updating', msg);
 					Log.error(msg);
-					Log.raw(e);
+					Log.raw(e.stack);
 				}
 			});
 		});
