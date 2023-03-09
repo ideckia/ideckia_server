@@ -141,14 +141,21 @@ class LayoutManager {
 	public static inline function currentDirForClient():ServerMsg<ClientLayout> {
 		Log.debug('Sending current directory to client.');
 
+		var icons = new haxe.DynamicAccess<String>();
 		function getIconData(iconName:String) {
-			// Icon base64 directly in the state (from some action, for example)
-			if (iconName != null && iconName.length > 1000)
-				return iconName;
+			if (iconName != null && iconName.length > 1000) {
+				var iconMd5 = haxe.crypto.Md5.encode(iconName);
+				if (!icons.exists(iconMd5))
+					icons.set(iconMd5, iconName);
+				return iconMd5;
+			}
 			if (layout.icons != null) {
 				var f = layout.icons.filter(i -> i.key == iconName);
-				if (f.length > 0)
-					return f[0].value;
+				if (f.length > 0) {
+					if (!icons.exists(iconName))
+						icons.set(iconName, f[0].value);
+					return iconName;
+				}
 			}
 			return null;
 		}
@@ -179,6 +186,7 @@ class LayoutManager {
 			data: {
 				rows: rows,
 				columns: columns,
+				icons: icons,
 				items: getCurrentItems().map(transformItem),
 				fixedItems: layout.fixedItems == null ? [] : layout.fixedItems.map(transformItem)
 			}
