@@ -7,6 +7,7 @@ import tink.Json.stringify as tinkJsonStringify;
 
 using api.IdeckiaApi;
 using api.internal.ServerApi;
+using StringTools;
 
 class LayoutManager {
 	@:v('ideckia.layout-file-path:layout.json')
@@ -19,6 +20,7 @@ class LayoutManager {
 
 	static inline var DEFAULT_TEXT_SIZE = 15;
 	static inline var MAIN_DIR_ID = "_main_";
+	public static inline var DYNAMIC_DIRECTORY_PREFIX = "dynamicDirectory_";
 
 	public static function getLayoutPath() {
 		if (js.node.Path.isAbsolute(layoutFilePath))
@@ -33,7 +35,7 @@ class LayoutManager {
 		try {
 			layout = tinkJsonParse(sys.io.File.getContent(layoutFullPath));
 		} catch (e:haxe.Exception) {
-			Log.raw(e);
+			Log.raw(e.stack);
 			layout = {
 				rows: 0,
 				columns: 0,
@@ -73,19 +75,21 @@ class LayoutManager {
 		return [for (i in currentDir.items) i];
 	}
 
-	public static function getAllItems(?fromLayout:Layout) {
+	public static function getAllItems(?fromLayout:Layout, ?getDynamicDirs:Bool = true) {
 		if (fromLayout == null)
 			fromLayout = layout;
 
-		var fixedItems = fromLayout.fixedItems == null ? [] : fromLayout.fixedItems;
-		return [
-			for (f in fromLayout.dirs)
-				for (i in f.items)
-					i
-		].concat([
-			for (fi in fixedItems)
-				fi
-		]);
+		var allItems = [];
+		for (f in fromLayout.dirs) {
+			if (!getDynamicDirs && f.name.toString().startsWith(DYNAMIC_DIRECTORY_PREFIX))
+				continue;
+			for (i in f.items)
+				allItems.push(i);
+		}
+		if (fromLayout.fixedItems != null)
+			return allItems.concat(fromLayout.fixedItems);
+
+		return allItems;
 	}
 
 	public static function getItem(itemId:ItemId) {
@@ -101,24 +105,26 @@ class LayoutManager {
 		throw new ItemNotFoundException('Could not find [$itemId] item');
 	}
 
-	public static function getItemCurrentState(itemId:ItemId, advanceMultiState:Bool = false) {
+	public static function getItemNextState(itemId:ItemId, advanceMultiState:Bool = false):{state:ServerState, hasMultiStateChanged:Bool} {
 		var item = getItem(itemId);
 
-		var state:ServerState = switch item.kind {
+		var ret:{state:ServerState, hasMultiStateChanged:Bool} = switch item.kind {
 			case null:
-				{};
+				{state: {}, hasMultiStateChanged: false};
 			case ChangeDir(_, state):
-				state;
+				{state: state, hasMultiStateChanged: false};
 			case States(index, list):
+				var hasMultiStateChanged = false;
 				if (advanceMultiState) {
 					var newIndex = (index + 1) % list.length;
+					hasMultiStateChanged = newIndex != index;
 					item.kind = States(newIndex, list);
 				}
-				list[index];
+				{state: list[index], hasMultiStateChanged: hasMultiStateChanged};
 		}
 
-		Log.debug('State [id=${state.id}] of the item [id=$itemId]: [text=${state.text}],  [icon=${(state.icon == null) ? null : state.icon.substring(0, 50) + "..."}]');
-		return state;
+		Log.debug('State [id=${ret.state.id}] of the item [id=$itemId]: [text=${ret.state.text}],  [icon=${(ret.state.icon == null) ? null : ret.state.icon.substring(0, 50) + "..."}]');
+		return ret;
 	}
 
 	public static function getSharedValue(sharedName:String) {
@@ -151,7 +157,7 @@ class LayoutManager {
 		var columns = currentDir.columns == null ? layout.columns : currentDir.columns;
 
 		function transformItem(item:ServerItem) {
-			var currentState = getItemCurrentState(item.id);
+			var currentState = getItemNextState(item.id).state;
 
 			// from ServerState to ClientItem
 			var clientItem:ClientItem = {id: item.id.toUInt()};
@@ -179,6 +185,54 @@ class LayoutManager {
 		};
 	}
 
+	public static function generateDynamicDirectory(parentItemId:ItemId, dynamicDir:DynamicDir) {
+		Log.debug('Generating dynamic directory from item [$parentItemId].');
+
+		var newDirName = new DirName('${DYNAMIC_DIRECTORY_PREFIX}${parentItemId}');
+		for (index => d in layout.dirs)
+			if (d.name == newDirName)
+				layout.dirs.splice(index, 1);
+
+		var serverItems = [];
+		var sItem, sState, actions;
+		for (i in dynamicDir.items) {
+			actions = i.actions == null ? [] : i.actions.map(a -> {
+				id: ActionId.next(),
+				enabled: true,
+				name: a.name,
+				props: a.props
+			});
+			sState = {
+				id: StateId.next(),
+				actions: actions,
+				text: i.text,
+				textSize: i.textSize,
+				textColor: i.textColor,
+				textPosition: i.textPosition,
+				icon: i.icon,
+				bgColor: i.bgColor
+			}
+			if (i.toDir != null && i.toDir != '') {
+				sItem = {
+					id: ItemId.next(),
+					kind: Kind.ChangeDir(new DirName(i.toDir), sState)
+				};
+			} else {
+				sItem = {id: ItemId.next(), kind: Kind.States(0, [sState])};
+				ActionManager.loadAndInitAction(sItem.id, sState);
+			}
+			serverItems.push(sItem);
+		};
+		layout.dirs.push({
+			name: newDirName,
+			rows: dynamicDir.rows,
+			columns: dynamicDir.columns,
+			items: serverItems
+		});
+
+		changeDir(newDirName);
+	}
+
 	public static function checkChangeDir(itemId:ItemId) {
 		var item = getItem(itemId);
 
@@ -203,8 +257,10 @@ class LayoutManager {
 		var foundDirs = layout.dirs.filter(f -> f.name == dirName);
 		var foundLength = foundDirs.length;
 		if (foundLength == 0) {
-			Log.error('Could not find dir with name [$dirName]');
-			Ideckia.dialog.error('Error switching directory', 'Could not find dir with name [$dirName]');
+			var firstDirName = layout.dirs[0].name;
+			Log.error('Could not find dir with name [$dirName]. Loading [$firstDirName] directory.');
+			Ideckia.dialog.error('Error switching directory', 'Could not find dir with name [$dirName]. Loading [$firstDirName] directory.');
+			changeDir(firstDirName);
 			return;
 		} else if (foundLength > 1) {
 			Log.error('Found $foundLength dirs with name [$dirName]');
@@ -243,7 +299,7 @@ class LayoutManager {
 	public static function exportLayout(?fromLayout:Layout) {
 		var expLayout = (fromLayout != null) ? Reflect.copy(fromLayout) : Reflect.copy(layout);
 
-		var expItems = getAllItems(expLayout);
+		var expItems = getAllItems(expLayout, false);
 
 		setItemAndStateIds(expItems, true);
 		setActionIds(expItems, true);
