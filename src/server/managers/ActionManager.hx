@@ -124,6 +124,7 @@ class ActionManager {
 			return;
 
 		Chokidar.watch(ActionManager.getActionsPath()).on('change', (path) -> {
+			actionDescriptors = null;
 			var actionDir = haxe.io.Path.directory(path);
 			var actionName = haxe.io.Path.withoutDirectory(actionDir);
 			Log.info('Change detected in [$actionName] action, reloading...');
@@ -145,7 +146,7 @@ class ActionManager {
 			var desc:ActionDescriptor;
 			var cId = 0, action:IdeckiaAction;
 			for (c in sys.FileSystem.readDirectory(actionPath)) {
-				if (!sys.FileSystem.exists('$actionPath/$c/index.js'))
+				if (!sys.FileSystem.exists('$actionPath/$c/index.js') || c.startsWith('_'))
 					continue;
 
 				action = requireAction('$actionPath/$c');
