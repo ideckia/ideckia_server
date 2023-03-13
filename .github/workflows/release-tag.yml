@@ -76,6 +76,7 @@ jobs:
     - name: Package with pkg
       run: |
         mkdir -p ${{ env.JS_VERSION_NAME }}/editor
+        cp package.json ${{ env.JS_VERSION_NAME }}
         cp bin/ideckia.js ${{ env.JS_VERSION_NAME }}
         cp bin/editor/* ${{ env.JS_VERSION_NAME }}/editor
         zip -r ${{ env.JS_VERSION_NAME }} ${{ env.JS_VERSION_NAME }}
