@@ -1,5 +1,6 @@
 package managers;
 
+import haxe.ds.Option;
 import exceptions.ItemNotFoundException;
 
 using api.IdeckiaApi;
@@ -31,48 +32,70 @@ class ClientManager {
 			return;
 		}
 
-		var currentState = null;
 		try {
-			currentState = LayoutManager.getItemCurrentState(clickedId, true);
-			Log.info('Clicked state: [text=${currentState.text}], [icon=${(currentState.icon == null) ? null : currentState.icon.substring(0, 50) + "..."}]');
-			Log.debug('State of the item [id=$clickedId]: $currentState');
+			var stateAndChanged = LayoutManager.getItemNextState(clickedId, true);
+			var currentState = stateAndChanged.state;
+			var hasMultiStateChanged = stateAndChanged.hasMultiStateChanged;
 
-			switch ActionManager.getActionByStateId(currentState.id) {
-				case Some(actions):
-					var promiseThen = (newState:ItemState) -> {
-						if (newState != null) {
-							Log.debug('newState: $newState');
-							currentState.text = newState.text;
-							currentState.textColor = newState.textColor;
-							currentState.textSize = newState.textSize;
-							currentState.icon = newState.icon;
-							currentState.bgColor = newState.bgColor;
-						}
+			if (hasMultiStateChanged) {
+				MsgManager.sendToAll(LayoutManager.currentDirForClient());
+			} else {
+				Log.info('Clicked state: [text=${currentState.text}], [icon=${(currentState.icon == null) ? null : currentState.icon.substring(0, 50) + "..."}]');
+				switch ActionManager.getActionByStateId(currentState.id) {
+					case Some(actions):
+						var promiseThen = (response:ActionOutcome) -> {
+							var actionOutcome:ActionOutcome = cast response;
+							if (actionOutcome.state != null) {
+								var newState = actionOutcome.state;
+								if (newState != null) {
+									Log.debug('newState: [text=${newState.text}], [icon=${(newState.icon == null) ? null : newState.icon.substring(0, 50) + "..."}]');
+									currentState.text = newState.text;
+									currentState.textColor = newState.textColor;
+									currentState.textSize = newState.textSize;
+									currentState.icon = newState.icon;
+									currentState.bgColor = newState.bgColor;
+								}
+							} else if (actionOutcome.directory != null) {
+								LayoutManager.generateDynamicDirectory(clickedId, actionOutcome.directory);
+							}
+							MsgManager.sendToAll(LayoutManager.currentDirForClient());
+						};
+						var promiseError = (error) -> {
+							Log.error('Error executing actions of the state [${currentState.id}]');
+							Log.raw(error.stack);
+							Ideckia.dialog.error('Error executing actions of the state [${currentState.id}]', error.stack);
+						};
 
-						MsgManager.sendToAll(LayoutManager.currentDirForClient());
-					};
-					var promiseError = (error) -> {
-						Log.error('Error executing actions of the state [${currentState.id}]');
-						Log.raw(error);
-						Ideckia.dialog.error('Error executing actions of the state [${currentState.id}]', error);
-					};
-					// Action chaining: use the output of each action as input for the next action
-					Lambda.fold(actions, (action:IdeckiaAction, promise:Promise<ItemState>) -> {
-						return promise.then((curState) -> {
-							if (isLongPress)
-								return action.onLongPress(curState);
-							else
-								return action.execute(curState);
-						});
-					},
-						js.lib.Promise.resolve(currentState)).then(promiseThen).catchError(promiseError);
-				case None:
+						// Action chaining: use the output of each action as input for the next action
+						Lambda.fold(actions, (action:IdeckiaAction, promise:Promise<ActionOutcome>) -> {
+							function execAction(newState) {
+								if (isLongPress)
+									return action.onLongPress(newState);
+								else
+									return action.execute(newState);
+							}
+							return promise.then((actionOutcome) -> {
+								if (actionOutcome.state != null) {
+									return execAction(actionOutcome.state);
+								} else if (actionOutcome.directory != null) {
+									return js.lib.Promise.resolve(actionOutcome);
+								}
+
+								return js.lib.Promise.resolve(new ActionOutcome({state: currentState}));
+							}).catchError(e -> {
+								Log.error('Error running action.');
+								Log.raw(e.stack);
+								return execAction(currentState);
+							});
+						},
+							js.lib.Promise.resolve(new ActionOutcome({state: currentState}))).then(promiseThen).catchError(promiseError);
+					case None:
+						Log.error('No action found for state [${currentState.id}]');
+				}
 			}
 		} catch (e:ItemNotFoundException) {
 			Log.error(e.message, e.posInfos);
 		}
-
-		MsgManager.sendToAll(LayoutManager.currentDirForClient());
 	}
 
 	public static function fromActionToClient(itemId:ItemId, actionName:String, newState:ItemState) {
@@ -80,7 +103,7 @@ class ClientManager {
 		if (newState == null || !LayoutManager.isItemVisible(itemId))
 			return;
 
-		var currentState = LayoutManager.getItemCurrentState(itemId);
+		var currentState = LayoutManager.getItemNextState(itemId).state;
 		if (currentState == null)
 			return;
 

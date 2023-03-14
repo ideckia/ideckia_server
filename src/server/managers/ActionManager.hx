@@ -21,7 +21,8 @@ class ActionManager {
 		return Ideckia.getAppPath(actionsPath);
 	}
 
-	static function loadAndInitAction(itemId:ItemId, state:ServerState):Option<Array<IdeckiaAction>> {
+	public static function loadAndInitAction(itemId:ItemId, state:ServerState, addToCache:Bool = true):Option<Array<IdeckiaAction>> {
+		Log.debug('Load actions from item [$itemId] / state [id=${state.id}] [text=${state.text}], [icon=${(state.icon == null) ? null : state.icon.substring(0, 50) + "..."}]');
 		var actions = state.actions;
 		if (actions == null || actions.length == 0)
 			return None;
@@ -77,15 +78,18 @@ class ActionManager {
 					}
 				}).catchError((error) -> {
 					Log.error('Error initializing [${name}] action of the state [id=${state.id}]');
-					Log.raw(error);
+					Log.raw(error.stack);
 				});
 
 				retActions.push(ideckiaAction);
 			} catch (e:haxe.Exception) {
 				Log.error('Error creating [${action.name}] action: ${e.message}');
-				Log.raw(e);
+				Log.raw(e.stack);
 			}
 		}
+
+		if (addToCache)
+			clientActions.set(state.id, retActions);
 		return Some(retActions);
 	}
 
@@ -93,20 +97,11 @@ class ActionManager {
 		clientActions = new Map();
 		actionDescriptors = null;
 
-		inline function getActionFromState(itemId:ItemId, state:ServerState) {
-			Log.debug('item [$itemId] / state [id=${state.id}] [text=${state.text}], [icon=${(state.icon == null) ? null : state.icon.substring(0, 50) + "..."}]');
-			switch loadAndInitAction(itemId, state) {
-				case Some(actions):
-					clientActions.set(state.id, actions);
-				case None:
-			};
-		}
-
 		for (i in LayoutManager.getAllItems()) {
 			switch i.kind {
 				case States(_, list):
 					for (state in list)
-						getActionFromState(i.id, state);
+						loadAndInitAction(i.id, state);
 				default:
 			}
 		}
@@ -129,6 +124,7 @@ class ActionManager {
 			return;
 
 		Chokidar.watch(ActionManager.getActionsPath()).on('change', (path) -> {
+			actionDescriptors = null;
 			var actionDir = haxe.io.Path.directory(path);
 			var actionName = haxe.io.Path.withoutDirectory(actionDir);
 			Log.info('Change detected in [$actionName] action, reloading...');
@@ -150,7 +146,7 @@ class ActionManager {
 			var desc:ActionDescriptor;
 			var cId = 0, action:IdeckiaAction;
 			for (c in sys.FileSystem.readDirectory(actionPath)) {
-				if (!sys.FileSystem.exists('$actionPath/$c/index.js'))
+				if (!sys.FileSystem.exists('$actionPath/$c/index.js') || c.startsWith('_'))
 					continue;
 
 				action = requireAction('$actionPath/$c');
@@ -160,7 +156,7 @@ class ActionManager {
 					actionDescriptors.push(desc);
 				} catch (e:haxe.Exception) {
 					Log.error('Error reading action descriptor of $c: ${e.message}');
-					Log.raw(e);
+					Log.raw(e.stack);
 				}
 			}
 		}
@@ -182,7 +178,7 @@ class ActionManager {
 	}
 
 	public static function runAction(state:ServerState) {
-		switch loadAndInitAction(new ItemId(-1), state) {
+		switch loadAndInitAction(new ItemId(-1), state, false) {
 			case Some(actions):
 				for (action in actions)
 					action.execute(state);

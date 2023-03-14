@@ -4,6 +4,7 @@
 -lib ideckia_api
 -lib tink_json
 
+-D server
 -D indexPath=bin/editor/index.html,bin/editor/style.css
 -D no-deprecation-warnings
 -D analyzer-optimize

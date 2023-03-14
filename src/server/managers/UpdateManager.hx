@@ -24,9 +24,15 @@ typedef GhRelease = {
 }
 
 class UpdateManager {
+	@:v('ideckia.check-updates:true')
+	static var checkUpdatesFlag:Bool;
+
 	static var checked:Array<String> = [];
 
 	public static function checkUpdates(path:String, moduleName:String) {
+		if (!checkUpdatesFlag)
+			return;
+
 		if (checked.contains(moduleName))
 			return;
 		checked.push(moduleName);
@@ -51,6 +57,9 @@ class UpdateManager {
 	}
 
 	public static function checkServerRelease() {
+		if (!checkUpdatesFlag)
+			return;
+
 		if (Ideckia.CURRENT_VERSION.indexOf(Macros.DEV_COMMIT_PREFIX) != -1)
 			return;
 		var ext = switch Sys.systemName() {
@@ -73,7 +82,7 @@ class UpdateManager {
 					var msg = 'Error saving [ideckia_server] update: ${e.message}';
 					Ideckia.dialog.error('Error when updating', msg);
 					Log.error(msg);
-					Log.raw(e);
+					Log.raw(e.stack);
 				}
 			});
 		});
@@ -108,13 +117,14 @@ class UpdateManager {
 				if (remoteVersion > currentVersion) {
 					Ideckia.dialog.question('New version available', 'Newer version of [$moduleName] found: Local [$currentVersion] / Remote [$remoteVersion]')
 						.then(isOk -> {
+							if (!isOk)
+								return;
+
 							var downloadUrl = '';
-							if (isOk) {
-								for (asset in ghRelease.assets) {
-									if (asset.name == filename) {
-										downloadUrl = asset.browser_download_url;
-										break;
-									}
+							for (asset in ghRelease.assets) {
+								if (asset.name == filename) {
+									downloadUrl = asset.browser_download_url;
+									break;
 								}
 							}
 							resolve(downloadUrl);
@@ -129,9 +139,9 @@ class UpdateManager {
 
 	static function downloadRemoteAsset(moduleName:String, downloadUrl:String) {
 		return new js.lib.Promise<haxe.io.Bytes>((resolve, reject) -> {
-			Log.debug('Downloading $downloadUrl');
 			if (downloadUrl == '')
 				return;
+			Log.debug('Downloading [$downloadUrl]');
 			fetch(downloadUrl).all().handle(o -> switch o {
 				case Success(res):
 					var statusCode = res.header.statusCode;

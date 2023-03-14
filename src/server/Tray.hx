@@ -42,7 +42,7 @@ class Tray {
 			var isClient = out.startsWith('client');
 			if (isEditor || isLogs || isClient) {
 				var launchCmd = switch Sys.systemName() {
-					case "Linux": 'xdg-open';
+					case "Linux": (isClient) ? '' : 'xdg-open';
 					case "Mac": 'open';
 					case "Windows": 'start';
 					case _: '';
@@ -55,6 +55,7 @@ class Tray {
 				} else {
 					clientFullPath;
 				}
+				Log.debug('Opening ${out}');
 				js.node.ChildProcess.spawn('$launchCmd $launchApp', {shell: true});
 			} else if (out.startsWith('about')) {
 				Ideckia.dialog.custom(aboutDialogPath);
@@ -64,11 +65,11 @@ class Tray {
 		});
 		trayProcess.stderr.on('data', e -> {
 			Log.error('Tray error');
-			Log.raw(e);
+			Log.raw(e.stack);
 		});
 		trayProcess.on('error', err -> {
 			Log.error('Tray error');
-			Log.raw(err);
+			Log.raw(err.stack);
 		});
 	}
 
