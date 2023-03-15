@@ -49,8 +49,6 @@ class Log {
 		var logsPath = getLogsPath();
 		if (!sys.FileSystem.exists(logsPath))
 			sys.FileSystem.createDirectory(logsPath);
-		else
-			deleteOldLogs();
 		var logFile = haxe.io.Path.join([logsPath, '$time.log']);
 		sys.io.File.saveContent(logFile, '');
 
@@ -58,6 +56,8 @@ class Log {
 		logStream.on('error', (error) -> {
 			trace('An error occured while writing to the file. Error: ${error.message}');
 		});
+
+		deleteOldLogs();
 	}
 
 	public static function debug(data:Dynamic, ?posInfos:haxe.PosInfos) {
