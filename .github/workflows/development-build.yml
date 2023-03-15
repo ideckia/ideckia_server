@@ -1,4 +1,4 @@
-name: Create developmento build
+name: Create development build
 
 on:
   push:
