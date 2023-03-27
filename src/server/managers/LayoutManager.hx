@@ -14,6 +14,7 @@ class LayoutManager {
 	static var layoutFilePath:String;
 
 	public static var layout:Layout;
+	public static var previousDir:Dir;
 	public static var currentDir:Dir;
 	static var currentDirName:DirName = new DirName(MAIN_DIR_ID);
 	static var isWatching:Bool = false;
@@ -256,6 +257,17 @@ class LayoutManager {
 		return getCurrentItems().filter(item -> item.id == itemId).length > 0;
 	}
 
+	public static function gotoMainDir() {
+		changeDir(new DirName(MAIN_DIR_ID));
+	}
+
+	public static function gotoPreviousDir() {
+		if (previousDir != null)
+			changeDir(previousDir.name);
+		else
+			gotoMainDir();
+	}
+
 	public static function changeDir(dirName:DirName) {
 		if (layout == null) {
 			throw new haxe.Exception('There is no loaded layout. Call LayoutManager.load() first.');
@@ -274,6 +286,7 @@ class LayoutManager {
 			Log.error('Found $foundLength dirs with name [$dirName]');
 		}
 
+		previousDir = currentDir;
 		currentDir = foundDirs[0];
 		currentDirName = currentDir.name;
 	}
@@ -394,6 +407,8 @@ class LayoutManager {
 			i.kind = switch i.kind {
 				case States(_, list):
 					for (s in list) {
+						if (s.icon != null && s.icon.length > 1000)
+							s.icon = null;
 						if (s.textSize == defaultTextSize)
 							s.textSize = null;
 					}

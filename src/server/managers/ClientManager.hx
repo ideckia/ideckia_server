@@ -11,6 +11,12 @@ class ClientManager {
 		switch msg.type {
 			case click | longPress:
 				onItemClick(new ItemId(msg.itemId), msg.type == longPress);
+			case gotoDir if (msg.toDir == 'prev' || msg.toDir == 'main'):
+				if (msg.toDir == 'prev')
+					LayoutManager.gotoPreviousDir();
+				else if (msg.toDir == 'main')
+					LayoutManager.gotoMainDir();
+				MsgManager.sendToAll(LayoutManager.currentDirForClient());
 			case t:
 				throw new haxe.Exception('[$t] type of message is not allowed for the client.');
 		}
