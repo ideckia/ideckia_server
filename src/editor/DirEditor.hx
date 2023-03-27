@@ -21,6 +21,7 @@ class DirEditor {
 
 		var rows = dir.rows == null ? App.editorData.layout.rows : dir.rows;
 		var columns = dir.columns == null ? App.editorData.layout.columns : dir.columns;
+		var bgColor = dir.bgColor == null ? App.editorData.layout.bgColor : dir.bgColor;
 		for (rind in 0...rows) {
 			for (cind in 0...columns) {
 				var item = dir.items[rind * columns + cind];
@@ -40,6 +41,12 @@ class DirEditor {
 		rowsInput.value = Std.string(rows);
 		columnsInput.value = Std.string(columns);
 
+		var setBgColorCheck = Id.set_current_bg_color.as(InputElement);
+		setBgColorCheck.checked = dir.bgColor != null;
+		var bgColorInput = Id.current_bg_color.as(InputElement);
+		bgColorInput.disabled = !setBgColorCheck.checked;
+		bgColorInput.value = bgColor == null ? '' : '#' + bgColor.substr(2);
+
 		Utils.addListener(listeners, rowsInput, 'change', (_) -> {
 			currentDir.rows = Std.parseInt(rowsInput.value);
 			addMissingItems(currentDir);
@@ -48,6 +55,20 @@ class DirEditor {
 		Utils.addListener(listeners, columnsInput, 'change', (_) -> {
 			currentDir.columns = Std.parseInt(columnsInput.value);
 			addMissingItems(currentDir);
+		});
+
+		Utils.addListener(listeners, setBgColorCheck, 'change', (_) -> {
+			var checked = setBgColorCheck.checked;
+			bgColorInput.disabled = !checked;
+			if (checked)
+				currentDir.bgColor = 'ff' + bgColorInput.value.substr(1);
+			else
+				currentDir.bgColor = null;
+			App.dirtyData = true;
+		});
+		Utils.addListener(listeners, bgColorInput, 'change', (_) -> {
+			currentDir.bgColor = 'ff' + bgColorInput.value.substr(1);
+			App.dirtyData = true;
 		});
 
 		for (d in Cls.draggable_item.get()) {

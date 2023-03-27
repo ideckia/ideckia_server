@@ -187,6 +187,7 @@ class LayoutManager {
 			data: {
 				rows: rows,
 				columns: columns,
+				bgColor: currentDir.bgColor,
 				icons: icons,
 				items: getCurrentItems().map(transformItem),
 				fixedItems: layout.fixedItems == null ? [] : layout.fixedItems.map(transformItem)
@@ -235,6 +236,7 @@ class LayoutManager {
 		layout.dirs.push({
 			name: newDirName,
 			rows: dynamicDir.rows,
+			bgColor: dynamicDir.bgColor,
 			columns: dynamicDir.columns,
 			items: serverItems
 		});

@@ -3,7 +3,7 @@ name: Create development build
 on:
   push:
     braches:
-      - "develop"
+      - main
 
 jobs:
   build:

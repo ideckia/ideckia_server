@@ -15,11 +15,6 @@
 
     <body>
         <menu>
-            <select name="dir-select" class="dir-select" id="dir-select"></select>
-            <label for="current-dir-rows">rows</label>
-            <input type="number" id="current-dir-rows" class="row-column">
-            <label for="current-dir-columns">columns</label>
-            <input type="number" id="current-dir-columns" class="row-column">
             <input type="button" value="add directory" id="add-dir-btn">
             <input type="button" value="delete directory" id="delete-dir-btn" title="delete directory">
             <input type="button" value="export directories" id="export-dir-btn" title="export directories">
@@ -29,6 +24,16 @@
                 Use as client
                 <input type="checkbox" name="execute-actions" id="execute-actions-cb">
             </label>
+        </menu>
+        <menu>
+            <select name="dir-select" class="dir-select" id="dir-select"></select>
+            <label for="current-dir-rows">rows</label>
+            <input type="number" id="current-dir-rows" class="row-column">
+            <label for="current-dir-columns">columns</label>
+            <input type="number" id="current-dir-columns" class="row-column">
+            <label for="set-current-bg-color">background color</label>
+            <input type="checkbox" id="set-current-bg-color" class="row-column">
+            <input type="color" id="current-bg-color" class="row-column">
         </menu>
         <menu>
             <input type="button" value="add icon" id="add-icon-btn">
