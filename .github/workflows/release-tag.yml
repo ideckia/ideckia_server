@@ -12,7 +12,7 @@ jobs:
     env:
       PKG_NODE_VERSION: 16
       NODE_VERSION: 16
-      HAXE_VERSION: latest
+      HAXE_VERSION: 4.3.0
       JS_VERSION_NAME: ideckia-js
       PKG_ARGS: --no-bytecode --public --public-packages '*' --compress Brotli
 
