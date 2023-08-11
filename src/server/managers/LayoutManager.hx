@@ -76,6 +76,34 @@ class LayoutManager {
 		return [for (i in currentDir.items) i];
 	}
 
+	static function hideState(state:ServerState) {
+		switch ActionManager.getActionByStateId(state.id) {
+			case Some(actions):
+				for (action in actions) {
+					var hasHideMethod = js.Syntax.code("typeof {0}.hide", action) == 'function';
+					if (hasHideMethod)
+						action.hide();
+				}
+			case None:
+				Log.error('No action found for state [${state.id}]');
+		}
+	}
+
+	public static function hideCurrentItems() {
+		if (currentDir == null)
+			return;
+		for (item in currentDir.items) {
+			switch item.kind {
+				case null:
+				case ChangeDir(_, state):
+					hideState(state);
+				case States(_, list):
+					for (state in list)
+						hideState(state);
+			}
+		}
+	}
+
 	public static function getAllItems(?fromLayout:Layout, ?getDynamicDirs:Bool = true) {
 		if (fromLayout == null)
 			fromLayout = layout;
@@ -117,6 +145,7 @@ class LayoutManager {
 			case States(index, list):
 				var hasMultiStateChanged = false;
 				if (advanceMultiState) {
+					hideState(list[index]);
 					var newIndex = (index + 1) % list.length;
 					hasMultiStateChanged = newIndex != index;
 					item.kind = States(newIndex, list);
@@ -288,6 +317,7 @@ class LayoutManager {
 			Log.error('Found $foundLength dirs with name [$dirName]');
 		}
 
+		LayoutManager.hideCurrentItems();
 		previousDir = currentDir;
 		currentDir = foundDirs[0];
 		currentDirName = currentDir.name;

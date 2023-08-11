@@ -105,9 +105,9 @@ class ClientManager {
 	}
 
 	public static function fromActionToClient(itemId:ItemId, actionName:String, newState:ItemState) {
-		Log.debug('From Action [$actionName] to client state [$itemId] [$newState]');
 		if (newState == null || !LayoutManager.isItemVisible(itemId))
 			return;
+		Log.debug('From Action [$actionName] to client state [$itemId] [${newState.text}]');
 
 		var currentState = LayoutManager.getItemNextState(itemId).state;
 		if (currentState == null)
