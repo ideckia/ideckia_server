@@ -77,25 +77,26 @@ class Ideckia {
 			Log.raw(error.stack);
 		});
 
-		LayoutManager.load();
-		LayoutManager.watchForChanges();
-		ActionManager.watchForChanges();
+		LayoutManager.load().finally(() -> {
+			LayoutManager.watchForChanges();
+			ActionManager.watchForChanges();
 
-		var wsServer = new WebSocketServer();
+			var wsServer = new WebSocketServer();
 
-		wsServer.onConnect = (connection) -> {
-			MsgManager.send(connection, LayoutManager.currentDirForClient());
-		};
+			wsServer.onConnect = (connection) -> {
+				MsgManager.send(connection, LayoutManager.currentDirForClient());
+			};
 
-		wsServer.onMessage = (connection, msg) -> {
-			Log.debug('Message received: ${Std.string(msg).substring(0, 1000)}');
-			MsgManager.route(connection, msg);
-		}
+			wsServer.onMessage = (connection, msg) -> {
+				Log.debug('Message received: ${Std.string(msg).substring(0, 1000)}');
+				MsgManager.route(connection, msg);
+			}
 
-		wsServer.onClose = (connection, reasonCode, description) -> {
-			Log.info('Closing connection [code=$reasonCode]: $description');
-			connection.dispose();
-		}
+			wsServer.onClose = (connection, reasonCode, description) -> {
+				Log.info('Closing connection [code=$reasonCode]: $description');
+				connection.dispose();
+			}
+		});
 
 		Tray.show(WebSocketServer.port);
 	}
@@ -119,31 +120,11 @@ class Ideckia {
 		var args = Sys.args();
 		if (args.length > 0) {
 			var newActionIndex = args.indexOf('--new-action');
-			var runActionIndex = args.indexOf('--run-action');
 			var appendLayoutIndex = args.indexOf('--append-layout');
 			var exportDirsIndex = args.indexOf('--export-dirs');
 
 			if (newActionIndex != -1) {
 				api.action.creator.ActionCreator.create(actionsPath);
-			} else if (runActionIndex != -1) {
-				var param = args[runActionIndex + 1];
-				var state:ServerState;
-				if (param.endsWith('.json')) {
-					Log.debug('Reading file: [$param]');
-					state = haxe.Json.parse(sys.io.File.getContent(param));
-				} else {
-					state = {
-						actions: [
-							{
-								enabled: true,
-								name: param,
-								props: {}
-							}
-						]
-					};
-				}
-
-				ActionManager.runAction(state);
 			} else if (appendLayoutIndex != -1) {
 				var newLayoutFile = args[appendLayoutIndex + 1];
 				var newLayout:Layout = tink.Json.parse(sys.io.File.getContent(sys.FileSystem.absolutePath(Ideckia.getAppPath(newLayoutFile))));

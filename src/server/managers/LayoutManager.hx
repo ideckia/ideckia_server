@@ -51,11 +51,11 @@ class LayoutManager {
 			layout.textSize = DEFAULT_TEXT_SIZE;
 	}
 
-	public static function load() {
+	public static function load():js.lib.Promise<Bool> {
 		readLayout();
 		addIds();
 		changeDir(currentDirName);
-		ActionManager.initClientActions();
+		return ActionManager.initClientActions();
 	}
 
 	public static function watchForChanges() {
@@ -65,8 +65,7 @@ class LayoutManager {
 		Chokidar.watch(getLayoutPath()).on('change', (_, _) -> {
 			ActionManager.unloadActions();
 			Log.info('Layout file changed, reloading...');
-			load();
-			MsgManager.sendToAll(LayoutManager.currentDirForClient());
+			load().finally(() -> MsgManager.sendToAll(LayoutManager.currentDirForClient()));
 		});
 
 		isWatching = true;
@@ -224,53 +223,58 @@ class LayoutManager {
 		};
 	}
 
-	public static function generateDynamicDirectory(parentItemId:ItemId, dynamicDir:DynamicDir) {
-		Log.debug('Generating dynamic directory from item [$parentItemId].');
+	public static function generateDynamicDirectory(parentItemId:ItemId, dynamicDir:DynamicDir):js.lib.Promise<Bool> {
+		return new js.lib.Promise((resolve, reject) -> {
+			Log.debug('Generating dynamic directory from item [$parentItemId].');
 
-		var newDirName = new DirName('${DYNAMIC_DIRECTORY_PREFIX}${parentItemId}');
-		for (index => d in layout.dirs)
-			if (d.name == newDirName)
-				layout.dirs.splice(index, 1);
+			var newDirName = new DirName('${DYNAMIC_DIRECTORY_PREFIX}${parentItemId}');
+			for (index => d in layout.dirs)
+				if (d.name == newDirName)
+					layout.dirs.splice(index, 1);
 
-		var serverItems = [];
-		var sItem, sState, actions;
-		for (i in dynamicDir.items) {
-			actions = i.actions == null ? [] : i.actions.map(a -> {
-				id: ActionId.next(),
-				enabled: true,
-				name: a.name,
-				props: a.props
+			var serverItems = [];
+			var initPromises = [];
+			var sItem, sState, actions;
+			for (i in dynamicDir.items) {
+				actions = i.actions == null ? [] : i.actions.map(a -> {
+					id: ActionId.next(),
+					enabled: true,
+					name: a.name,
+					props: a.props
+				});
+				sState = {
+					id: StateId.next(),
+					actions: actions,
+					text: i.text,
+					textSize: i.textSize,
+					textColor: i.textColor,
+					textPosition: i.textPosition,
+					icon: i.icon,
+					bgColor: i.bgColor
+				}
+				if (i.toDir != null && i.toDir != '') {
+					sItem = {
+						id: ItemId.next(),
+						kind: Kind.ChangeDir(new DirName(i.toDir), sState)
+					};
+				} else {
+					sItem = {id: ItemId.next(), kind: Kind.States(0, [sState])};
+					initPromises.push(ActionManager.loadAndInitAction(sItem.id, sState));
+				}
+				serverItems.push(sItem);
+			};
+			layout.dirs.push({
+				name: newDirName,
+				rows: dynamicDir.rows,
+				bgColor: dynamicDir.bgColor,
+				columns: dynamicDir.columns,
+				items: serverItems
 			});
-			sState = {
-				id: StateId.next(),
-				actions: actions,
-				text: i.text,
-				textSize: i.textSize,
-				textColor: i.textColor,
-				textPosition: i.textPosition,
-				icon: i.icon,
-				bgColor: i.bgColor
-			}
-			if (i.toDir != null && i.toDir != '') {
-				sItem = {
-					id: ItemId.next(),
-					kind: Kind.ChangeDir(new DirName(i.toDir), sState)
-				};
-			} else {
-				sItem = {id: ItemId.next(), kind: Kind.States(0, [sState])};
-				ActionManager.loadAndInitAction(sItem.id, sState);
-			}
-			serverItems.push(sItem);
-		};
-		layout.dirs.push({
-			name: newDirName,
-			rows: dynamicDir.rows,
-			bgColor: dynamicDir.bgColor,
-			columns: dynamicDir.columns,
-			items: serverItems
-		});
 
-		changeDir(newDirName);
+			changeDir(newDirName);
+
+			js.lib.Promise.allSettled(initPromises).then(initPromisesResponse -> resolve(true));
+		});
 	}
 
 	public static function checkChangeDir(itemId:ItemId) {

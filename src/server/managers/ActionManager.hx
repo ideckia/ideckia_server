@@ -21,90 +21,121 @@ class ActionManager {
 		return Ideckia.getAppPath(actionsPath);
 	}
 
-	public static function loadAndInitAction(itemId:ItemId, state:ServerState, addToCache:Bool = true):Option<Array<IdeckiaAction>> {
-		Log.debug('Load actions from item [$itemId] / state [id=${state.id}] [text=${state.text}], [icon=${(state.icon == null) ? null : state.icon.substring(0, 50) + "..."}]');
-		var actions = state.actions;
-		if (actions == null || actions.length == 0)
-			return None;
+	public static function loadAndInitAction(itemId:ItemId, state:ServerState, addToCache:Bool = true):js.lib.Promise<Bool> {
+		return new js.lib.Promise<Bool>((resolve, reject) -> {
+			Log.debug('Load actions from item [$itemId] / state [id=${state.id}] [text=${state.text}], [icon=${(state.icon == null) ? null : state.icon.substring(0, 50) + "..."}]');
+			var actions = state.actions;
+			if (actions == null || actions.length == 0) {
+				reject('No actions found');
+				return;
+			}
 
-		var retActions = [];
-		var actionsBasePath = getActionsPath();
-		for (action in actions) {
-			try {
-				var name = action.name;
-				var idkServer:IdeckiaServer = {
-					log: {
-						error: actionLog.bind(Log.error, name),
-						debug: actionLog.bind(Log.debug, name),
-						info: actionLog.bind(Log.info, name)
-					},
-					dialog: Ideckia.dialog,
-					mediaPlayer: Ideckia.mediaPlayer,
-					updateClientState: ClientManager.fromActionToClient.bind(itemId, name)
-				};
-				if (!action.enabled) {
-					continue;
-				}
-				var actionPath = actionsBasePath + '/$name';
-				UpdateManager.checkUpdates(actionsBasePath, name);
-				var ideckiaAction:IdeckiaAction = requireAction(actionPath);
+			var retActions = [];
+			var initPromises = [];
+			var actionsBasePath = getActionsPath();
+			for (action in actions) {
+				try {
+					var name = action.name;
+					var idkServer:IdeckiaServer = {
+						log: {
+							error: actionLog.bind(Log.error, name),
+							debug: actionLog.bind(Log.debug, name),
+							info: actionLog.bind(Log.info, name)
+						},
+						dialog: Ideckia.dialog,
+						mediaPlayer: Ideckia.mediaPlayer,
+						updateClientState: ClientManager.fromActionToClient.bind(itemId, name)
+					};
+					if (!action.enabled) {
+						continue;
+					}
+					var actionPath = actionsBasePath + '/$name';
+					UpdateManager.checkUpdates(actionsBasePath, name);
+					var ideckiaAction:IdeckiaAction = requireAction(actionPath);
 
-				var propFieldValue;
-				var sharedEReg = ~/\$([\w0-9.\-_]+)/g;
-				var sharedName;
-				for (field in Reflect.fields(action.props)) {
-					propFieldValue = Reflect.field(action.props, field);
-					if (sharedEReg.match(Std.string(propFieldValue))) {
-						sharedName = sharedEReg.matched(1);
-						switch LayoutManager.getSharedValue(sharedName) {
-							case Some(sharedValue):
-								Log.debug('Replacing shared value [$sharedName] by [$sharedValue] in [$name] action.');
-								Reflect.setField(action.props, field, sharedValue);
-							case None:
-								Log.error('Not found shared value with name [$sharedName]');
+					var propFieldValue;
+					var sharedEReg = ~/\$([\w0-9.\-_]+)/g;
+					var sharedName;
+					for (field in Reflect.fields(action.props)) {
+						propFieldValue = Reflect.field(action.props, field);
+						if (sharedEReg.match(Std.string(propFieldValue))) {
+							sharedName = sharedEReg.matched(1);
+							switch LayoutManager.getSharedValue(sharedName) {
+								case Some(sharedValue):
+									Log.debug('Replacing shared value [$sharedName] by [$sharedValue] in [$name] action.');
+									Reflect.setField(action.props, field, sharedValue);
+								case None:
+									Log.error('Not found shared value with name [$sharedName]');
+							}
 						}
 					}
+
+					state.textSize = state.textSize == null ? LayoutManager.layout.textSize : state.textSize;
+					ideckiaAction.setup(action.props, idkServer);
+					initPromises.push(ideckiaAction.init(state));
+
+					retActions.push(ideckiaAction);
+				} catch (e:haxe.Exception) {
+					Log.error('Error creating [${action.name}] action: ${e.message}');
+					Log.raw(e.stack);
+				}
+			}
+
+			var allSettled = false;
+			var promiseResolved = false;
+			js.lib.Promise.allSettled(initPromises).then(initPromisesResponse -> {
+				if (promiseResolved)
+					return;
+
+				allSettled = true;
+				for (i => response in initPromisesResponse) {
+					switch response.status {
+						case Fulfilled:
+							var newState = response.value;
+							if (newState != null) {
+								state.text = newState.text;
+								state.textColor = newState.textColor;
+								state.textSize = newState.textSize;
+								state.icon = newState.icon;
+								state.bgColor = newState.bgColor;
+							}
+						case Rejected:
+							Log.error('Error initializing action of the state [id=${state.id}]');
+							Log.raw(response.reason.stack);
+					}
 				}
 
-				state.textSize = state.textSize == null ? LayoutManager.layout.textSize : state.textSize;
-				ideckiaAction.setup(action.props, idkServer);
-				ideckiaAction.init(state).then(newState -> {
-					if (newState != null) {
-						state.text = newState.text;
-						state.textColor = newState.textColor;
-						state.textSize = newState.textSize;
-						state.icon = newState.icon;
-						state.bgColor = newState.bgColor;
-					}
-				}).catchError((error) -> {
-					Log.error('Error initializing [${name}] action of the state [id=${state.id}]');
-					Log.raw(error.stack);
-				});
+				resolve(true);
+			});
 
-				retActions.push(ideckiaAction);
-			} catch (e:haxe.Exception) {
-				Log.error('Error creating [${action.name}] action: ${e.message}');
-				Log.raw(e.stack);
-			}
-		}
+			if (addToCache)
+				clientActions.set(state.id, retActions);
 
-		if (addToCache)
-			clientActions.set(state.id, retActions);
-		return Some(retActions);
+			haxe.Timer.delay(() -> {
+				promiseResolved = true;
+				if (!allSettled)
+					reject('Not all promised settled for state [${state.id}]');
+			}, 1000);
+		});
 	}
 
-	public static function initClientActions() {
-		clientActions = new Map();
-		actionDescriptors = null;
+	public static function initClientActions():js.lib.Promise<Bool> {
+		return new js.lib.Promise((resolve, reject) -> {
+			clientActions = new Map();
+			actionDescriptors = null;
 
-		for (i in LayoutManager.getAllItems()) {
-			switch i.kind {
-				case States(_, list):
-					for (state in list)
-						loadAndInitAction(i.id, state);
-				default:
+			var promises = [];
+			for (i in LayoutManager.getAllItems()) {
+				switch i.kind {
+					case States(_, list):
+						for (state in list)
+							promises.push(loadAndInitAction(i.id, state));
+					default:
+				}
 			}
-		}
+
+			js.lib.Promise.allSettled(promises).then(_ -> resolve(true));
+		});
 	}
 
 	public static function unloadActions() {
@@ -175,16 +206,6 @@ class ActionManager {
 			return None;
 
 		return Some(clientActions.get(stateId));
-	}
-
-	public static function runAction(state:ServerState) {
-		switch loadAndInitAction(new ItemId(-1), state, false) {
-			case Some(actions):
-				for (action in actions)
-					action.execute(state);
-			case None:
-				Log.error('the action is null');
-		};
 	}
 
 	static function requireAction(actionPath:String) {

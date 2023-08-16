@@ -61,10 +61,11 @@ class ClientManager {
 									currentState.icon = newState.icon;
 									currentState.bgColor = newState.bgColor;
 								}
+								MsgManager.sendToAll(LayoutManager.currentDirForClient());
 							} else if (actionOutcome.directory != null) {
-								LayoutManager.generateDynamicDirectory(clickedId, actionOutcome.directory);
+								LayoutManager.generateDynamicDirectory(clickedId, actionOutcome.directory)
+									.then(_ -> MsgManager.sendToAll(LayoutManager.currentDirForClient()));
 							}
-							MsgManager.sendToAll(LayoutManager.currentDirForClient());
 						};
 						var promiseError = (error) -> {
 							Log.error('Error executing actions of the state [${currentState.id}]');
