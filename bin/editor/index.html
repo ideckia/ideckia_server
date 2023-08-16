@@ -26,6 +26,15 @@
             </label>
         </menu>
         <menu>
+            <input type="button" value="add icon" id="add-icon-btn">
+            <input type="button" value="remove icon" id="remove-icon-btn">
+        </menu>
+        <menu>
+            <input type="button" value="add fixed item" id="add-fixed-item-btn">
+            <input type="button" value="edit shared values" id="edit-shared-btn">
+            <input type="button" value="create new action" id="create-action-btn">
+        </menu>
+        <menu>
             <select name="dir-select" class="dir-select" id="dir-select"></select>
             <label for="current-dir-rows">rows</label>
             <input type="number" id="current-dir-rows" class="row-column">
@@ -34,14 +43,6 @@
             <label for="set-current-bg-color">background color</label>
             <input type="checkbox" id="set-current-bg-color" class="row-column">
             <input type="color" id="current-bg-color" class="row-column">
-        </menu>
-        <menu>
-            <input type="button" value="add icon" id="add-icon-btn">
-            <input type="button" value="remove icon" id="remove-icon-btn">
-        </menu>
-        <menu>
-            <input type="button" value="add fixed item" id="add-fixed-item-btn">
-            <input type="button" value="edit shared values" id="edit-shared-btn">
         </menu>
         <div id="main-container">
             <div id="layout-container">
@@ -219,9 +220,9 @@
             </div>
 
             <div id="shared-var-edit" class="shared-var-edit">
-                <label for="item-kind-changedir-radio">Key</label>
+                <label for="shared-var-edit-key">Key</label>
                 <input type="text" name="shared-var-edit-key" class="shared-var-edit-key">
-                <label for="item-kind-states-radio">Value</label>
+                <label for="shared-var-edit-value">Value</label>
                 <input type="text" name="shared-var-edit-value" class="shared-var-edit-value">
             </div>
 
@@ -231,6 +232,25 @@
 
             <div id="append-layout">
                 <input type="file" name="append-layout" id="append-layout-input">
+            </div>
+            <div id="create-action-data">
+                <div>
+                    <label for="create-action-tpl">Action template</label>
+                    <div id="create-action-tpl">
+                        <label class="create-action-tpl-label" for="create-action-hx-tpl">
+                            Haxe
+                            <input type="radio" name="create-action-tpl-radio" id="create-action-hx-tpl">
+                        </label>
+                        <label class="create-action-tpl-label" for="create-action-js-tpl">
+                            JavaScript
+                            <input type="radio" name="create-action-tpl-radio" id="create-action-js-tpl">
+                        </label>
+                    </div>
+                    <label for="create-action-name">Action name</label>
+                    <input type="text" name="create-action-name" id="create-action-name">
+                    <label for="create-action-description">Action description</label>
+                    <input type="text" name="create-action-description" id="create-action-description">
+                </div>
             </div>
 
         </div>

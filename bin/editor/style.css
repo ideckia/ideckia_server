@@ -49,13 +49,6 @@ li {
     margin-top: .5em;
 }
 
-#item-container {
-    border: gray;
-    border-style: dotted;
-    margin-bottom: 1em;
-    padding: 1em;
-}
-
 #main-container {
     display: grid;
     grid-template-columns: 2fr 1fr 1fr;
@@ -81,14 +74,20 @@ li {
 
 #item-container {
     grid-area: item-container;
+    border: gray;
+    border-style: dotted;
+    margin-bottom: 1em;
+    padding: 1em;
 }
 
 #state-properties {
     grid-area: state-properties;
+    background-color: gold;
 }
 
 #action-properties {
     grid-area: action-properties;
+    background-color: lightblue;
 }
 
 .edit-property-container {
@@ -165,14 +164,6 @@ li {
     background-color: lavender;
 }
 
-#state-properties {
-    background-color: gold;
-}
-
-#action-properties {
-    background-color: lightblue;
-}
-
 #modal-window {
     position: fixed;
     font-family: arial;
@@ -227,6 +218,14 @@ li {
     margin-bottom: .5em;
     display: block;
     font-size: 2em;
+}
+
+.create-action-tpl-label{
+    width: 95%;
+    margin-bottom: .5em;
+    display: block;
+    font-size: 1.5em;
+    margin-left: 1em;
 }
 
 #dialog-content>*>div {

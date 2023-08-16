@@ -51,6 +51,7 @@ class ClientManager {
 					case Some(actions):
 						var promiseThen = (response:ActionOutcome) -> {
 							var actionOutcome:ActionOutcome = cast response;
+							var instantSend = true;
 							if (actionOutcome.state != null) {
 								var newState = actionOutcome.state;
 								if (newState != null) {
@@ -61,11 +62,13 @@ class ClientManager {
 									currentState.icon = newState.icon;
 									currentState.bgColor = newState.bgColor;
 								}
-								MsgManager.sendToAll(LayoutManager.currentDirForClient());
 							} else if (actionOutcome.directory != null) {
+								instantSend = false;
 								LayoutManager.generateDynamicDirectory(clickedId, actionOutcome.directory)
 									.then(_ -> MsgManager.sendToAll(LayoutManager.currentDirForClient()));
 							}
+							if (instantSend)
+								MsgManager.sendToAll(LayoutManager.currentDirForClient());
 						};
 						var promiseError = (error) -> {
 							Log.error('Error executing actions of the state [${currentState.id}]');

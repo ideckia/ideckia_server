@@ -418,6 +418,48 @@ class App {
 				});
 			});
 		});
+		Id.create_action_btn.get().addEventListener('click', (_) -> {
+			var hxTplRadio = Id.create_action_hx_tpl.as(InputElement);
+			hxTplRadio.checked = false;
+			var jsTplRadio = Id.create_action_js_tpl.as(InputElement);
+			jsTplRadio.checked = false;
+			var actionNameInput = Id.create_action_name.as(InputElement);
+			actionNameInput.value = '';
+			var actionDescriptionInput = Id.create_action_description.as(InputElement);
+			actionDescriptionInput.value = '';
+			Dialog.show('Define the new action parameters', Id.create_action_data.get(), () -> {
+				return new js.lib.Promise((resolve, reject) -> {
+					var actionName = actionNameInput.value;
+					var actionDescription = actionDescriptionInput.value;
+					var useHaxeTpl = hxTplRadio.checked;
+
+					if (actionName == '') {
+						js.Browser.alert('Action name is mandatory.');
+						resolve(false);
+						return;
+					}
+					if (!hxTplRadio.checked && !jsTplRadio.checked) {
+						js.Browser.alert('You must select a template for the action.');
+						resolve(false);
+						return;
+					}
+
+					var msg:EditorMsg = {
+						type: EditorMsgType.createAction,
+						whoami: editor,
+						createActionDef: {
+							tpl: (useHaxeTpl) ? ActionTemplate.HX : ActionTemplate.JS,
+							name: actionName,
+							description: actionDescription
+						}
+					};
+
+					websocket.send(tink.Json.stringify(msg));
+					js.Browser.alert('The [$actionName] action was created in the actions directory.');
+					resolve(true);
+				});
+			});
+		});
 		Id.update_server_layout_btn.get().addEventListener('click', (_) -> {
 			var rows, columns, maxLength;
 
