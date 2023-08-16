@@ -112,34 +112,18 @@ class Ideckia {
 		return js.Syntax.code('process.pkg != undefined');
 	}
 
+	public static function createNewAction(createActionDef:CreateActionDef) {
+		var actionDestination = createActionDef.path;
+		if (actionDestination == null || actionDestination == '')
+			createActionDef.path = actionsPath;
+		api.action.creator.ActionCreator.create(createActionDef);
+	}
+
 	static function main() {
 		appropos.Appropos.init(getAppPath('app.props'));
 		Log.init();
 		UpdateManager.checkServerRelease();
-
-		var args = Sys.args();
-		if (args.length > 0) {
-			var newActionIndex = args.indexOf('--new-action');
-			var appendLayoutIndex = args.indexOf('--append-layout');
-			var exportDirsIndex = args.indexOf('--export-dirs');
-
-			if (newActionIndex != -1) {
-				api.action.creator.ActionCreator.create(actionsPath);
-			} else if (appendLayoutIndex != -1) {
-				var newLayoutFile = args[appendLayoutIndex + 1];
-				var newLayout:Layout = tink.Json.parse(sys.io.File.getContent(sys.FileSystem.absolutePath(Ideckia.getAppPath(newLayoutFile))));
-				LayoutManager.readLayout();
-				LayoutManager.appendLayout(newLayout);
-				sys.io.File.saveContent(LayoutManager.getLayoutPath(), LayoutManager.exportLayout());
-			} else if (exportDirsIndex != -1) {
-				var dirNames = args[exportDirsIndex + 1];
-				exportDirs(dirNames.split(','));
-			} else {
-				showHelp();
-			}
-		} else {
-			new Ideckia();
-		}
+		new Ideckia();
 	}
 
 	static public function exportDirs(dirNames:Array<String>) {
@@ -152,18 +136,5 @@ class Ideckia {
 			case None:
 				Log.info('Could not find [$dirNames] directories in the layout file.');
 		};
-	}
-
-	static function showHelp() {
-		trace("Ideckia CLI usage:");
-		trace("	If no argumet is given, the server runs normally.");
-		trace("	Accepted arguments:");
-		trace("	--help: You are here.");
-		trace("	--new-action: Creates a new action from a template (Haxe or Javascript).");
-		trace("	--append-layout: Append a layout directories and icons from a given JSON file parameter.");
-		trace("	--export-dirs: Export the directories named given by parameters (separated by commas).");
-		trace("	--run-action: Executes an action from actions path. The parameter can be the action name *or* an action properties Json file, only one. The argument type will be evaluated from the extension of the parameter.");
-		trace("		action-name: Name of the action to run.");
-		trace("		action-props.json: Json file path with the action properties");
 	}
 }
