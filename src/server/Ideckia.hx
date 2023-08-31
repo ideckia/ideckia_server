@@ -14,7 +14,7 @@ class Ideckia {
 	static var autoLaunchEnabled:Bool;
 
 	@:v('ideckia.actions-path:actions')
-	static var actionsPath:String;
+	public static var actionsPath:String;
 
 	public static var dialog:api.dialog.IDialog;
 	public static var mediaPlayer:api.media.IMediaPlayer;
@@ -116,7 +116,11 @@ class Ideckia {
 		var actionDestination = createActionDef.path;
 		if (actionDestination == null || actionDestination == '')
 			createActionDef.path = actionsPath;
-		api.action.creator.ActionCreator.create(createActionDef);
+		var fullPath = haxe.io.Path.join([createActionDef.path, createActionDef.name]);
+		Log.info('Creating new action [$fullPath]');
+		ActionManager.creatingNewAction = true;
+		api.action.creator.ActionCreator.create(createActionDef, Log.info);
+		ActionManager.creatingNewAction = false;
 	}
 
 	static function main() {

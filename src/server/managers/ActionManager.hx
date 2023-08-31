@@ -14,6 +14,7 @@ class ActionManager {
 	static var clientActions:Map<StateId, Array<IdeckiaAction>>;
 	static var actionDescriptors:Array<ActionDescriptor>;
 	static var isWatching:Bool = false;
+	public static var creatingNewAction:Bool = false;
 
 	public static function getActionsPath() {
 		if (js.node.Path.isAbsolute(actionsPath))
@@ -155,6 +156,8 @@ class ActionManager {
 			return;
 
 		Chokidar.watch(ActionManager.getActionsPath()).on('change', (path) -> {
+			if (creatingNewAction)
+				return;
 			actionDescriptors = null;
 			var actionDir = haxe.io.Path.directory(path);
 			var actionName = haxe.io.Path.withoutDirectory(actionDir);

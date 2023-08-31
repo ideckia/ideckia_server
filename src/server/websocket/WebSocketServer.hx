@@ -8,6 +8,7 @@ using StringTools;
 
 class WebSocketServer {
 	public static inline var DISCOVER_ENDPOINT = '/ping';
+	public static inline var ACTION_NEW_ENDPOINT = '/action/new';
 	public static inline var EDITOR_ENDPOINT = 'editor';
 
 	@:v('ideckia.port:8888')
@@ -91,13 +92,26 @@ class WebSocketServer {
 						headers: headers,
 						body: sys.io.File.getContent(absolutePath)
 					});
+				} else if (request.method == 'POST' && requestUrl.indexOf(ACTION_NEW_ENDPOINT) != -1) {
+					var data = '';
+					request.on('data', chunck -> {
+						data += chunck;
+					});
+					request.on('end', chunck -> {
+						Log.debug('Create new Action received: $data');
+						Ideckia.createNewAction(haxe.Json.parse(data));
+						resolve({
+							code: 200,
+							headers: headers,
+							body: Ideckia.actionsPath
+						});
+					});
 				} else if (request.method == 'POST' && requestUrl.indexOf('/layout/append') != -1) {
 					var data = '';
 					request.on('data', chunck -> {
 						data += chunck;
 					});
 					request.on('end', chunck -> {
-						trace('data received: $data');
 						LayoutManager.appendLayout(tink.Json.parse(data));
 						sys.io.File.saveContent(LayoutManager.getLayoutPath(), LayoutManager.exportLayout());
 						resolve({
@@ -107,13 +121,12 @@ class WebSocketServer {
 						});
 					});
 				} else if (request.method == 'POST' && requestUrl.indexOf('/directory/export') != -1) {
-					trace('directory/export');
 					var data = '';
 					request.on('data', chunck -> {
 						data += chunck;
 					});
 					request.on('end', chunck -> {
-						trace('data received: $data');
+						Log.debug('Export directories received: $data');
 						var dirNames:Array<String> = haxe.Json.parse(data);
 						switch LayoutManager.exportDirs(dirNames) {
 							case Some(exported):

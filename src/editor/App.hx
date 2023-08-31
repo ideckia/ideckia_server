@@ -444,19 +444,25 @@ class App {
 						return;
 					}
 
-					var msg:EditorMsg = {
-						type: EditorMsgType.createAction,
-						whoami: editor,
-						createActionDef: {
-							tpl: (useHaxeTpl) ? ActionTemplate.HX : ActionTemplate.JS,
-							name: actionName,
-							description: actionDescription
-						}
+					final port = js.Browser.location.port;
+					var http = new haxe.Http('http://localhost:$port/action/new');
+					http.addHeader('Content-Type', 'application/json');
+					http.onError = (e) -> {
+						var msg = 'Error creating action: $e';
+						js.Browser.alert(msg);
+						reject(msg);
+					};
+					http.onData = (d) -> {
+						js.Browser.alert('[${d}/${actionName}] action successfully created.');
+						resolve(true);
 					};
 
-					websocket.send(tink.Json.stringify(msg));
-					js.Browser.alert('The [$actionName] action was created in the actions directory.');
-					resolve(true);
+					http.setPostData(haxe.Json.stringify({
+						tpl: (useHaxeTpl) ? ActionTemplate.HX : ActionTemplate.JS,
+						name: actionName,
+						description: actionDescription
+					}));
+					http.request(true);
 				});
 			});
 		});
