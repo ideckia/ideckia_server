@@ -1,15 +1,16 @@
 package websocket;
 
+import api.internal.ServerApi.ActionId;
+import managers.ActionManager;
 import managers.LayoutManager;
 import websocket.WebSocketConnection.WebSocketConnectionJs;
+import api.IdeckiaApi.Endpoint;
 import js.node.Os;
 
 using StringTools;
 
 class WebSocketServer {
-	public static inline var DISCOVER_ENDPOINT = '/ping';
-	public static inline var ACTION_NEW_ENDPOINT = '/action/new';
-	public static inline var EDITOR_ENDPOINT = 'editor';
+	public static var ACTION_ID_DESCRIPTOR = ~/\/actions\/([0-9]+)\/descriptor/;
 
 	@:v('ideckia.port:8888')
 	static public var port:Int;
@@ -69,15 +70,16 @@ class WebSocketServer {
 				});
 			} else if (['GET', 'POST'].indexOf(request.method) > -1) {
 				var requestUrl = request.url;
-				if (requestUrl.indexOf(DISCOVER_ENDPOINT) != -1) {
+				Log.debug('${request.method} - $requestUrl');
+				if (requestUrl == pingEndpoint) {
 					resolve({
 						code: 200,
 						headers: headers,
 						body: haxe.Json.stringify({pong: Os.hostname()})
 					});
-				} else if (requestUrl.indexOf(EDITOR_ENDPOINT) != -1 || requestUrl.endsWith('.js') || requestUrl.endsWith('.css')) {
-					var relativePath = '/${EDITOR_ENDPOINT}';
-					if (requestUrl.endsWith(EDITOR_ENDPOINT)) {
+				} else if (requestUrl.indexOf(editorEndpoint) != -1 || requestUrl.endsWith('.js') || requestUrl.endsWith('.css')) {
+					var relativePath = '/${editorEndpoint}';
+					if (requestUrl.endsWith(editorEndpoint)) {
 						relativePath += '/index.html';
 					} else {
 						relativePath += '/${requestUrl}';
@@ -92,7 +94,7 @@ class WebSocketServer {
 						headers: headers,
 						body: sys.io.File.getContent(absolutePath)
 					});
-				} else if (request.method == 'POST' && requestUrl.indexOf(ACTION_NEW_ENDPOINT) != -1) {
+				} else if (request.method == 'POST' && requestUrl == newActionEndpoint) {
 					var data = '';
 					request.on('data', chunck -> {
 						data += chunck;
@@ -106,7 +108,22 @@ class WebSocketServer {
 							body: Ideckia.actionsPath
 						});
 					});
-				} else if (request.method == 'POST' && requestUrl.indexOf('/layout/append') != -1) {
+				} else if (request.method == 'GET' && requestUrl.startsWith('/actions')) {
+					if (ACTION_ID_DESCRIPTOR.match(requestUrl)) {
+						var id = Std.parseInt(ACTION_ID_DESCRIPTOR.matched(1));
+						resolve({
+							code: 200,
+							headers: headers,
+							body: haxe.Json.stringify(ActionManager.getActionDescriptorById(new ActionId(id)))
+						});
+					} else {
+						resolve({
+							code: 404,
+							headers: headers,
+							body: 'Endpoint not matching'
+						});
+					}
+				} else if (request.method == 'POST' && requestUrl == layoutAppendEndpoint) {
 					var data = '';
 					request.on('data', chunck -> {
 						data += chunck;
@@ -120,7 +137,7 @@ class WebSocketServer {
 							body: data
 						});
 					});
-				} else if (request.method == 'POST' && requestUrl.indexOf('/directory/export') != -1) {
+				} else if (request.method == 'POST' && requestUrl == directoryExportEndpoint) {
 					var data = '';
 					request.on('data', chunck -> {
 						data += chunck;

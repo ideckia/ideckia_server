@@ -139,7 +139,7 @@ class App {
 
 					reader.onload = function(e) {
 						final port = js.Browser.location.port;
-						var http = new haxe.Http('http://localhost:$port/layout/append');
+						var http = new haxe.Http('http://localhost:$port$layoutAppendEndpoint');
 						http.addHeader('Content-Type', 'application/json');
 						http.onError = (e) -> {
 							var msg = 'Error appending layout: $e';
@@ -192,7 +192,7 @@ class App {
 					}
 
 					final port = js.Browser.location.port;
-					var http = new haxe.Http('http://localhost:$port/directory/export');
+					var http = new haxe.Http('http://localhost:$port${directoryExportEndpoint}');
 					http.addHeader('Content-Type', 'application/json');
 					http.onError = (e) -> js.Browser.alert('Error exporting directory: $e');
 					http.onData = (d) -> {
@@ -445,7 +445,7 @@ class App {
 					}
 
 					final port = js.Browser.location.port;
-					var http = new haxe.Http('http://localhost:$port/action/new');
+					var http = new haxe.Http('http://localhost:$port$newActionEndpoint');
 					http.addHeader('Content-Type', 'application/json');
 					http.onError = (e) -> {
 						var msg = 'Error creating action: $e';

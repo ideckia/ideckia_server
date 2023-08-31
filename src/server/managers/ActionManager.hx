@@ -11,7 +11,7 @@ class ActionManager {
 	@:v('ideckia.actions-path:actions')
 	static var actionsPath:String;
 
-	static var clientActions:Map<StateId, Array<IdeckiaAction>>;
+	static var clientActions:Map<StateId, Array<{id:ActionId, action:IdeckiaAction}>>;
 	static var actionDescriptors:Array<ActionDescriptor>;
 	static var isWatching:Bool = false;
 	public static var creatingNewAction:Bool = false;
@@ -35,6 +35,7 @@ class ActionManager {
 			var initPromises = [];
 			var actionsBasePath = getActionsPath();
 			for (action in actions) {
+				Log.debug('    Loading action [id=${action.id}] [name=${action.name}]');
 				try {
 					var name = action.name;
 					var idkServer:IdeckiaServer = {
@@ -75,7 +76,7 @@ class ActionManager {
 					ideckiaAction.setup(action.props, idkServer);
 					initPromises.push(ideckiaAction.init(state));
 
-					retActions.push(ideckiaAction);
+					retActions.push({id: action.id, action: ideckiaAction});
 				} catch (e:haxe.Exception) {
 					Log.error('Error creating [${action.name}] action: ${e.message}');
 					Log.raw(e.stack);
@@ -204,11 +205,28 @@ class ActionManager {
 		return actionDescriptors;
 	}
 
-	public static function getActionByStateId(stateId:StateId) {
+	public static function getActionsByStateId(stateId:StateId) {
 		if (clientActions == null || stateId == null || !clientActions.exists(stateId))
 			return None;
+		var actions = [
+			for (cAction in clientActions.get(stateId))
+				cAction.action
+		];
+		return Some(actions);
+	}
 
-		return Some(clientActions.get(stateId));
+	public static function getActionDescriptorById(actionId:ActionId) {
+		if (clientActions == null || actionId == null)
+			return None;
+
+		for (cActions in clientActions) {
+			for (cAction in cActions) {
+				if (cAction.id == actionId)
+					return Some(cAction.action.getActionDescriptor());
+			}
+		}
+
+		return None;
 	}
 
 	static function requireAction(actionPath:String) {

@@ -76,7 +76,7 @@ class LayoutManager {
 	}
 
 	static function hideState(state:ServerState) {
-		switch ActionManager.getActionByStateId(state.id) {
+		switch ActionManager.getActionsByStateId(state.id) {
 			case Some(actions):
 				for (action in actions) {
 					var hasHideMethod = js.Syntax.code("typeof {0}.hide", action) == 'function';

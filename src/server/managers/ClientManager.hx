@@ -47,7 +47,7 @@ class ClientManager {
 				MsgManager.sendToAll(LayoutManager.currentDirForClient());
 			} else {
 				Log.info('Clicked state: [text=${currentState.text}], [icon=${(currentState.icon == null) ? null : currentState.icon.substring(0, 50) + "..."}]');
-				switch ActionManager.getActionByStateId(currentState.id) {
+				switch ActionManager.getActionsByStateId(currentState.id) {
 					case Some(actions):
 						var promiseThen = (response:ActionOutcome) -> {
 							var actionOutcome:ActionOutcome = cast response;
