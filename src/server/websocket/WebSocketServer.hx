@@ -108,6 +108,12 @@ class WebSocketServer {
 							body: Ideckia.actionsPath
 						});
 					});
+				} else if (request.method == 'GET' && requestUrl == actionTemplatesEndpoint) {
+					resolve({
+						code: 200,
+						headers: headers,
+						body: haxe.Json.stringify(ActionManager.getActionTemplates())
+					});
 				} else if (request.method == 'GET' && requestUrl.startsWith('/actions')) {
 					if (ACTION_ID_DESCRIPTOR.match(requestUrl)) {
 						var id = Std.parseInt(ACTION_ID_DESCRIPTOR.matched(1));

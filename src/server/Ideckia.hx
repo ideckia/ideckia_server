@@ -113,10 +113,10 @@ class Ideckia {
 	}
 
 	public static function createNewAction(createActionDef:CreateActionDef) {
-		var actionDestination = createActionDef.path;
+		var actionDestination = createActionDef.destPath;
 		if (actionDestination == null || actionDestination == '')
-			createActionDef.path = actionsPath;
-		var fullPath = haxe.io.Path.join([createActionDef.path, createActionDef.name]);
+			createActionDef.destPath = actionsPath;
+		var fullPath = haxe.io.Path.join([createActionDef.destPath, createActionDef.name]);
 		Log.info('Creating new action [$fullPath]');
 		ActionManager.creatingNewAction = true;
 		api.action.creator.ActionCreator.create(createActionDef, Log.info);

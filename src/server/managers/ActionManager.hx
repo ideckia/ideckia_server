@@ -1,5 +1,6 @@
 package managers;
 
+import api.action.creator.ActionCreator;
 import haxe.ds.Option;
 import js.node.Require;
 
@@ -227,6 +228,22 @@ class ActionManager {
 		}
 
 		return None;
+	}
+
+	public static function getActionTemplates() {
+		var tplDirectory = haxe.io.Path.join([actionsPath, 'tpl']);
+
+		var templates:Array<TemplateDef> = [for (tpl in ActionCreator.TEMPLATES_LIST) {tplName: tpl, tplDirectory: 'embed'}];
+		if (sys.FileSystem.exists(tplDirectory))
+			for (tpl in sys.FileSystem.readDirectory(tplDirectory))
+				if (sys.FileSystem.isDirectory(tplDirectory + '/$tpl')) {
+					var macroTplIndex = ActionCreator.TEMPLATES_LIST.indexOf(tpl);
+					if (macroTplIndex != -1) {
+						templates.splice(macroTplIndex, 1);
+					}
+					templates.push({tplName: tpl, tplDirectory: tplDirectory});
+				}
+		return templates;
 	}
 
 	static function requireAction(actionPath:String) {

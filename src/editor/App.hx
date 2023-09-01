@@ -419,52 +419,85 @@ class App {
 			});
 		});
 		Id.create_action_btn.get().addEventListener('click', (_) -> {
-			var hxTplRadio = Id.create_action_hx_tpl.as(InputElement);
-			hxTplRadio.checked = false;
-			var jsTplRadio = Id.create_action_js_tpl.as(InputElement);
-			jsTplRadio.checked = false;
-			var actionNameInput = Id.create_action_name.as(InputElement);
-			actionNameInput.value = '';
-			var actionDescriptionInput = Id.create_action_description.as(InputElement);
-			actionDescriptionInput.value = '';
-			Dialog.show('Define the new action parameters', Id.create_action_data.get(), () -> {
-				return new js.lib.Promise((resolve, reject) -> {
-					var actionName = actionNameInput.value;
-					var actionDescription = actionDescriptionInput.value;
-					var useHaxeTpl = hxTplRadio.checked;
+			final port = js.Browser.location.port;
+			var http = new haxe.Http('http://localhost:$port$actionTemplatesEndpoint');
+			http.onError = (e) -> {
+				var msg = 'Error getting templates: $e';
+				js.Browser.alert(msg);
+			};
+			http.onData = (d) -> {
+				var templates:Array<TemplateDef> = haxe.Json.parse(d);
+				var radiosDiv = Id.div_create_action_tpl_radios.as(DivElement);
+				var radioInputsName = 'create-action-tpl-radio';
 
-					if (actionName == '') {
-						js.Browser.alert('Action name is mandatory.');
-						resolve(false);
-						return;
-					}
-					if (!hxTplRadio.checked && !jsTplRadio.checked) {
-						js.Browser.alert('You must select a template for the action.');
-						resolve(false);
-						return;
-					}
+				for (tpl in templates) {
+					var radioInput = document.createInputElement();
+					var id = 'create-action-${tpl.tplName}-tpl';
+					radioInput.type = 'radio';
+					radioInput.id = id;
+					radioInput.value = tpl.tplDirectory + '::' + tpl.tplName;
+					radioInput.name = radioInputsName;
+					radiosDiv.appendChild(radioInput);
 
-					final port = js.Browser.location.port;
-					var http = new haxe.Http('http://localhost:$port$newActionEndpoint');
-					http.addHeader('Content-Type', 'application/json');
-					http.onError = (e) -> {
-						var msg = 'Error creating action: $e';
-						js.Browser.alert(msg);
-						reject(msg);
-					};
-					http.onData = (d) -> {
-						js.Browser.alert('[${d}/${actionName}] action successfully created.');
-						resolve(true);
-					};
+					var radioLabel = document.createLabelElement();
+					radioLabel.htmlFor = id;
+					radioLabel.innerText = tpl.tplName;
+					radioLabel.classList.add(Cls.create_action_tpl_label);
+					radiosDiv.appendChild(radioLabel);
+					radiosDiv.appendChild(document.createBRElement());
+				}
 
-					http.setPostData(haxe.Json.stringify({
-						tpl: (useHaxeTpl) ? ActionTemplate.HX : ActionTemplate.JS,
-						name: actionName,
-						description: actionDescription
-					}));
-					http.request(true);
+				var actionNameInput = Id.create_action_name.as(InputElement);
+				actionNameInput.value = '';
+				var actionDescriptionInput = Id.create_action_description.as(InputElement);
+				actionDescriptionInput.value = '';
+				Dialog.show('Define the new action parameters', Id.create_action_data.get(), () -> {
+					return new js.lib.Promise((resolve, reject) -> {
+						var actionName = actionNameInput.value;
+						var actionDescription = actionDescriptionInput.value;
+
+						if (actionName == '') {
+							js.Browser.alert('Action name is mandatory.');
+							resolve(false);
+							return;
+						}
+
+						var selectedRadio = Std.downcast(Tag.input.specify('[name="$radioInputsName"]:checked'), InputElement);
+
+						if (selectedRadio == null) {
+							js.Browser.alert('You must select a template for the action.');
+							resolve(false);
+							return;
+						}
+
+						final port = js.Browser.location.port;
+						var http = new haxe.Http('http://localhost:$port$newActionEndpoint');
+						http.addHeader('Content-Type', 'application/json');
+						http.onError = (e) -> {
+							var msg = 'Error creating action: $e';
+							js.Browser.alert(msg);
+							reject(msg);
+						};
+						http.onData = (d) -> {
+							js.Browser.alert('[${d}/${actionName}] action successfully created.');
+							resolve(true);
+						};
+
+						var tplDirName = selectedRadio.value.split('::');
+
+						var body:CreateActionDef = {
+							tplName: tplDirName[1],
+							tplDirectory: tplDirName[0],
+							name: actionName,
+							description: actionDescription
+						}
+
+						http.setPostData(haxe.Json.stringify(body));
+						http.request(true);
+					});
 				});
-			});
+			};
+			http.request();
 		});
 		Id.update_server_layout_btn.get().addEventListener('click', (_) -> {
 			var rows, columns, maxLength;
