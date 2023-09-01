@@ -428,6 +428,8 @@ class App {
 			http.onData = (d) -> {
 				var templates:Array<TemplateDef> = haxe.Json.parse(d);
 				var radiosDiv = Id.div_create_action_tpl_radios.as(DivElement);
+				while (radiosDiv.children.length > 0)
+					radiosDiv.removeChild(radiosDiv.firstChild);
 				var radioInputsName = 'create-action-tpl-radio';
 
 				for (tpl in templates) {
