@@ -101,11 +101,11 @@ class WebSocketServer {
 					});
 					request.on('end', chunck -> {
 						Log.debug('Create new Action received: $data');
-						Ideckia.createNewAction(haxe.Json.parse(data));
+						var newActionPath = Ideckia.createNewAction(haxe.Json.parse(data));
 						resolve({
 							code: 200,
 							headers: headers,
-							body: Ideckia.actionsPath
+							body: newActionPath
 						});
 					});
 				} else if (request.method == 'GET' && requestUrl == actionTemplatesEndpoint) {

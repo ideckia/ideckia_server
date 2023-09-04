@@ -116,11 +116,10 @@ class Ideckia {
 		var actionDestination = createActionDef.destPath;
 		if (actionDestination == null || actionDestination == '')
 			createActionDef.destPath = actionsPath;
-		var fullPath = haxe.io.Path.join([createActionDef.destPath, createActionDef.name]);
-		Log.info('Creating new action [$fullPath]');
 		ActionManager.creatingNewAction = true;
-		api.action.creator.ActionCreator.create(createActionDef, Log.info);
+		var newActionPath = api.action.creator.ActionCreator.create(createActionDef, Log.info);
 		ActionManager.creatingNewAction = false;
+		return newActionPath;
 	}
 
 	static function main() {
