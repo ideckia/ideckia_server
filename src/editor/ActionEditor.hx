@@ -34,6 +34,37 @@ class ActionEditor {
 			edit(action);
 		});
 
+		var cls = switch action.status {
+			case error:
+				Cls.error_bg;
+			case ok:
+				Cls.success_bg;
+			default:
+				Cls.unknown_bg;
+		}
+
+		switch Cls.check_bg.firstFrom(li) {
+			case Some(v):
+				v.title = 'Action status [${cls.replace('-bg', '')}]';
+				v.classList.add(cls);
+			case None:
+		}
+
+		cls = switch action.status {
+			case error:
+				Cls.error_mark;
+			case ok:
+				Cls.success_mark;
+			default:
+				Cls.unknown_mark;
+		}
+
+		switch Cls.check_mark.firstFrom(li) {
+			case Some(v):
+				v.classList.add(cls);
+			case None:
+		}
+
 		switch Cls.enable_check.firstFromAs(li, InputElement) {
 			case Some(v):
 				v.checked = action.enabled;

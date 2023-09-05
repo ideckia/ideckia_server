@@ -30,8 +30,6 @@ class EditorManager {
 			case saveLayout:
 				var layoutContent = LayoutManager.exportLayout(msg.layout);
 				sys.io.File.saveContent(LayoutManager.getLayoutPath(), layoutContent);
-			case createAction:
-				Ideckia.createNewAction(msg.createActionDef);
 			case t:
 				throw new haxe.Exception('[$t] type of message is not allowed for the editor.');
 		}
