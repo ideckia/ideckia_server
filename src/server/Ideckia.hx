@@ -48,11 +48,11 @@ class Ideckia {
 		UpdateManager.checkUpdates(appPath, 'media');
 
 		js.Node.process.on('uncaughtException', (error) -> {
-			Log.error('There was an uncaughtException. Please restart the server.');
+			Log.error('There was an uncaughtException.');
 			Log.raw(error.stack);
 		});
 		js.Node.process.on('unhandledRejection', (error, promise) -> {
-			Log.error('Rejection was not handled in the promise. Please restart the server.');
+			Log.error('Rejection was not handled in the promise [$promise]');
 			Log.raw(error.stack);
 		});
 

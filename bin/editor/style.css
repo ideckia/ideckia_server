@@ -328,25 +328,18 @@ input.row-column {
 }
 
 .error-bg {
-    border: 3px solid rgb(128 5 5);
+    border: 3px solid rgb(196, 8, 8);
 }
 
 .unknown-bg {
     border: 3px solid rgb(172 172 172);
 }
 
-.success-mark {
-    display: inline-block;
-    transform: rotate(45deg);
+.success-mark:after {
     position: relative;
-    height: 10px;
-    width: 5px;
     top: 3px;
-    left: 1px;
-    border-bottom: 2px solid rgb(59 177 165);
-    border-right: 2px solid rgb(59 177 165);
+    content: "\2713";
 }
-
 .error-mark:after {
     position: relative;
     top: 3px;

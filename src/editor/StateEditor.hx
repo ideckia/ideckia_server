@@ -1,3 +1,4 @@
+import api.IdeckiaApi.ActionStatus;
 import api.IdeckiaApi.TextPosition;
 import api.internal.ServerApi;
 import hx.Selectors.Cls;
@@ -39,20 +40,30 @@ class StateEditor {
 			};
 
 		if (state.actions != null) {
-			var ulActions = document.createUListElement();
-			var liAction;
-			for (i in 0...state.actions.length) {
-				liAction = ActionEditor.show(state.actions[i], state);
-				liAction.dataset.action_id = Std.string(i);
-				ulActions.append(liAction);
+			final port = js.Browser.location.port;
+			var http = new haxe.Http('http://localhost:$port/state/${state.id}/actions/status');
+			http.addHeader('Content-Type', 'application/json');
+			http.onError = (e) -> js.Browser.alert('Error getting action statuses of [id=${state.id}]: $e');
+			http.onData = (d) -> {
+				var statuses:Map<UInt, ActionStatus> = haxe.Json.parse(d);
+
+				var ulActions = document.createUListElement();
+				var liAction, sAction;
+				for (i in 0...state.actions.length) {
+					sAction = state.actions[i];
+					liAction = ActionEditor.show(sAction, statuses.get(sAction.id.toUInt()), state);
+					liAction.dataset.action_id = Std.string(i);
+					ulActions.append(liAction);
+				}
+				parentLi.append(ulActions);
+				for (d in Cls.draggable_action.from(ulActions)) {
+					Utils.addListener(listeners, d, 'dragstart', (_) -> onDragStart(d.dataset.action_id));
+					Utils.addListener(listeners, d, 'dragover', onDragOver);
+					Utils.addListener(listeners, d, 'dragleave', onDragLeave);
+					Utils.addListener(listeners, d, 'drop', (e) -> onDrop(e, state));
+				}
 			}
-			parentLi.append(ulActions);
-			for (d in Cls.draggable_action.from(ulActions)) {
-				Utils.addListener(listeners, d, 'dragstart', (_) -> onDragStart(d.dataset.action_id));
-				Utils.addListener(listeners, d, 'dragover', onDragOver);
-				Utils.addListener(listeners, d, 'dragleave', onDragLeave);
-				Utils.addListener(listeners, d, 'drop', (e) -> onDrop(e, state));
-			}
+			http.request();
 		}
 
 		parentLi.addEventListener('click', (event:Event) -> {

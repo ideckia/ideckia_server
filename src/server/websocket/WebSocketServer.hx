@@ -1,5 +1,6 @@
 package websocket;
 
+import api.internal.ServerApi.StateId;
 import api.internal.ServerApi.ActionId;
 import managers.ActionManager;
 import managers.LayoutManager;
@@ -10,7 +11,8 @@ import js.node.Os;
 using StringTools;
 
 class WebSocketServer {
-	public static var ACTION_ID_DESCRIPTOR = ~/\/actions\/([0-9]+)\/descriptor/;
+	public static var ACTION_ID_DESCRIPTOR = ~/\/action\/([0-9]+)\/descriptor/;
+	public static var STATE_ID_ACTIONS_STATUS = ~/\/state\/([0-9]+)\/actions\/status/;
 
 	@:v('ideckia.port:8888')
 	static public var port:Int;
@@ -114,13 +116,40 @@ class WebSocketServer {
 						headers: headers,
 						body: haxe.Json.stringify(ActionManager.getActionTemplates())
 					});
-				} else if (request.method == 'GET' && requestUrl.startsWith('/actions')) {
+				} else if (request.method == 'GET' && requestUrl.startsWith('/action')) {
 					if (ACTION_ID_DESCRIPTOR.match(requestUrl)) {
 						var id = Std.parseInt(ACTION_ID_DESCRIPTOR.matched(1));
+						var body = switch ActionManager.getActionDescriptorById(new ActionId(id)) {
+							case Some(v): v;
+							case None: {};
+						};
+
 						resolve({
 							code: 200,
 							headers: headers,
-							body: haxe.Json.stringify(ActionManager.getActionDescriptorById(new ActionId(id)))
+							body: haxe.Json.stringify(body)
+						});
+					} else {
+						resolve({
+							code: 404,
+							headers: headers,
+							body: 'Endpoint not matching'
+						});
+					}
+				} else if (request.method == 'GET' && requestUrl.startsWith('/state')) {
+					if (STATE_ID_ACTIONS_STATUS.match(requestUrl)) {
+						var id = Std.parseInt(STATE_ID_ACTIONS_STATUS.matched(1));
+						ActionManager.getActionsStatusesByStateId(new StateId(id)).then(statuses -> resolve({
+							code: 200,
+							headers: headers,
+							body: haxe.Json.stringify(statuses)
+						})).catchError(e -> {
+							Log.error(e);
+							resolve({
+								code: 500,
+								headers: headers,
+								body: 'Error getting statuses of the actions from the state [$id]: $e'
+							});
 						});
 					} else {
 						resolve({

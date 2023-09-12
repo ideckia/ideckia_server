@@ -20,7 +20,7 @@ class ActionEditor {
 	static var changeListeners:Array<{element:Element, changeListener:Event->Void}> = [];
 	static var listeners:Array<Utils.Listener> = [];
 
-	public static function show(action:ActionDef, parentState:ServerState) {
+	public static function show(action:ActionDef, actionStatus:ActionStatus, parentState:ServerState) {
 		var li = Utils.cloneElement(Id.action_list_item_tpl.get(), LIElement);
 		switch Tag.span.firstFrom(li) {
 			case Some(v):
@@ -34,7 +34,7 @@ class ActionEditor {
 			edit(action);
 		});
 
-		var cls = switch action.status {
+		var cls = switch actionStatus.code {
 			case error:
 				Cls.error_bg;
 			case ok:
@@ -46,11 +46,13 @@ class ActionEditor {
 		switch Cls.check_bg.firstFrom(li) {
 			case Some(v):
 				v.title = 'Action status [${cls.replace('-bg', '')}]';
+				if (actionStatus.message != null)
+					v.title += ': ${actionStatus.message}';
 				v.classList.add(cls);
 			case None:
 		}
 
-		cls = switch action.status {
+		cls = switch actionStatus.code {
 			case error:
 				Cls.error_mark;
 			case ok:
@@ -102,134 +104,157 @@ class ActionEditor {
 
 	public static function edit(action:ActionDef) {
 		Utils.removeListeners(listeners);
-		switch App.getActionDescriptorByName(action.name) {
-			case None:
-				trace('Descriptor not found for [${action.name}]');
-			case Some(actionDescriptor):
-				Utils.clearElement(Id.action_props.get());
-				editingAction = action;
-				var fieldValue;
-				Id.action_title.get().textContent = '[${actionDescriptor.name}] action properties';
-				Id.action_description.get().textContent = actionDescriptor.description;
-				Id.action_properties.get().classList.remove(Cls.hidden);
-				for (div in createFromDescriptor(actionDescriptor)) {
-					var propertyName = div.id;
-					var valueInput:InputElement = cast div.querySelector(Cls.prop_value.selector());
-					var possibleValuesSelect:SelectElement = cast div.querySelector(Cls.prop_possible_values.selector());
-					var booleanValueInput:InputElement = cast div.querySelector(Cls.prop_bool_value.selector());
-					var multiValuesDiv:DivElement = cast div.querySelector(Cls.prop_multi_values.selector());
-					fieldValue = (Reflect.hasField(editingAction.props, propertyName)) ? Reflect.field(editingAction.props, propertyName) : '';
-					var divDataType = div.dataset.prop_type;
-					if (!valueInput.classList.contains(Cls.hidden)) {
-						var isPrimitive = Utils.isPrimitiveTypeByName(divDataType);
-						if (isPrimitive)
-							valueInput.value = fieldValue;
-						else
-							valueInput.value = haxe.Json.stringify(fieldValue);
 
-						Utils.addListener(listeners, valueInput, 'change', (_) -> {
-							var value = valueInput.value;
-							var propValue:Dynamic = (valueInput.type == 'number') ? Std.parseFloat(value) : (isPrimitive || value == '') ? value : haxe.Json.parse(value);
-							Reflect.setField(editingAction.props, propertyName, propValue);
-							App.dirtyData = true;
-						});
-					} else if (!possibleValuesSelect.classList.contains(Cls.hidden)) {
-						var children = possibleValuesSelect.children;
-						if (children != null)
-							for (cind in 0...children.length)
-								if (children.item(cind).textContent == fieldValue)
-									possibleValuesSelect.selectedIndex = cind;
+		function handleDescriptor(actionDescriptor:ActionDescriptor) {
+			Utils.clearElement(Id.action_props.get());
+			editingAction = action;
+			var fieldValue;
+			Id.action_title.get().textContent = '[${actionDescriptor.name}] action properties';
+			Id.action_description.get().textContent = actionDescriptor.description;
+			Id.action_properties.get().classList.remove(Cls.hidden);
+			for (div in createFromDescriptor(actionDescriptor)) {
+				var propertyName = div.id;
+				var valueInput:InputElement = cast div.querySelector(Cls.prop_value.selector());
+				var possibleValuesSelect:SelectElement = cast div.querySelector(Cls.prop_possible_values.selector());
+				var booleanValueInput:InputElement = cast div.querySelector(Cls.prop_bool_value.selector());
+				var multiValuesDiv:DivElement = cast div.querySelector(Cls.prop_multi_values.selector());
+				fieldValue = (Reflect.hasField(editingAction.props, propertyName)) ? Reflect.field(editingAction.props, propertyName) : '';
+				var divDataType = div.dataset.prop_type;
+				if (!valueInput.classList.contains(Cls.hidden)) {
+					var isPrimitive = Utils.isPrimitiveTypeByName(divDataType);
+					if (isPrimitive)
+						valueInput.value = fieldValue;
+					else
+						valueInput.value = haxe.Json.stringify(fieldValue);
 
-						Utils.addListener(listeners, possibleValuesSelect, 'change', (_) -> {
-							Reflect.setField(editingAction.props, propertyName, children[possibleValuesSelect.selectedIndex].textContent);
-							App.dirtyData = true;
-						});
-					} else if (!booleanValueInput.classList.contains(Cls.hidden)) {
-						booleanValueInput.checked = Std.string(fieldValue) == 'true';
-						Utils.addListener(listeners, booleanValueInput, 'change', (_) -> {
-							Reflect.setField(editingAction.props, propertyName, booleanValueInput.checked);
-							App.dirtyData = true;
-						});
-					} else if (!multiValuesDiv.classList.contains(Cls.hidden)) {
-						var valuesArray:Array<Any> = cast fieldValue;
-						switch Tag.ul.firstFrom(multiValuesDiv) {
-							case Some(v):
-								multiValuesDiv.removeChild(v);
-							case None:
-						}
+					Utils.addListener(listeners, valueInput, 'change', (_) -> {
+						var value = valueInput.value;
+						var propValue:Dynamic = (valueInput.type == 'number') ? Std.parseFloat(value) : (isPrimitive || value == '') ? value : haxe.Json.parse(value);
+						Reflect.setField(editingAction.props, propertyName, propValue);
+						App.dirtyData = true;
+					});
+				} else if (!possibleValuesSelect.classList.contains(Cls.hidden)) {
+					var children = possibleValuesSelect.children;
+					if (children != null)
+						for (cind in 0...children.length)
+							if (children.item(cind).textContent == fieldValue)
+								possibleValuesSelect.selectedIndex = cind;
 
-						var ul = document.createUListElement();
-						switch Cls.add_array_value.firstFrom(multiValuesDiv) {
-							case Some(v):
-								multiValuesDiv.insertBefore(ul, v);
-							case None:
-								multiValuesDiv.appendChild(ul);
-						}
-						var multiValuesType = multiValuesDiv.dataset.type;
-						var isNumeric = Utils.isNumeric(multiValuesType);
-						var isPrimitive = Utils.isPrimitiveTypeByName(multiValuesType);
-
-						function updateValuesArray(ul:UListElement) {
-							var newArray = [];
-							for (ulChild in ul.children) {
-								switch Tag.input.firstFrom(ulChild) {
-									case Some(v):
-										var value = cast(v, InputElement).value;
-										var propValue:Dynamic = (isNumeric) ? Std.parseFloat(value) : (isPrimitive || value == '') ? value : haxe.Json.parse(value);
-										newArray.push(propValue);
-									case None:
-								}
-							}
-
-							Reflect.setField(editingAction.props, propertyName, newArray);
-							App.dirtyData = true;
-						}
-
-						inline function addArrayValue(value:Dynamic) {
-							var li = Utils.cloneElement(Id.prop_multi_value_li_tpl.get(), LIElement);
-							li.classList.remove(Cls.hidden);
-							var liChild = document.createInputElement();
-							if (isNumeric) {
-								liChild.type = 'number';
-							} else {
-								liChild.type = 'text';
-								liChild.setAttribute('list', Id.shared_vars_datalist);
-							}
-
-							if (value != null)
-								liChild.value = (isPrimitive) ? value : haxe.Json.stringify(value);
-
-							switch Cls.remove_value.firstFrom(li) {
-								case Some(v):
-									Utils.addListener(listeners, v, 'click', (_) -> {
-										if (!js.Browser.window.confirm("Are you sure you want to remove the element?"))
-											return;
-
-										ul.removeChild(li);
-										updateValuesArray(ul);
-									});
-								case None:
-							}
-							Utils.addListener(listeners, liChild, 'change', (e) -> {
-								updateValuesArray(ul);
-							});
-							li.insertBefore(liChild, li.children[0]);
-							ul.appendChild(li);
-						}
-
-						switch Cls.add_array_value.firstFrom(multiValuesDiv) {
-							case Some(v):
-								Utils.addListener(listeners, v, 'click', (_) -> addArrayValue(null));
-							case None:
-						}
-
-						if (valuesArray != null)
-							for (value in valuesArray)
-								addArrayValue(value);
+					Utils.addListener(listeners, possibleValuesSelect, 'change', (_) -> {
+						Reflect.setField(editingAction.props, propertyName, children[possibleValuesSelect.selectedIndex].textContent);
+						App.dirtyData = true;
+					});
+				} else if (!booleanValueInput.classList.contains(Cls.hidden)) {
+					booleanValueInput.checked = Std.string(fieldValue) == 'true';
+					Utils.addListener(listeners, booleanValueInput, 'change', (_) -> {
+						Reflect.setField(editingAction.props, propertyName, booleanValueInput.checked);
+						App.dirtyData = true;
+					});
+				} else if (!multiValuesDiv.classList.contains(Cls.hidden)) {
+					var valuesArray:Array<Any> = cast fieldValue;
+					switch Tag.ul.firstFrom(multiValuesDiv) {
+						case Some(v):
+							multiValuesDiv.removeChild(v);
+						case None:
 					}
 
-					Id.action_props.get().appendChild(div);
+					var ul = document.createUListElement();
+					switch Cls.add_array_value.firstFrom(multiValuesDiv) {
+						case Some(v):
+							multiValuesDiv.insertBefore(ul, v);
+						case None:
+							multiValuesDiv.appendChild(ul);
+					}
+					var multiValuesType = multiValuesDiv.dataset.type;
+					var isNumeric = Utils.isNumeric(multiValuesType);
+					var isPrimitive = Utils.isPrimitiveTypeByName(multiValuesType);
+
+					function updateValuesArray(ul:UListElement) {
+						var newArray = [];
+						for (ulChild in ul.children) {
+							switch Tag.input.firstFrom(ulChild) {
+								case Some(v):
+									var value = cast(v, InputElement).value;
+									var propValue:Dynamic = (isNumeric) ? Std.parseFloat(value) : (isPrimitive || value == '') ? value : haxe.Json.parse(value);
+									newArray.push(propValue);
+								case None:
+							}
+						}
+
+						Reflect.setField(editingAction.props, propertyName, newArray);
+						App.dirtyData = true;
+					}
+
+					inline function addArrayValue(value:Dynamic) {
+						var li = Utils.cloneElement(Id.prop_multi_value_li_tpl.get(), LIElement);
+						li.classList.remove(Cls.hidden);
+						var liChild = document.createInputElement();
+						if (isNumeric) {
+							liChild.type = 'number';
+						} else {
+							liChild.type = 'text';
+							liChild.setAttribute('list', Id.shared_vars_datalist);
+						}
+
+						if (value != null)
+							liChild.value = (isPrimitive) ? value : haxe.Json.stringify(value);
+
+						switch Cls.remove_value.firstFrom(li) {
+							case Some(v):
+								Utils.addListener(listeners, v, 'click', (_) -> {
+									if (!js.Browser.window.confirm("Are you sure you want to remove the element?"))
+										return;
+
+									ul.removeChild(li);
+									updateValuesArray(ul);
+								});
+							case None:
+						}
+						Utils.addListener(listeners, liChild, 'change', (e) -> {
+							updateValuesArray(ul);
+						});
+						li.insertBefore(liChild, li.children[0]);
+						ul.appendChild(li);
+					}
+
+					switch Cls.add_array_value.firstFrom(multiValuesDiv) {
+						case Some(v):
+							Utils.addListener(listeners, v, 'click', (_) -> addArrayValue(null));
+						case None:
+					}
+
+					if (valuesArray != null)
+						for (value in valuesArray)
+							addArrayValue(value);
 				}
+
+				Id.action_props.get().appendChild(div);
+			}
+		}
+
+		if (action.id == null || action.id == new ActionId(-1)) {
+			switch App.getActionDescriptorByName(action.name) {
+				case None:
+					trace('Descriptor not found for [${action.name}]');
+				case Some(actionDescriptor):
+					handleDescriptor(actionDescriptor);
+			}
+		} else {
+			final port = js.Browser.location.port;
+			var http = new haxe.Http('http://localhost:$port/action/${action.id}/descriptor');
+			http.addHeader('Content-Type', 'application/json');
+			http.onError = (e) -> {
+				js.Browser.alert('Error getting action descriptor of [id=${action.id}]: $e');
+				switch App.getActionDescriptorByName(action.name) {
+					case None:
+						trace('Descriptor not found for [${action.name}]');
+					case Some(actionDescriptor):
+						handleDescriptor(actionDescriptor);
+				}
+			};
+			http.onData = (d) -> handleDescriptor(haxe.Json.parse(d));
+
+			http.request();
 		}
 	}
 

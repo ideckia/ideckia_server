@@ -85,13 +85,13 @@ class ActionManager {
 			}
 
 			var allSettled = false;
-			var promiseResolved = false;
-			js.lib.Promise.allSettled(initPromises).then(initPromisesResponse -> {
-				if (promiseResolved)
+			var promisesTimeoutResolved = false;
+			js.lib.Promise.allSettled(initPromises).then(statusPromiseResponses -> {
+				if (promisesTimeoutResolved)
 					return;
 
 				allSettled = true;
-				for (i => response in initPromisesResponse) {
+				for (i => response in statusPromiseResponses) {
 					switch response.status {
 						case Fulfilled:
 							var newState = response.value;
@@ -115,7 +115,7 @@ class ActionManager {
 				clientActions.set(state.id, retActions);
 
 			haxe.Timer.delay(() -> {
-				promiseResolved = true;
+				promisesTimeoutResolved = true;
 				if (!allSettled)
 					reject('Not all promised settled for state [${state.id}]');
 			}, 1000);
@@ -216,6 +216,55 @@ class ActionManager {
 		return Some(actions);
 	}
 
+	public static function getActionsStatusesByStateId(stateId:StateId) {
+		return new js.lib.Promise((resolve, reject) -> {
+			var statuses:Map<UInt, ActionStatus> = [];
+			if (clientActions == null || stateId == null || !clientActions.exists(stateId)) {
+				resolve(statuses);
+				return;
+			}
+			var stateActions = clientActions.get(stateId);
+			var promises = [];
+			var hasGetStatusMethod;
+			for (cAction in stateActions) {
+				hasGetStatusMethod = js.Syntax.code("typeof {0}.getStatus", cAction.action) == 'function';
+				if (!hasGetStatusMethod)
+					promises.push(js.lib.Promise.reject('No [getStatus] method found'));
+				else
+					promises.push(cAction.action.getStatus());
+			}
+
+			var allSettled = false;
+			var promisesTimeoutResolved = false;
+			js.lib.Promise.allSettled(promises).then(statusPromiseResponses -> {
+				if (promisesTimeoutResolved)
+					return;
+
+				var statusResponse;
+				allSettled = true;
+				for (i => cAction in stateActions) {
+					statusResponse = statusPromiseResponses[i];
+					switch statusResponse.status {
+						case Fulfilled:
+							statuses.set(cAction.id.toUInt(), statusResponse.value);
+						case Rejected:
+							statuses.set(cAction.id.toUInt(), {code: ActionStatusCode.unknown});
+							Log.error('Error getting Status of action [id=${cAction.id}] in the state [id=${stateId}]');
+							Log.raw(statusResponse.reason.stack);
+					}
+				}
+
+				resolve(statuses);
+			});
+
+			haxe.Timer.delay(() -> {
+				promisesTimeoutResolved = true;
+				if (!allSettled)
+					reject('Not all IdeckiaAction.getStatus promises settled for state [${stateId}]');
+			}, 1000);
+		});
+	}
+
 	public static function getActionDescriptorById(actionId:ActionId) {
 		if (clientActions == null || actionId == null)
 			return None;
@@ -225,6 +274,26 @@ class ActionManager {
 				if (cAction.id == actionId)
 					return Some(cAction.action.getActionDescriptor());
 			}
+		}
+
+		return None;
+	}
+
+	public static function getActionDescriptorByName(actionName:String) {
+		if (clientActions == null || actionName == null)
+			return None;
+
+		var actionPath = getActionsPath();
+		var action:IdeckiaAction;
+		if (!sys.FileSystem.exists('$actionPath/$actionName/index.js'))
+			return None;
+
+		try {
+			action = requireAction('$actionPath/$actionName');
+			return Some(action.getActionDescriptor());
+		} catch (e:haxe.Exception) {
+			Log.error('Error reading action descriptor of $actionName: ${e.message}');
+			Log.raw(e.stack);
 		}
 
 		return None;
