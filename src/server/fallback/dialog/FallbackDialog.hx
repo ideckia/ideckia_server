@@ -47,7 +47,7 @@ class FallbackDialog implements IDialog {
 		});
 	}
 
-	public function selectFile(title:String, isDirectory:Bool = false, multiple:Bool = false, ?fileFilter:FileFilter,
+	public function selectFile(title:String, isDirectory:Bool = false, ?openDirectory:String, multiple:Bool = false, ?fileFilter:FileFilter,
 			?options:WindowOptions):Promise<Option<Array<String>>> {
 		trace(FALLBACK_MESSAGE);
 		return new js.lib.Promise((resolve, reject) -> {
@@ -55,7 +55,7 @@ class FallbackDialog implements IDialog {
 		});
 	}
 
-	public function saveFile(title:String, ?saveName:String, ?fileFilter:FileFilter, ?options:WindowOptions):Promise<Option<String>> {
+	public function saveFile(title:String, ?saveName:String, ?openDirectory:String, ?fileFilter:FileFilter, ?options:WindowOptions):Promise<Option<String>> {
 		trace(FALLBACK_MESSAGE);
 		return new js.lib.Promise((resolve, reject) -> {
 			Dialog.show(FileSelect, title, "Save a file").then(resp -> resolve(Some(resp))).catchError(reject);
@@ -69,8 +69,7 @@ class FallbackDialog implements IDialog {
 		});
 	}
 
-	public function password(title:String, text:String, showUsername:Bool = false,
-			?options:WindowOptions):Promise<Option<{username:String, password:String}>> {
+	public function password(title:String, text:String, showUsername:Bool = false, ?options:WindowOptions):Promise<Option<{username:String, password:String}>> {
 		trace(FALLBACK_MESSAGE);
 		return new js.lib.Promise((resolve, reject) -> {
 			Dialog.show(Entry, title, text).then(resp -> resolve(Some({username: null, password: resp}))).catchError(reject);
