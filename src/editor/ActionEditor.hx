@@ -34,51 +34,53 @@ class ActionEditor {
 			edit(action);
 		});
 
-		var cls = switch actionStatus.code {
-			case error:
-				Cls.error_bg;
-			case ok:
-				Cls.success_bg;
-			default:
-				Cls.unknown_bg;
+		var bgClass = Cls.unknown_bg;
+		var markClass = Cls.unknown_mark;
+		var message = null;
+		if (actionStatus != null) {
+			bgClass = switch actionStatus.code {
+				case error:
+					Cls.error_bg;
+				case ok:
+					Cls.success_bg;
+				default:
+					Cls.unknown_bg;
+			}
+
+			markClass = switch actionStatus.code {
+				case error:
+					Cls.error_mark;
+				case ok:
+					Cls.success_mark;
+				default:
+					Cls.unknown_mark;
+			}
+			if (actionStatus.message != null)
+				message = actionStatus.message;
 		}
 
 		switch Cls.check_bg.firstFrom(li) {
 			case Some(v):
-				v.title = 'Action status [${cls.replace('-bg', '')}]';
-				if (actionStatus.message != null)
-					v.title += ': ${actionStatus.message}';
-				v.classList.add(cls);
+				v.title = 'Action status [${bgClass.replace('-bg', '')}]';
+				v.title += ': $message';
+				v.classList.add(bgClass);
 			case None:
 		}
-
-		cls = switch actionStatus.code {
-			case error:
-				Cls.error_mark;
-			case ok:
-				Cls.success_mark;
-			default:
-				Cls.unknown_mark;
-		}
-
 		switch Cls.check_mark.firstFrom(li) {
 			case Some(v):
-				v.classList.add(cls);
+				v.classList.add(markClass);
 			case None:
 		}
-
 		switch Cls.enable_check.firstFromAs(li, InputElement) {
 			case Some(v):
 				v.checked = action.enabled;
 				v.addEventListener('click', (event) -> {
 					App.dirtyData = true;
 					action.enabled = v.checked;
-					trace('oncheck: action.enabled: ${action.enabled}');
 				});
 			case None:
 				trace('No [${Cls.enable_check.selector()}] found in [${Id.action_list_item_tpl.selector()}]');
 		}
-
 		switch Cls.delete_btn.firstFrom(li) {
 			case Some(v):
 				v.addEventListener('click', (event) -> {
@@ -94,7 +96,6 @@ class ActionEditor {
 			case None:
 				trace('No [${Cls.delete_btn.selector()}] found in [${Id.action_list_item_tpl.selector()}]');
 		}
-
 		return li;
 	}
 
@@ -241,7 +242,8 @@ class ActionEditor {
 			}
 		} else {
 			final port = js.Browser.location.port;
-			var http = new haxe.Http('http://localhost:$port/action/${action.id}/descriptor');
+			var endpoint = Endpoint.actionDescriptorForId(action.id.toUInt());
+			var http = new haxe.Http('http://localhost:$port/$endpoint');
 			http.addHeader('Content-Type', 'application/json');
 			http.onError = (e) -> {
 				js.Browser.alert('Error getting action descriptor of [id=${action.id}]: $e');
@@ -274,7 +276,11 @@ class ActionEditor {
 		var divs:Array<DivElement> = [];
 		for (prop in actionDescriptor.props) {
 			if (prop.isShared) {
-				var sharedName = actionDescriptor.name + '.' + prop.name;
+				var sharedName = if (prop.sharedName == '' || prop.sharedName == null) {
+					actionDescriptor.name + '.' + prop.name;
+				} else {
+					prop.sharedName;
+				}
 				var found = false;
 				for (sv in App.editorData.layout.sharedVars) {
 					if (sv.key == sharedName) {

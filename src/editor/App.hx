@@ -481,7 +481,7 @@ class App {
 							reject(msg);
 						};
 						http.onData = (d) -> {
-							js.Browser.alert('[${d}/${actionName}] action successfully created.');
+							js.Browser.alert('[${d}] action successfully created.');
 							resolve(true);
 						};
 

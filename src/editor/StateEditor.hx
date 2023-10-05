@@ -1,3 +1,4 @@
+import api.IdeckiaApi.Endpoint;
 import api.IdeckiaApi.ActionStatus;
 import api.IdeckiaApi.TextPosition;
 import api.internal.ServerApi;
@@ -41,7 +42,8 @@ class StateEditor {
 
 		if (state.actions != null) {
 			final port = js.Browser.location.port;
-			var http = new haxe.Http('http://localhost:$port/state/${state.id}/actions/status');
+			final endpoint = Endpoint.stateActionsForId(state.id.toUInt());
+			var http = new haxe.Http('http://localhost:$port/$endpoint');
 			http.addHeader('Content-Type', 'application/json');
 			http.onError = (e) -> js.Browser.alert('Error getting action statuses of [id=${state.id}]: $e');
 			http.onData = (d) -> {
