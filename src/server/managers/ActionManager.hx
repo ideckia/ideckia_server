@@ -11,6 +11,8 @@ using StringTools;
 class ActionManager {
 	@:v('ideckia.actions-path:actions')
 	static var actionsPath:String;
+	@:v('ideckia.actions-load-timeout-ms:1000')
+	static var actionsLoadTimeoutMs:UInt;
 
 	static var clientActions:Map<StateId, Array<{id:ActionId, action:IdeckiaAction}>>;
 	static var actionDescriptors:Array<ActionDescriptor>;
@@ -103,8 +105,7 @@ class ActionManager {
 								state.bgColor = newState.bgColor;
 							}
 						case Rejected:
-							Log.error('Error initializing action of the state [id=${state.id}]');
-							Log.raw(response.reason.stack);
+							Log.error('Error initializing action of the state [id=${state.id}]: [${response.reason}]');
 					}
 				}
 
@@ -116,9 +117,12 @@ class ActionManager {
 
 			haxe.Timer.delay(() -> {
 				promisesTimeoutResolved = true;
-				if (!allSettled)
-					reject('Not all promised settled for state [${state.id}]');
-			}, 1000);
+				if (!allSettled) {
+					var msg = 'Not all init promises settled for state [${state.id}]';
+					Log.error(msg);
+					reject(msg);
+				}
+			}, actionsLoadTimeoutMs);
 		});
 	}
 
@@ -142,6 +146,7 @@ class ActionManager {
 	}
 
 	public static function unloadActions() {
+		LayoutManager.hideCurrentItems();
 		var normalizedActionsPath = haxe.io.Path.normalize(getActionsPath()).toLowerCase();
 		for (module in Require.cache) {
 			if (module == null || !haxe.io.Path.normalize(module.id.toLowerCase()).startsWith(normalizedActionsPath))
@@ -176,34 +181,50 @@ class ActionManager {
 	}
 
 	public static function getEditorActionDescriptors() {
-		var actionPath = getActionsPath();
-		if (actionDescriptors == null) {
+		return new js.lib.Promise((resolve, reject) -> {
+			var actionPath = getActionsPath();
 			actionDescriptors = [];
-			var desc:ActionDescriptor;
-			var cId = 0, action:IdeckiaAction;
+			var cId = 0,
+				action:IdeckiaAction,
+				presetsPath,
+				descriptorPromises = [];
 			for (c in sys.FileSystem.readDirectory(actionPath)) {
 				if (!sys.FileSystem.exists('$actionPath/$c/index.js') || c.startsWith('_'))
 					continue;
 
 				action = requireAction('$actionPath/$c');
 				try {
-					desc = action.getActionDescriptor();
-					desc.id = cId++;
-					actionDescriptors.push(desc);
+					descriptorPromises.push(action.getActionDescriptor());
 				} catch (e:haxe.Exception) {
-					Log.error('Error reading action descriptor of $c: ${e.message}');
+					Log.error('Error reading descriptor of the action [$c]: ${e.message}');
 					Log.raw(e.stack);
 				}
 			}
-		}
 
-		var presetsPath;
-		for (desc in actionDescriptors) {
-			presetsPath = '$actionPath/${desc.name}/presets.json';
-			desc.presets = (sys.FileSystem.exists(presetsPath)) ? haxe.Json.parse(sys.io.File.getContent(presetsPath)) : [];
-		}
+			var allSettled = false;
+			var promisesTimeoutResolved = false;
+			js.lib.Promise.allSettled(descriptorPromises).then(descriptorPromiseResponses -> {
+				if (promisesTimeoutResolved)
+					return;
 
-		return actionDescriptors;
+				allSettled = true;
+				var descriptor:ActionDescriptor;
+				for (descResponse in descriptorPromiseResponses) {
+					switch descResponse.status {
+						case Fulfilled:
+							descriptor = descResponse.value;
+							presetsPath = '$actionPath/${descriptor.name}/presets.json';
+							descriptor.presets = (sys.FileSystem.exists(presetsPath)) ? haxe.Json.parse(sys.io.File.getContent(presetsPath)) : [];
+							descriptor.id = cId++;
+							actionDescriptors.push(descriptor);
+						case Rejected:
+							Log.error('Error getting descriptor of an action]: [${descResponse.reason}]');
+					}
+				}
+
+				resolve(actionDescriptors);
+			});
+		});
 	}
 
 	public static function getActionsByStateId(stateId:StateId) {
@@ -249,8 +270,7 @@ class ActionManager {
 							statuses.set(cAction.id.toUInt(), statusResponse.value);
 						case Rejected:
 							statuses.set(cAction.id.toUInt(), {code: ActionStatusCode.unknown});
-							Log.error('Error getting Status of action [id=${cAction.id}] in the state [id=${stateId}]');
-							Log.raw(statusResponse.reason.stack);
+							Log.error('Error getting Status of action [id=${cAction.id}] in the state [id=${stateId}]: [${statusResponse.reason}]');
 					}
 				}
 
@@ -259,44 +279,30 @@ class ActionManager {
 
 			haxe.Timer.delay(() -> {
 				promisesTimeoutResolved = true;
-				if (!allSettled)
-					reject('Not all IdeckiaAction.getStatus promises settled for state [${stateId}]');
-			}, 1000);
+				if (!allSettled) {
+					Log.error('Not all IdeckiaAction.getStatus promises settled for state [${stateId}]');
+					for (i => cAction in stateActions) {
+						if (!statuses.exists(cAction.id.toUInt())) {
+							Log.debug('setting ${cAction.id}');
+							statuses.set(cAction.id.toUInt(), {code: ActionStatusCode.unknown});
+						}
+					}
+					resolve(statuses);
+				}
+			}, actionsLoadTimeoutMs);
 		});
 	}
 
 	public static function getActionDescriptorById(actionId:ActionId) {
 		if (clientActions == null || actionId == null)
-			return None;
+			return js.lib.Promise.reject('No client actions loaded yet');
 
-		for (cActions in clientActions) {
-			for (cAction in cActions) {
+		for (cActions in clientActions)
+			for (cAction in cActions)
 				if (cAction.id == actionId)
-					return Some(cAction.action.getActionDescriptor());
-			}
-		}
+					return cAction.action.getActionDescriptor();
 
-		return None;
-	}
-
-	public static function getActionDescriptorByName(actionName:String) {
-		if (clientActions == null || actionName == null)
-			return None;
-
-		var actionPath = getActionsPath();
-		var action:IdeckiaAction;
-		if (!sys.FileSystem.exists('$actionPath/$actionName/index.js'))
-			return None;
-
-		try {
-			action = requireAction('$actionPath/$actionName');
-			return Some(action.getActionDescriptor());
-		} catch (e:haxe.Exception) {
-			Log.error('Error reading action descriptor of $actionName: ${e.message}');
-			Log.raw(e.stack);
-		}
-
-		return None;
+		return js.lib.Promise.reject('No descriptor found for action [id=${actionId.toUInt()}]');
 	}
 
 	public static function getActionTemplates() {

@@ -32,7 +32,7 @@ class WebSocketServer {
 			banner = banner.replace('::version::', Ideckia.CURRENT_VERSION);
 			banner = banner.replace('::buildDate::', Macros.buildDate().toString());
 			banner = banner.replace('::address::', '${getIPAddress()}:$port');
-			js.Node.console.log(banner);
+			Log.raw(banner);
 		});
 
 		ws = new WebSocketServerJs({
@@ -119,15 +119,18 @@ class WebSocketServer {
 				} else if (request.method == 'GET' && requestUrl.startsWith('/action')) {
 					if (ACTION_ID_DESCRIPTOR.match(requestUrl)) {
 						var id = Std.parseInt(ACTION_ID_DESCRIPTOR.matched(1));
-						var body = switch ActionManager.getActionDescriptorById(new ActionId(id)) {
-							case Some(v): v;
-							case None: {};
-						};
-
-						resolve({
-							code: 200,
-							headers: headers,
-							body: haxe.Json.stringify(body)
+						ActionManager.getActionDescriptorById(new ActionId(id)).then(body -> {
+							resolve({
+								code: 200,
+								headers: headers,
+								body: haxe.Json.stringify(body)
+							});
+						}).catchError(_ -> {
+							resolve({
+								code: 200,
+								headers: headers,
+								body: '{}'
+							});
 						});
 					} else {
 						resolve({

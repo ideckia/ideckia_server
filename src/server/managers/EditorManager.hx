@@ -19,14 +19,16 @@ class EditorManager {
 					fixedItems: LayoutManager.layout.fixedItems,
 					icons: LayoutManager.layout.icons
 				}
-				var editorData:ServerMsg<EditorData> = {
-					type: ServerMsgType.editorData,
-					data: {
-						layout: layoutWithoutDynamicDir,
-						actionDescriptors: ActionManager.getEditorActionDescriptors()
-					}
-				};
-				MsgManager.send(connection, editorData);
+				ActionManager.getEditorActionDescriptors().then(actionDescriptors -> {
+					var editorData:ServerMsg<EditorData> = {
+						type: ServerMsgType.editorData,
+						data: {
+							layout: layoutWithoutDynamicDir,
+							actionDescriptors: actionDescriptors
+						}
+					};
+					MsgManager.send(connection, editorData);
+				});
 			case saveLayout:
 				var layoutContent = LayoutManager.exportLayout(msg.layout);
 				sys.io.File.saveContent(LayoutManager.getLayoutPath(), layoutContent);
