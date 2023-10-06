@@ -12,6 +12,8 @@ using StringTools;
 class LayoutManager {
 	@:v('ideckia.layout-file-path:layout.json')
 	static var layoutFilePath:String;
+	@:v('ideckia.actions-load-timeout-ms:1000')
+	static var actionsLoadTimeoutMs:UInt;
 
 	public static var layout:Layout;
 	public static var previousDir:Dir;
@@ -84,8 +86,59 @@ class LayoutManager {
 						action.hide();
 				}
 			case None:
-				Log.error('No action found for state [${state.id}]');
+				Log.error('No action found to hide for state [${state.id}]');
 		}
+	}
+
+	static function showState(state:ServerState):js.lib.Promise<Bool> {
+		return new js.lib.Promise((resolve, reject) -> {
+			var promises = [];
+			switch ActionManager.getActionsByStateId(state.id) {
+				case Some(actions):
+					for (action in actions) {
+						var hasShowMethod = js.Syntax.code("typeof {0}.show", action) == 'function';
+						if (hasShowMethod)
+							promises.push(action.show(state));
+					}
+				case None:
+					Log.error('No action found to show for state [${state.id}]');
+			}
+
+			var allSettled = false;
+			var promisesTimeoutResolved = false;
+			js.lib.Promise.allSettled(promises).then(showPromiseResponses -> {
+				if (promisesTimeoutResolved)
+					return;
+
+				allSettled = true;
+				for (i => response in showPromiseResponses) {
+					switch response.status {
+						case Fulfilled:
+							var newState = response.value;
+							if (newState != null) {
+								state.text = newState.text;
+								state.textColor = newState.textColor;
+								state.textSize = newState.textSize;
+								state.icon = newState.icon;
+								state.bgColor = newState.bgColor;
+							}
+						case Rejected:
+							Log.error('Error showing action of the state [id=${state.id}]: [${response.reason}]');
+					}
+				}
+
+				resolve(true);
+			});
+
+			haxe.Timer.delay(() -> {
+				promisesTimeoutResolved = true;
+				if (!allSettled) {
+					var msg = 'Not all show promises settled for state [${state.id}]';
+					Log.error(msg);
+					reject(msg);
+				}
+			}, actionsLoadTimeoutMs);
+		});
 	}
 
 	public static function hideCurrentItems() {
@@ -101,6 +154,45 @@ class LayoutManager {
 						hideState(state);
 			}
 		}
+	}
+
+	public static function showCurrentItems() {
+		return new js.lib.Promise((resolve, reject) -> {
+			if (currentDir == null) {
+				resolve(true);
+				return;
+			}
+			var showPromises = [];
+			for (item in currentDir.items) {
+				switch item.kind {
+					case null:
+					case ChangeDir(_, state):
+						showPromises.push(showState(state));
+					case States(_, list):
+						for (state in list)
+							showPromises.push(showState(state));
+				}
+			}
+
+			var allSettled = false;
+			var promisesTimeoutResolved = false;
+			js.lib.Promise.allSettled(showPromises).then(_ -> {
+				if (promisesTimeoutResolved)
+					return;
+
+				allSettled = true;
+				resolve(true);
+			});
+
+			haxe.Timer.delay(() -> {
+				promisesTimeoutResolved = true;
+				if (!allSettled) {
+					var msg = 'Not all show promises settled';
+					Log.error(msg);
+					reject(msg);
+				}
+			}, actionsLoadTimeoutMs);
+		});
 	}
 
 	public static function getAllItems(?fromLayout:Layout, ?getDynamicDirs:Bool = true) {
@@ -143,13 +235,17 @@ class LayoutManager {
 				{state: state, hasMultiStateChanged: false};
 			case States(index, list):
 				var hasMultiStateChanged = false;
+				var newIndex = index;
 				if (advanceMultiState) {
-					hideState(list[index]);
-					var newIndex = (index + 1) % list.length;
+					newIndex = (index + 1) % list.length;
 					hasMultiStateChanged = newIndex != index;
+					if (hasMultiStateChanged) {
+						hideState(list[index]);
+						showState(list[newIndex]);
+					}
 					item.kind = States(newIndex, list);
 				}
-				{state: list[index], hasMultiStateChanged: hasMultiStateChanged};
+				{state: list[newIndex], hasMultiStateChanged: hasMultiStateChanged};
 		}
 
 		Log.debug('State [id=${ret.state.id}] of the item [id=$itemId]: [text=${ret.state.text}],  [icon=${(ret.state.icon == null) ? null : ret.state.icon.substring(0, 50) + "..."}]');
@@ -240,7 +336,8 @@ class LayoutManager {
 					id: ActionId.next(),
 					enabled: true,
 					name: a.name,
-					props: a.props
+					props: a.props,
+					status: a.status
 				});
 				sState = {
 					id: StateId.next(),
@@ -271,7 +368,7 @@ class LayoutManager {
 				items: serverItems
 			});
 
-			changeDir(newDirName);
+			initPromises.push(changeDir(newDirName));
 
 			js.lib.Promise.allSettled(initPromises).then(initPromisesResponse -> resolve(true));
 		});
@@ -292,39 +389,48 @@ class LayoutManager {
 		return getCurrentItems().filter(item -> item.id == itemId).length > 0;
 	}
 
-	public static function gotoMainDir() {
-		changeDir(new DirName(MAIN_DIR_ID));
+	public static function gotoMainDir():js.lib.Promise<Bool> {
+		return changeDir(new DirName(MAIN_DIR_ID));
 	}
 
-	public static function gotoPreviousDir() {
-		if (previousDir != null)
+	public static function gotoPreviousDir():js.lib.Promise<Bool> {
+		return if (previousDir != null) {
 			changeDir(previousDir.name);
-		else
+		} else {
 			gotoMainDir();
+		}
 	}
 
-	public static function changeDir(dirName:DirName) {
+	public static function changeDir(dirName:DirName):js.lib.Promise<Bool> {
 		if (layout == null) {
 			throw new haxe.Exception('There is no loaded layout. Call LayoutManager.load() first.');
 		}
 
-		Log.info('Switching dir to [$dirName]');
-		var foundDirs = layout.dirs.filter(f -> f.name == dirName);
-		var foundLength = foundDirs.length;
-		if (foundLength == 0) {
-			var firstDirName = layout.dirs[0].name;
-			Log.error('Could not find dir with name [$dirName]. Loading [$firstDirName] directory.');
-			Ideckia.dialog.error('Error switching directory', 'Could not find dir with name [$dirName]. Loading [$firstDirName] directory.');
-			changeDir(firstDirName);
-			return;
-		} else if (foundLength > 1) {
-			Log.error('Found $foundLength dirs with name [$dirName]');
-		}
+		return new js.lib.Promise((resolve, reject) -> {
+			function _changeDir(newDir:Dir) {
+				LayoutManager.hideCurrentItems();
+				previousDir = currentDir;
+				currentDir = newDir;
+				currentDirName = currentDir.name;
+				LayoutManager.showCurrentItems().finally(() -> resolve(true));
+			}
 
-		LayoutManager.hideCurrentItems();
-		previousDir = currentDir;
-		currentDir = foundDirs[0];
-		currentDirName = currentDir.name;
+			Log.info('Switching dir to [$dirName]');
+			var foundDirs = layout.dirs.filter(f -> f.name == dirName);
+			var foundLength = foundDirs.length;
+			if (foundLength == 0) {
+				var firstDir = layout.dirs[0];
+				var firstDirName = firstDir.name;
+				Log.error('Could not find dir with name [$dirName]. Loading [$firstDirName] directory.');
+				Ideckia.dialog.error('Error switching directory', 'Could not find dir with name [$dirName]. Loading [$firstDirName] directory.');
+				_changeDir(firstDir);
+				return;
+			} else if (foundLength > 1) {
+				Log.error('Found $foundLength dirs with name [$dirName]');
+			}
+
+			_changeDir(foundDirs[0]);
+		});
 	}
 
 	static function addIds() {

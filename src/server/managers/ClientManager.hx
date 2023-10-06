@@ -1,6 +1,5 @@
 package managers;
 
-import haxe.ds.Option;
 import exceptions.ItemNotFoundException;
 
 using api.IdeckiaApi;
@@ -12,11 +11,12 @@ class ClientManager {
 			case click | longPress:
 				onItemClick(new ItemId(msg.itemId), msg.type == longPress);
 			case gotoDir if (msg.toDir == 'prev' || msg.toDir == 'main'):
-				if (msg.toDir == 'prev')
+				var changePromise = if (msg.toDir == 'prev') {
 					LayoutManager.gotoPreviousDir();
-				else if (msg.toDir == 'main')
+				} else {
 					LayoutManager.gotoMainDir();
-				MsgManager.sendToAll(LayoutManager.currentDirForClient());
+				}
+				changePromise.finally(() -> MsgManager.sendToAll(LayoutManager.currentDirForClient()));
 			case t:
 				throw new haxe.Exception('[$t] type of message is not allowed for the client.');
 		}
@@ -28,8 +28,7 @@ class ClientManager {
 		try {
 			switch LayoutManager.checkChangeDir(clickedId) {
 				case Some(toDir):
-					LayoutManager.changeDir(toDir);
-					MsgManager.sendToAll(LayoutManager.currentDirForClient());
+					LayoutManager.changeDir(toDir).finally(() -> MsgManager.sendToAll(LayoutManager.currentDirForClient()));
 					return;
 				case None:
 			};
