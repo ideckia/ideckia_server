@@ -77,11 +77,13 @@ class Ideckia {
 			Log.raw(error.stack);
 		});
 
+		var wsServer = new WebSocketServer();
+
+		Tray.show(WebSocketServer.port);
+
 		LayoutManager.load().finally(() -> {
 			LayoutManager.watchForChanges();
 			ActionManager.watchForChanges();
-
-			var wsServer = new WebSocketServer();
 
 			wsServer.onConnect = (connection) -> {
 				MsgManager.send(connection, LayoutManager.currentDirForClient());
@@ -97,8 +99,6 @@ class Ideckia {
 				connection.dispose();
 			}
 		});
-
-		Tray.show(WebSocketServer.port);
 	}
 
 	public static function getAppPath(subPath:String = null) {
