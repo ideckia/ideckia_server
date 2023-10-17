@@ -601,20 +601,17 @@ class App {
 		final port = js.Browser.location.port;
 		websocket = new js.html.WebSocket('ws://127.0.0.1:${port}');
 
-		websocket.onopen = () -> {}
+		websocket.onopen = () -> {
+			var msg:EditorMsg = {
+				type: EditorMsgType.getEditorData,
+				whoami: editor
+			};
+			websocket.send(haxe.Json.stringify(msg));
+		};
 
 		websocket.onmessage = (event:{data:Any}) -> {
 			var serverData:ServerMsg<Any> = haxe.Json.parse(event.data);
 			switch serverData.type {
-				case ServerMsgType.layout:
-					if (dirtyData)
-						return;
-
-					var msg:EditorMsg = {
-						type: EditorMsgType.getEditorData,
-						whoami: editor
-					};
-					websocket.send(haxe.Json.stringify(msg));
 				case ServerMsgType.editorData:
 					editorData = serverData.data;
 
