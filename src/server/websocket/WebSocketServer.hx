@@ -1,5 +1,7 @@
 package websocket;
 
+import js.node.fs.ReadStream;
+import js.node.Fs;
 import api.internal.ServerApi.StateId;
 import api.internal.ServerApi.ActionId;
 import managers.ActionManager;
@@ -9,6 +11,13 @@ import api.IdeckiaApi.Endpoint;
 import js.node.Os;
 
 using StringTools;
+
+typedef HttpResponse = {
+	var code:Int;
+	var ?readStream:ReadStream;
+	var headers:haxe.DynamicAccess<String>;
+	var ?body:String;
+}
 
 class WebSocketServer {
 	public static var ACTION_ID_DESCRIPTOR = ~/\/action\/([0-9]+)\/descriptor/;
@@ -23,7 +32,10 @@ class WebSocketServer {
 		var server = js.node.Http.createServer(function(request, response) {
 			handleRequest(request).then(res -> {
 				response.writeHead(res.code, res.headers);
-				response.end(res.body);
+				if (res.readStream != null)
+					res.readStream.pipe(response);
+				else
+					response.end(res.body);
 			});
 		});
 
@@ -54,8 +66,8 @@ class WebSocketServer {
 		});
 	}
 
-	function handleRequest(request:js.node.http.IncomingMessage):js.lib.Promise<{code:Int, headers:Any, body:String}> {
-		return new js.lib.Promise((resolve, reject) -> {
+	function handleRequest(request:js.node.http.IncomingMessage):js.lib.Promise<HttpResponse> {
+		return new js.lib.Promise<HttpResponse>((resolve, reject) -> {
 			var headers = {
 				'Access-Control-Allow-Origin': '*',
 				'Access-Control-Allow-Methods': 'OPTIONS, POST, GET',
@@ -67,8 +79,7 @@ class WebSocketServer {
 			if (request.method == 'OPTIONS') {
 				resolve({
 					code: 204,
-					headers: headers,
-					body: null
+					headers: headers
 				});
 			} else if (['GET', 'POST'].indexOf(request.method) > -1) {
 				var requestUrl = request.url;
@@ -79,22 +90,33 @@ class WebSocketServer {
 						headers: headers,
 						body: haxe.Json.stringify({pong: Os.hostname()})
 					});
-				} else if (requestUrl.indexOf(editorEndpoint) != -1 || requestUrl.endsWith('.js') || requestUrl.endsWith('.css')) {
-					var relativePath = '/${editorEndpoint}';
-					if (requestUrl.endsWith(editorEndpoint)) {
-						relativePath += '/index.html';
+				} else if (requestUrl.indexOf(editorEndpoint) != -1
+					|| requestUrl.endsWith('.js')
+					|| requestUrl.endsWith('.css')
+					|| requestUrl.endsWith('icon.png')) {
+					var relativePath = if (requestUrl.endsWith(editorEndpoint)) {
+						'$editorEndpoint/index.html';
+					} else if (requestUrl.endsWith('icon.png')) {
+						'icon.png';
 					} else {
-						relativePath += '/${requestUrl}';
+						'$editorEndpoint${requestUrl}';
 					}
+
 					var absolutePath = Ideckia.getAppPath(relativePath);
 					if (!sys.FileSystem.exists(absolutePath) && Ideckia.isPkg()) {
 						absolutePath = js.Node.__dirname + '$relativePath';
 					}
-					headers = {"Content-Type": "text/" + haxe.io.Path.extension(absolutePath)};
+					var contentType = if (requestUrl.endsWith('icon.png')) {
+						'image/png';
+					} else if (requestUrl.endsWith('.js')) {
+						'text/javascript';
+					} else {
+						'text/' + haxe.io.Path.extension(absolutePath);
+					}
 					resolve({
 						code: 200,
-						headers: headers,
-						body: sys.io.File.getContent(absolutePath)
+						headers: {"Content-Type": contentType},
+						readStream: Fs.createReadStream(absolutePath)
 					});
 				} else if (request.method == 'POST' && requestUrl == newActionEndpoint) {
 					var data = '';
@@ -203,8 +225,7 @@ class WebSocketServer {
 				} else {
 					resolve({
 						code: 404,
-						headers: headers,
-						body: null
+						headers: headers
 					});
 				}
 			} else {
