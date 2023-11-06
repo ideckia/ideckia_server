@@ -220,12 +220,13 @@ class App {
 				Id.new_icon_base64.as(TextAreaElement).value = reader.result;
 			};
 
+			var iconNameInput = Id.new_icon_name.as(InputElement);
 			reader.onerror = function(e) {
 				trace('Error loading image: ' + e.type);
-				Id.new_icon_name.as(InputElement).value = '';
+				iconNameInput.value = '';
 			};
 
-			Id.new_icon_name.as(InputElement).value = '';
+			iconNameInput.value = '';
 			Id.new_icon_base64.as(TextAreaElement).value = '';
 			Id.new_icon_drop_img.get().addEventListener('drop', (e:DragEvent) -> {
 				Utils.stopPropagation(e);
@@ -242,7 +243,8 @@ class App {
 						js.Browser.alert("File too large");
 						return;
 					}
-					Id.new_icon_name.as(InputElement).value = image.name;
+					if (iconNameInput.value == '')
+						Id.new_icon_name.as(InputElement).value = image.name;
 					reader.readAsDataURL(image);
 				}
 			});
