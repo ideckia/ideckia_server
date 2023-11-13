@@ -59,6 +59,33 @@ class Utils {
 		e.stopPropagation();
 	}
 
+	public static function getUnusedIcons() {
+		var leftoverIcons = App.editorData.layout.icons.map(i -> i.key);
+
+		var allItems = [];
+		for (d in App.editorData.layout.dirs) {
+			for (i in d.items)
+				allItems.push(i);
+		}
+		if (App.editorData.layout.fixedItems != null)
+			allItems = allItems.concat(App.editorData.layout.fixedItems);
+
+		for (i in allItems) {
+			switch i.kind {
+				case null:
+				case ChangeDir(_, state):
+					if (state.icon != null && leftoverIcons.contains(state.icon))
+						leftoverIcons.remove(state.icon);
+				case States(_, list):
+					for (state in list)
+						if (state.icon != null && leftoverIcons.contains(state.icon))
+							leftoverIcons.remove(state.icon);
+			}
+		}
+
+		return leftoverIcons;
+	}
+
 	public static function isNumeric(typeName:String) {
 		return typeName.startsWith("Int") || typeName.startsWith("UInt") || typeName.startsWith("Float");
 	}

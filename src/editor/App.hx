@@ -288,15 +288,20 @@ class App {
 		});
 		Id.remove_icon_btn.get().addEventListener('click', (_) -> {
 			var container = document.createDivElement();
+			var unusedIcons = Utils.getUnusedIcons();
 			var tplClone, cbId;
 			for (i in icons) {
 				if (i.name == '')
 					continue;
 				tplClone = Utils.cloneElement(Id.remove_icon_tpl.get(), DivElement);
 				cbId = 'remove-${i.name}-icon';
-				switch Cls.remove_icon_name_cb.firstFrom(tplClone) {
+				switch Cls.remove_icon_name_cb.firstFromAs(tplClone, InputElement) {
 					case Some(cb):
 						cb.id = cbId;
+						cb.disabled = !unusedIcons.contains(i.name);
+						if (cb.disabled) {
+							cb.title = 'This icon is used by some state, it cannot be removed.';
+						}
 					case None:
 				}
 				switch Cls.icon_name_label.firstFromAs(tplClone, LabelElement) {
@@ -313,7 +318,7 @@ class App {
 
 				container.appendChild(tplClone);
 			}
-			Dialog.show('Select icons to remove', container, () -> {
+			Dialog.show('Select icons to remove (only unused icons are removables)', container, () -> {
 				return new js.lib.Promise((resolve, reject) -> {
 					var removed = [];
 					for (c in container.children) {
@@ -566,6 +571,7 @@ class App {
 		var f = editorData.actionDescriptors.filter(ad -> ad.name.toLowerCase() == actionName.toLowerCase());
 		if (f.length == 0)
 			return None;
+		trace(f[0]);
 		return Some(f[0]);
 	}
 
