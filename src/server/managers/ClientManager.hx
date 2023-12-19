@@ -75,13 +75,35 @@ class ClientManager {
 							Ideckia.dialog.error('Error executing actions of the state [${currentState.id}]', error.stack);
 						};
 
+						var prevAction:IdeckiaAction = null;
 						// Action chaining: use the output of each action as input for the next action
 						Lambda.fold(actions, (action:IdeckiaAction, promise:Promise<ActionOutcome>) -> {
 							function execAction(newState) {
-								if (isLongPress)
-									return action.onLongPress(newState);
-								else
-									return action.execute(newState);
+								if (isLongPress) {
+									if (newState.extraData != null && prevAction != null) {
+										return new js.lib.Promise<ActionOutcome>((resolve, reject) -> {
+											prevAction.getActionDescriptor()
+												.then(ad -> newState.extraData.fromAction = ad.name)
+												.catchError(e -> Log.error('getActionDescriptor() error: $e'))
+												.finally(() -> action.onLongPress(newState).then(resolve).catchError(reject));
+										});
+									} else {
+										prevAction = action;
+										return action.onLongPress(newState);
+									}
+								} else {
+									if (newState.extraData != null && prevAction != null) {
+										return new js.lib.Promise<ActionOutcome>((resolve, reject) -> {
+											prevAction.getActionDescriptor()
+												.then(ad -> newState.extraData.fromAction = ad.name)
+												.catchError(e -> Log.error('getActionDescriptor() error: $e'))
+												.finally(() -> action.execute(newState).then(resolve).catchError(reject));
+										});
+									} else {
+										prevAction = action;
+										return action.execute(newState);
+									}
+								}
 							}
 							return promise.then((actionOutcome) -> {
 								if (actionOutcome.state != null) {
