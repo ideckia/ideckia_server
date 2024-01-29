@@ -62,7 +62,8 @@ class ActionEditor {
 		switch Cls.check_bg.firstFrom(li) {
 			case Some(v):
 				v.title = 'Action status [${bgClass.replace('-bg', '')}]';
-				v.title += ': $message';
+				if (message != null)
+					v.title += ': $message';
 				v.classList.add(bgClass);
 			case None:
 		}
