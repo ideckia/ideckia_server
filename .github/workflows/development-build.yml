@@ -78,7 +78,7 @@ jobs:
         mkdir -p ${{ env.JS_VERSION_NAME }}/editor
         cp package.json ${{ env.JS_VERSION_NAME }}
         cp bin/ideckia.js ${{ env.JS_VERSION_NAME }}
-        cp bin/editor/* ${{ env.JS_VERSION_NAME }}/editor
+        cp -r bin/editor/* ${{ env.JS_VERSION_NAME }}/editor
         zip -r ${{ env.JS_VERSION_NAME }} ${{ env.JS_VERSION_NAME }}
         pkg . --targets node${{ env.PKG_NODE_VERSION }}-linux,node${{ env.PKG_NODE_VERSION }}-win,node${{ env.PKG_NODE_VERSION }}-macos ${{ env.PKG_ARGS }}
 
