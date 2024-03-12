@@ -61,7 +61,7 @@ class ActionEditor {
 
 		switch Cls.check_bg.firstFrom(li) {
 			case Some(v):
-				v.title = 'Action status [${bgClass.replace('-bg', '')}]';
+				v.title = Utils.formatString('::title_action_status::', [bgClass.replace('-bg', '')]);
 				if (message != null)
 					v.title += ': $message';
 				v.classList.add(bgClass);
@@ -84,9 +84,9 @@ class ActionEditor {
 		}
 		switch Cls.delete_btn.firstFrom(li) {
 			case Some(v):
-				v.addEventListener('click', (event) -> {
+				Utils.addListener(listeners, v, 'click', (event) -> {
 					Utils.stopPropagation(event);
-					if (js.Browser.window.confirm('Do you want to remove the action [${action.name}]?')) {
+					if (js.Browser.window.confirm(Utils.formatString('::confirm_remove_action::', [action.name]))) {
 						parentState.actions.remove(action);
 						App.dirtyData = true;
 						DirEditor.refresh();
@@ -111,7 +111,7 @@ class ActionEditor {
 			Utils.clearElement(Id.action_props.get());
 			editingAction = action;
 			var fieldValue;
-			Id.action_title.get().textContent = '[${actionDescriptor.name}] action properties';
+			Id.action_title.get().textContent = Utils.formatString('::text_content_action_props::', [actionDescriptor.name]);
 			Id.action_description.get().textContent = actionDescriptor.description;
 			Id.action_properties.get().classList.remove(Cls.hidden);
 			for (div in createFromDescriptor(actionDescriptor)) {
@@ -204,7 +204,7 @@ class ActionEditor {
 						switch Cls.remove_value.firstFrom(li) {
 							case Some(v):
 								Utils.addListener(listeners, v, 'click', (_) -> {
-									if (!js.Browser.window.confirm("Are you sure you want to remove the element?"))
+									if (!js.Browser.window.confirm('::confirm_remove_value::'))
 										return;
 
 									ul.removeChild(li);
@@ -247,7 +247,7 @@ class ActionEditor {
 			var http = new haxe.Http('http://localhost:$port/$endpoint');
 			http.addHeader('Content-Type', 'application/json');
 			http.onError = (e) -> {
-				js.Browser.alert('Error getting action descriptor of [id=${action.id}]: $e');
+				js.Browser.alert(Utils.formatString('::alert_error_action_desc::', [Std.string(action.id), e]));
 				switch App.getActionDescriptorByName(action.name) {
 					case None:
 						trace('Descriptor not found for [${action.name}]');

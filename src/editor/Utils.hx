@@ -63,12 +63,8 @@ class Utils {
 		var leftoverIcons = App.editorData.layout.icons.map(i -> i.key);
 
 		var allItems = [];
-		for (d in App.editorData.layout.dirs) {
-			for (i in d.items)
-				allItems.push(i);
-		}
-		if (App.editorData.layout.fixedItems != null)
-			allItems = allItems.concat(App.editorData.layout.fixedItems);
+		for (i in App.getAllItems())
+			allItems.push(i);
 
 		for (i in allItems) {
 			switch i.kind {
@@ -109,7 +105,8 @@ class Utils {
 
 	public static function createNewState():ServerState {
 		return {
-			id: getNextStateId()
+			id: getNextStateId(),
+			text: ''
 		};
 	}
 
@@ -117,10 +114,22 @@ class Utils {
 		return (base64.indexOf('base64,') == -1) ? 'data:image/jpeg;base64,' + base64 : base64;
 	}
 
+	public static function formatString(text:String, values:Array<String>) {
+		for (index => value in values) {
+			if (!text.contains('{$index}')) {
+				js.Browser.alert('Can not found the [{$index}] placeholder in the text to overwrite with value. Text: [$text]');
+				continue;
+			}
+			text = text.replace('{$index}', value);
+		}
+
+		return text;
+	}
+
 	public static function createNewItem():js.lib.Promise<ServerItem> {
 		Id.item_kind_changedir_radio.as(InputElement).checked = false;
 		Id.item_kind_states_radio.as(InputElement).checked = false;
-		return new js.lib.Promise((resolveNewItem, _) -> Dialog.show("New item kind", Id.new_item_kind.get(), () -> {
+		return new js.lib.Promise((resolveNewItem, _) -> Dialog.show('::show_title_new_item_kind::', Id.new_item_kind.get(), () -> {
 			return new js.lib.Promise((resolveDialog, _) -> {
 				var isChangedir = Id.item_kind_changedir_radio.as(InputElement).checked;
 				var state = createNewState();
@@ -143,11 +152,9 @@ class Utils {
 
 	public static function getNextItemId() {
 		if (lastItemId == 0) {
-			for (d in App.editorData.layout.dirs) {
-				for (i in d.items) {
-					if (i.id.toUInt() > lastItemId)
-						lastItemId = i.id.toUInt();
-				}
+			for (i in App.getAllItems()) {
+				if (i.id.toUInt() > lastItemId)
+					lastItemId = i.id.toUInt();
 			}
 
 			lastItemId++;
@@ -158,18 +165,16 @@ class Utils {
 
 	public static function getNextStateId() {
 		if (lastStateId == 0) {
-			for (d in App.editorData.layout.dirs) {
-				for (i in d.items) {
-					switch i.kind {
-						case null:
-						case ChangeDir(_, state):
-							if (state.id.toUInt() > lastStateId)
-								lastStateId = state.id.toUInt();
-						case States(_, list):
-							for (s in list)
-								if (s.id.toUInt() > lastStateId)
-									lastStateId = s.id.toUInt();
-					}
+			for (i in App.getAllItems()) {
+				switch i.kind {
+					case null:
+					case ChangeDir(_, state):
+						if (state.id.toUInt() > lastStateId)
+							lastStateId = state.id.toUInt();
+					case States(_, list):
+						for (s in list)
+							if (s.id.toUInt() > lastStateId)
+								lastStateId = s.id.toUInt();
 				}
 			}
 			lastStateId++;

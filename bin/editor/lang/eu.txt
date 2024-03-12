@@ -1,0 +1,109 @@
+# html
+
+create_directory=sortu direktorioa
+delete_directory=ezabatu direktorioa
+export_directories=esportatu direktorioak
+append_layout=erantsi layout-a
+title_client_check=Aktibatuz gero, egoerak klikatzean zerbitzarian exekutatuko dira.
+label_client_check=Bezero bezala erabili
+add_icon=gehitu ikonoa
+remove_icon=kendu ikonoa
+add_fixed_item=gehitu item finkoa
+edit_shared_values=editatu balio partekatuak
+create_new_action=sortu ekintza berria
+rows=lerroak
+columns=zutabeak
+background_color=atzealdeko kolorea
+directory_items=Direktorioko itemak
+fixed_items=Item finkoak
+update_layout=Eguneratu layout-a
+server_updated=Eguneratuta!
+item_properties=Itemaren xehetasunak
+changedir_properties=ChangeDir xehetasunak
+go_to_directory=Joan direktoriora
+add_item=+item mota
+title_add_item=gehitu item mota
+add_state=+egoera
+title_add_state=gehitu egoera
+clear_item=hustu itema
+remove_item=ezabatu itema
+state_properties=Egoeraren xehetasunak
+state_text=Testua
+state_text_color=Testuaren kolorea
+state_bg_color=Atzealdearen kolorea
+state_text_size=Testuaren tamaina
+state_text_position=Testuaren posizioa
+state_text_position_top=goian
+state_text_position_center=erdian
+state_text_position_bottom=behean
+icon=Ikonoa
+state_list_text=testua: [{0}]{1}
+state_list_icon= / ikonoa: [{0}]
+add_action=gehitu ekintza
+delete_state=ezabatu egoera
+enable_action=gaitu action
+delete_action=ezabatu action
+new_icon_name=Izena
+new_icon_drop=ARRASTATU IRUDIA HONA
+new_icon_base64=Edo idatzi base64 testua hemen
+remove_icon_name=Izena
+select_action=Ekintza
+select_action_preset=Lehenetsiak
+new_state_radio_changedir=Aldatu Direktorioa
+new_state_radio_multi_state=Egoera-Anitza
+shared_var_edit_key=Gakoa
+shared_var_edit_value=Balioa
+new_action_tpl=Ekintzaren txantiloia
+new_action_name=Ekintzaren izena
+new_action_desc=Ekintzaren deskripzioa
+new_dir_name=Izena
+new_dir_rows=Lerroak
+new_dir_columns=Zutabeak
+accept=Onartu
+cancel=Ezeztatu
+
+# javascript
+confirm_remove_action=Ziur zaude [{0}] ekintza kendu nahi duzula?
+confirm_remove_value=Ziur zaude elementua ezabatu nahi duzula?
+confirm_delete_dir=Ziur zaude [{0}] direktorioa ezabatu nahi duzula?
+confirm_clear_item=Ziur zaude itema HUSTU nahi duzula?
+confirm_remove_item=Ziur zaude itema EZABATU nahi duzula?
+confirm_remove_state=Ziur zaude [{0}] egoera ezabatu nahi duzula?
+
+alert_error_action_desc=Errorea [id={0}] ekintzaren informazioa eskuratzean: {1}
+alert_create_dir_empty_name=Ezin da direktorio bat sortu izen hutsarekin.
+alert_create_dir_existing=Dagoeneko existitzen da [{0}] izena duen direktorioa.
+alert_append_ok=[{0}] fitxategia ongi erantsi da.
+alert_append_error=Errorea layout-a eranstean: [{0}]
+alert_export_dir_error=Errorea direktorioa esportatzean: [{0}]
+alert_invalid_file_type=Fitxategi mota baliogabea. Hauetako bat izan behar du [{0}]
+alert_invalid_file_too_large=Fitxategi handiegia
+alert_icon_name_empty=Ikonoaren izena ezin da hutsa izan.
+alert_icon_name_existing=Lehendik ere badago [{0}] izeneko ikono bat zerrendan. Aukeratu beste izen bat, mesedez.
+alert_icon_base64_empty=Ikonoaren base64 ezin da hutsa izan. Arrastatu irudi bat dagokion eremura edo idatzi base64 testua.
+
+alert_action_name_empty=Ekintzaren izena derrigorrezkoa da.
+alert_action_tpl_empty=Zure ekintzarentzat txantiloi bat aukeratu beharra duzu.
+alert_action_delete_ok=[{0}] ekintza ongi sortu da.
+
+alert_getting_state_action_statuses=Errorea [id={0}] egoeraren ekintzen egoera kargatzean: {1}
+alert_preset_missing_mandatory_prop=Lehenetsietako [{0}] edukiak ez du derrigorrezko [props] eremua.
+
+title_delete_using_icon=Ikono hau egoeraren batek darabil, ezin da ezabatu.
+title_action_status=Ekintzaren egoera [{0}]
+
+show_title_new_dir=Sortu direktorioa
+show_title_layout_append=Aukeratu eransteko layout fitxategia
+show_title_dir_export=Aukeratu esportatzeko direktorioak
+show_title_new_icon=Ikono berria
+show_title_icon_remove=Aukeratu ezabatzeko ikonoak (erabili gabeak bakarrik dira ezabagarriak)
+show_title_shared_values=Balio partekatuak
+show_title_action_params=Zehaztu ekintza berriaren parametroak
+show_title_action_preset_editor=[{0}.{1}] lehenetsi editorea
+show_title_new_action=Ekintza berria
+show_title_new_item_kind=Item mota berria
+
+text_content_action_props=[{0}] ekintzaren xehetasunak
+text_content_shared_variable=(balio partekatua)
+text_content_edit_shared_hint=Editatu balio partekatuak 'editatu balio partekatuak' botoiaren bidez, mesedez.
+text_content_states_upper=EGOERAK

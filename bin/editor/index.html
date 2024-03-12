@@ -16,101 +16,101 @@
 
     <body>
         <menu>
-            <input type="button" value="add directory" id="add-dir-btn">
-            <input type="button" value="delete directory" id="delete-dir-btn" title="delete directory">
-            <input type="button" value="export directories" id="export-dir-btn" title="export directories">
-            <input type="button" value="append layout" id="append-layout-btn" title="append layout">
+            <input type="button" value="::create_directory::" id="add-dir-btn" title="::create_directory::">
+            <input type="button" value="::delete_directory::" id="delete-dir-btn" title="::delete_directory::">
+            <input type="button" value="::export_directories::" id="export-dir-btn" title="::export_directories::">
+            <input type="button" value="::append_layout::" id="append-layout-btn" title="::append_layout::">
             <label id="execute-actions-lbl" for="execute-actions-cb"
-                title="If activated, clicked states will be executed in the server.">
-                Use as client
+                title="::title_client_check::">
+                ::label_client_check::
                 <input type="checkbox" name="execute-actions" id="execute-actions-cb">
             </label>
         </menu>
         <menu>
-            <input type="button" value="add icon" id="add-icon-btn">
-            <input type="button" value="remove icon" id="remove-icon-btn">
+            <input type="button" value="::add_icon::" id="add-icon-btn">
+            <input type="button" value="::remove_icon::" id="remove-icon-btn">
         </menu>
         <menu>
-            <input type="button" value="add fixed item" id="add-fixed-item-btn">
-            <input type="button" value="edit shared values" id="edit-shared-btn">
-            <input type="button" value="create new action" id="create-action-btn">
+            <input type="button" value="::add_fixed_item::" id="add-fixed-item-btn">
+            <input type="button" value="::edit_shared_values::" id="edit-shared-btn">
+            <input type="button" value="::create_new_action::" id="create-action-btn">
         </menu>
         <menu>
             <select name="dir-select" class="dir-select" id="dir-select"></select>
-            <label for="current-dir-rows">rows</label>
+            <label for="current-dir-rows">::rows::</label>
             <input type="number" id="current-dir-rows" class="row-column">
-            <label for="current-dir-columns">columns</label>
+            <label for="current-dir-columns">::columns::</label>
             <input type="number" id="current-dir-columns" class="row-column">
-            <label for="set-current-bg-color">background color</label>
+            <label for="set-current-bg-color">::background_color::</label>
             <input type="checkbox" id="set-current-bg-color" class="row-column">
             <input type="color" id="current-bg-color" class="row-column">
         </menu>
         <div id="main-container">
             <div id="layout-container">
                 <div>
-                    <h3>Directory items</h3>
+                    <h3>::directory_items::</h3>
                     <div id="dir-content"></div>
                 </div>
                 <div>
-                    <h3>Fixed items</h3>
+                    <h3>::fixed_items::</h3>
                     <div id="fixed-content"></div>
                 </div>
                 <div id="buttons">
-                    <input type="button" value="Update server layout" id="update-server-layout-btn" class="hidden">
-                    <span id="layout-updated" class="hidden">Server layout updated!</span>
+                    <input type="button" value="::update_layout::" id="update-server-layout-btn" class="hidden">
+                    <span id="layout-updated" class="hidden">::server_layout_updated::</span>
                 </div>
             </div>
 
             <div id="item-container" class="hidden">
-                <h3>Item properties</h3>
+                <h3>::item_properties::</h3>
                 <div id="item-kind-changedir-properties" class="hidden edit-property-container">
-                    <h4>ChangeDir properties</h4>
+                    <h4>::changedir_properties::</h4>
                     <div>
-                        <label for="text">Go to directory</label>
+                        <label for="text">::go_to_directory::</label>
                         <select name="dir-select" class="dir-select" id="to-dir-select"></select>
                     </div>
                 </div>
                 <div id="item-kind-states-properties" class="edit-property-container"></div>
                 <div id="item-buttons" class="edit-property-container">
-                    <input type="button" value="+item kind" id="add-item-kind-btn" title="add item">
-                    <input type="button" value="+state" id="add-state-btn" title="add state">
-                    <input type="button" value="clear item" id="clear-item-btn" title="clear item">
-                    <input type="button" value="remove item" id="remove-item-btn" title="remove item" class="hidden">
+                    <input type="button" value="::add_item::" id="add-item-kind-btn" title="::title_add_item::">
+                    <input type="button" value="::add_state::" id="add-state-btn" title="::title_add_state::">
+                    <input type="button" value="::clear_item::" id="clear-item-btn" title="::clear_item::">
+                    <input type="button" value="::remove_item::" id="remove-item-btn" title="::remove_item::" class="hidden">
                 </div>
             </div>
             <div id="state-properties" class="hidden edit-property-container">
-                <h3>State properties</h3>
+                <h3>::state_properties::</h3>
                 <div>
-                    <label for="text">Text</label>
+                    <label for="text">::state_text::</label>
                     <input type="text" name="text" id="text">
                 </div>
 
                 <div>
-                    <label for="text-color">Text color</label>
+                    <label for="text-color">::state_text_color::</label>
                     <input type="color" name="text-color" id="text-color">
                 </div>
 
                 <div>
-                    <label for="bg-color">Background color</label>
+                    <label for="bg-color">::state_bg_color::</label>
                     <input type="color" name="bg-color" id="bg-color">
                 </div>
 
                 <div>
-                    <label for="text-size">Text size</label>
+                    <label for="text-size">::state_text_size::</label>
                     <input type="number" name="text-size" id="text-size">
                 </div>
 
                 <div>
-                    <label for="text-position">Text position</label>
+                    <label for="text-position">::state_text_position::</label>
                     <select name="icon-select" id="text-position">
-                        <option value="top">top</option>
-                        <option value="center">center</option>
-                        <option value="bottom">bottom</option>
+                        <option value="::state_text_position_top::">::state_text_position_top::</option>
+                        <option value="::state_text_position_center::">::state_text_position_center::</option>
+                        <option value="::state_text_position_bottom::">::state_text_position_bottom::</option>
                     </select>
                 </div>
 
                 <div>
-                    <label for="icon">Icon</label>
+                    <label for="icon">::icon::</label>
                     <select name="icon-select" id="icons"></select>
                     <img id="icon-preview" alt="This is the selected icon preview" src="" class="hidden icon" />
                 </div>
@@ -136,13 +136,13 @@
             </div>
             <li id="state-list-item-tpl" draggable="true" class="state-list-item draggable-state">
                 <span></span>
-                <input type="button" value="+" class="add-action-btn" title="add action">
-                <input type="button" value="x" class="delete-btn" title="delete state">
+                <input type="button" value="+" class="add-action-btn" title="::add_action::">
+                <input type="button" value="x" class="delete-btn" title="::delete_state::">
             </li>
             <li id="action-list-item-tpl" draggable="true" class="action-list-item draggable-action">
                 <span></span>
-                <input type="checkbox" class="enable-check" title="enable action">
-                <input type="button" value="x" class="delete-btn" title="delete action">
+                <input type="checkbox" class="enable-check" title="::enable_action::">
+                <input type="button" value="x" class="delete-btn" title="::delete_action::">
                 <div class="check-bg">
                     <div class="check-mark"></div>
                 </div>
@@ -163,47 +163,47 @@
 
             <div id="new-dir">
                 <div>
-                    <label for="new-dir-name">Name</label>
+                    <label for="new-dir-name">::new_dir_name::</label>
                     <input type="text" name="name" id="new-dir-name" />
                 </div>
                 <div>
-                    <label for="new-dir-rows">Rows</label>
+                    <label for="new-dir-rows">::new_dir_rows::</label>
                     <input type="number" id="new-dir-rows" />
                 </div>
                 <div>
-                    <label for="new-dir-columns">Columns</label>
+                    <label for="new-dir-columns">::new_dir_columns::</label>
                     <input type="number" id="new-dir-columns" />
                 </div>
             </div>
 
             <div id="new-icon">
                 <div>
-                    <label for="new-icon-name">Name</label>
+                    <label for="new-icon-name">::new_icon_name::</label>
                     <input type="text" name="name" id="new-icon-name" />
                 </div>
                 <div name="drop-img" id="new-icon-drop-img">
-                    <span>DROP IMAGE HERE</span>
+                    <span>::new_icon_drop::</span>
                 </div>
                 <div>
-                    <label for="new-icon-base64">Or put the base64 text here</label>
+                    <label for="new-icon-base64">::new_icon_base64::</label>
                     <textarea name="base64" id="new-icon-base64"></textarea>
                 </div>
             </div>
 
             <div id="remove-icon-tpl">
                 <input type="checkbox" name="icon-name" class="remove-icon-name-cb" />
-                <label for="icon-name" class="icon-name-label">Name</label>
+                <label for="icon-name" class="icon-name-label">::remove_icon_name::</label>
                 <img alt="This is the selected icon preview" src="" class="icon icon-preview" />
             </div>
 
             <div id="new-action">
                 <div>
-                    <label for="actions-select">Action</label>
+                    <label for="actions-select">::select_action::</label>
                     <select name="actions-select" id="actions-select"></select>
                     <span id="new-action-description"></span>
                 </div>
                 <div>
-                    <label for="action-presets">Preset</label>
+                    <label for="action-presets">::select_action_preset::</label>
                     <select name="action-presets" id="action-presets"></select>
                 </div>
             </div>
@@ -211,22 +211,22 @@
             <div id="new-item-kind">
                 <div>
                     <label for="item-kind-changedir-radio">
-                        Change Directory
+                        ::new_state_radio_changedir::
                         <input type="radio" name="item-kind" id="item-kind-changedir-radio">
                     </label>
                 </div>
                 <div>
                     <label for="item-kind-states-radio">
-                        Multi-State
+                        ::new_state_radio_multi_state::
                         <input type="radio" name="item-kind" id="item-kind-states-radio">
                     </label>
                 </div>
             </div>
 
             <div id="shared-var-edit" class="shared-var-edit">
-                <label for="shared-var-edit-key">Key</label>
+                <label for="shared-var-edit-key">::shared_var_edit_key::</label>
                 <input type="text" name="shared-var-edit-key" class="shared-var-edit-key">
-                <label for="shared-var-edit-value">Value</label>
+                <label for="shared-var-edit-value">::shared_var_edit_value::</label>
                 <input type="text" name="shared-var-edit-value" class="shared-var-edit-value">
             </div>
 
@@ -239,12 +239,12 @@
             </div>
             <div id="create-action-data">
                 <div>
-                    <label for="create-action-tpl">Action template</label>
+                    <label for="create-action-tpl">::new_action_tpl::</label>
                     <div id="div-create-action-tpl-radios">
                     </div>
-                    <label for="create-action-name">Action name</label>
+                    <label for="create-action-name">::new_action_name::</label>
                     <input type="text" name="create-action-name" id="create-action-name">
-                    <label for="create-action-description">Action description</label>
+                    <label for="create-action-description">::new_action_desc::</label>
                     <input type="text" name="create-action-description" id="create-action-description">
                 </div>
             </div>
@@ -256,8 +256,8 @@
                 <h2 id="dialog-title">title</h2>
                 <div id="dialog-content"></div>
                 <div id="dialog-buttons">
-                    <input id="accept-dialog-btn" type="button" value="Accept">
-                    <input id="cancel-dialog-btn" type="button" value="Cancel">
+                    <input id="accept-dialog-btn" type="button" value="::accept::">
+                    <input id="cancel-dialog-btn" type="button" value="::cancel::">
                 </div>
             </div>
         </div>

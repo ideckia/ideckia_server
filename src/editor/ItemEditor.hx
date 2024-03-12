@@ -154,7 +154,7 @@ class ItemEditor {
 
 		Utils.addListener(listeners, Id.clear_item_btn.get(), 'click', (event) -> {
 			Utils.stopPropagation(event);
-			if (js.Browser.window.confirm('Do you want to CLEAR the item?')) {
+			if (js.Browser.window.confirm('::confirm_clear_item::')) {
 				editingItem.kind = null;
 				App.dirtyData = true;
 				StateEditor.hide();
@@ -169,7 +169,7 @@ class ItemEditor {
 			Id.remove_item_btn.get().classList.remove(Cls.hidden);
 			Utils.addListener(listeners, Id.remove_item_btn.get(), 'click', (event) -> {
 				Utils.stopPropagation(event);
-				if (js.Browser.window.confirm('Do you want to REMOVE the item?')) {
+				if (js.Browser.window.confirm('::confirm_remove_item::')) {
 					editingItem.kind = null;
 
 					function removeItem(items:Array<ServerItem>) {
@@ -226,7 +226,7 @@ class ItemEditor {
 				parentDiv.classList.remove(Cls.hidden);
 				Utils.clearElement(parentDiv);
 				var ulLabel = document.createLabelElement();
-				ulLabel.textContent = "STATES";
+				ulLabel.textContent = '::text_content_states_upper::';
 				parentDiv.append(ulLabel);
 				var uList = document.createUListElement();
 				var li;

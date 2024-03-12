@@ -1,0 +1,109 @@
+# html
+
+create_directory=create directory
+delete_directory=delete directory
+export_directories=export directories
+append_layout=append layout
+title_client_check=If activated, clicked states will be executed in the server.
+label_client_check=Use as client
+add_icon=add icon
+remove_icon=remove icon
+add_fixed_item=add fixed item
+edit_shared_values=edit shared values
+create_new_action=create new action
+rows=rows
+columns=columns
+background_color=background color
+directory_items=Directory items
+fixed_items=Fixed items
+update_layout=Update layout
+layout_updated=Layout updated!
+item_properties=Item properties
+changedir_properties=ChangeDir properties
+go_to_directory=Go to directory
+add_item=+item kind
+title_add_item=add item kind
+add_state=+state
+title_add_state=add state
+clear_item=clear item
+remove_item=delete item
+state_properties=State properties
+state_text=Text
+state_text_color=Text color
+state_bg_color=Background color
+state_text_size=Text size
+state_text_position=Text position
+state_text_position_top=top
+state_text_position_center=center
+state_text_position_bottom=bottom
+icon=Icon
+state_list_text=text: [{0}]{1}
+state_list_icon= / icon: [{0}]
+add_action=add action
+delete_state=delete state
+enable_action=enable action
+delete_action=delete action
+new_icon_name=Name
+new_icon_drop=DROP IMAGE HERE
+new_icon_base64=Or put the base64 text here
+remove_icon_name=Name
+select_action=Action
+select_action_preset=Preset
+new_state_radio_changedir=Change Directory
+new_state_radio_multi_state=Multi-State
+shared_var_edit_key=Key
+shared_var_edit_value=Value
+new_action_tpl=Action template
+new_action_name=Action name
+new_action_desc=Action description
+new_dir_name=Name
+new_dir_rows=Rows
+new_dir_columns=Columns
+accept=Accept
+cancel=Cancel
+
+# javascript
+confirm_remove_action=Are you sure you want to remove the action [{0}]?
+confirm_remove_value=Are you sure you want to delete the element?
+confirm_delete_dir=Are you sure you want to delete the [{0}] directory?
+confirm_clear_item=Are you sure you want to CLEAR the item?
+confirm_remove_item=Are you sure you want to DELETE the item?
+confirm_remove_state=Are you sure you want to delete the state [{0}]?
+
+alert_error_action_desc=Error getting action descriptor of [id={0}]: {1}
+alert_create_dir_empty_name=Cannot create a directory with empty name.
+alert_create_dir_existing=Already exists a directory with [{0}] name.
+alert_append_ok=[{0}] file successfully appended.
+alert_append_error=Error appending layout: [{0}]
+alert_export_dir_error=Error exporting directory: [{0}]
+alert_invalid_file_type=Invalid file type. Must be one of [{0}]
+alert_invalid_file_too_large=File too large
+alert_icon_name_empty=The name of the icon can not be empty.
+alert_icon_name_existing=Already exists [{0}] icon in the current list. Select another name, please.
+alert_icon_base64_empty=The base64 of the icon can not be empty. Drag&Drop an image to the area or paste the base64 in the textarea.
+
+alert_action_name_empty=Action name is mandatory.
+alert_action_tpl_empty=You must select a template for the action.
+alert_action_delete_ok=[{0}] action successfully created.
+
+alert_getting_state_action_statuses=Error getting action statuses of [id={0}]: {1}
+alert_preset_missing_mandatory_prop=The preset [{0}] has not the mandatory [props] field.
+
+title_delete_using_icon=This icon is used by some state, it cannot be removed.
+title_action_status=Action status [{0}]
+
+show_title_new_dir=Create directory
+show_title_layout_append=Select the layout file to append
+show_title_dir_export=Select directories to export
+show_title_new_icon=New icon
+show_title_icon_remove=Select icons to remove (only unused icons are removables)
+show_title_shared_values=Shared values
+show_title_action_params=Define the new action parameters
+show_title_action_preset_editor=Editor [{0}.{1}] preset
+show_title_new_action=New Action
+show_title_new_item_kind=New item kind
+
+text_content_action_props=[{0}] action properties
+text_content_shared_variable=(shared values)
+text_content_edit_shared_hint=Edit the shared values via 'edit shared values' button please
+text_content_states_upper=STATES

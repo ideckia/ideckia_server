@@ -62,17 +62,17 @@ class App {
 			Id.new_dir_rows.as(InputElement).value = Std.string(layoutRows);
 			Id.new_dir_columns.as(InputElement).value = Std.string(layoutColumns);
 
-			Dialog.show('New directory', Id.new_dir.get(), () -> {
+			Dialog.show('::show_title_new_dir::', Id.new_dir.get(), () -> {
 				return new js.lib.Promise((resolve, reject) -> {
 					var newDirName = Id.new_dir_name.as(InputElement).value;
 					if (newDirName == null || newDirName == '') {
-						js.Browser.alert('Cannot create a directory with empty name.');
+						js.Browser.alert('::alert_create_dir_empty_name::');
 						resolve(false);
 					}
 
 					var dirs = editorData.layout.dirs;
 					if (dirs.filter(d -> d.name.toString() == newDirName).length > 0) {
-						js.Browser.alert('Already exists a directory with [$newDirName] name.');
+						js.Browser.alert(Utils.formatString('::alert_create_dir_existing::', [newDirName]));
 						resolve(false);
 					}
 
@@ -122,7 +122,7 @@ class App {
 
 		Id.delete_dir_btn.get().addEventListener('click', (_) -> {
 			var currentDir = @:privateAccess DirEditor.currentDir;
-			if (js.Browser.window.confirm('Are you sure you want to delete the [${currentDir.name.toString()}] directory?')) {
+			if (js.Browser.window.confirm(Utils.formatString('::confirm_delete_dir::', [currentDir.name.toString()]))) {
 				var dirs = editorData.layout.dirs;
 				dirs.remove(currentDir);
 				App.dirtyData = true;
@@ -132,7 +132,7 @@ class App {
 
 		Id.append_layout_btn.get().addEventListener('click', (_) -> {
 			Id.append_layout_input.as(InputElement).value = '';
-			Dialog.show('Select the layout file to append', Id.append_layout.get(), () -> {
+			Dialog.show('::show_title_layout_append::', Id.append_layout.get(), () -> {
 				return new js.lib.Promise((resolve, reject) -> {
 					var reader = new FileReader();
 					var input = Id.append_layout_input.as(InputElement);
@@ -142,12 +142,12 @@ class App {
 						var http = new haxe.Http('http://localhost:$port$layoutAppendEndpoint');
 						http.addHeader('Content-Type', 'application/json');
 						http.onError = (e) -> {
-							var msg = 'Error appending layout: $e';
+							var msg = Utils.formatString('::alert_append_error::', [e]);
 							js.Browser.alert(msg);
 							reject(msg);
 						};
 						http.onData = (d) -> {
-							js.Browser.alert('[${input.value}] file successfully appended.');
+							js.Browser.alert(Utils.formatString('::alert_append_ok::', [input.value]));
 							resolve(true);
 						};
 
@@ -179,7 +179,7 @@ class App {
 			var options = exportDirsSelect.options;
 			exportDirsSelect.style.height = '${Std.int(options.length * 1.5)}em';
 
-			Dialog.show('Select directories to export', Id.export_dir.get(), () -> {
+			Dialog.show('::show_title_dir_export::', Id.export_dir.get(), () -> {
 				return new js.lib.Promise((resolve, reject) -> {
 					var option:OptionElement;
 					var selectedDirNames = [];
@@ -194,7 +194,7 @@ class App {
 					final port = js.Browser.location.port;
 					var http = new haxe.Http('http://localhost:$port${directoryExportEndpoint}');
 					http.addHeader('Content-Type', 'application/json');
-					http.onError = (e) -> js.Browser.alert('Error exporting directory: $e');
+					http.onError = (e) -> js.Browser.alert(Utils.formatString('::alert_export_dir_error::', [e]));
 					http.onData = (d) -> {
 						var anchor = document.createAnchorElement();
 						anchor.href = 'data:application/json;charset=utf-8,' + haxe.Json.parse(d);
@@ -235,7 +235,7 @@ class App {
 					var image = dataTransfer.files.item(0);
 					var validTypes = ['image/jpeg', 'image/png', 'image/gif'];
 					if (validTypes.indexOf(image.type) == -1) {
-						js.Browser.alert('Invalid file type. Must be one of [${validTypes.join(', ')}].');
+						js.Browser.alert(Utils.formatString('::alert_invalid_file_type::', [validTypes.join(', ')]));
 						return;
 					}
 					var maxSizeInBytes = 10e6; // 10MB
@@ -257,22 +257,22 @@ class App {
 				Utils.stopPropagation(e);
 				Id.new_icon_drop_img.get().classList.remove(Cls.icon_drag_over);
 			});
-			Dialog.show('New icon', Id.new_icon.get(), () -> {
+			Dialog.show('::show_title_new_icon::', Id.new_icon.get(), () -> {
 				return new js.lib.Promise((resolve, reject) -> {
 					var iconName = Id.new_icon_name.as(InputElement).value;
 					var iconData = Id.new_icon_base64.as(TextAreaElement).value;
 					if (iconName == null || iconName == '') {
-						js.Browser.alert('The name of the icon can not be empty.');
+						js.Browser.alert('::alert_icon_name_empty::');
 						resolve(false);
 						return;
 					}
 					if (icons.filter(i -> i.name == iconName).length > 0) {
-						js.Browser.alert('Already exists [$iconName] icon in the current list. Select another name, please.');
+						js.Browser.alert(Utils.formatString('::alert_icon_name_existing::', [iconName]));
 						resolve(false);
 						return;
 					}
 					if (iconData == null || iconData == '') {
-						js.Browser.alert('The base64 of the icon can not be empty. Drag&Drop an image to the area or paste the base64 in the textarea.');
+						js.Browser.alert('::alert_icon_base64_empty::');
 						resolve(false);
 						return;
 					}
@@ -318,7 +318,7 @@ class App {
 
 				container.appendChild(tplClone);
 			}
-			Dialog.show('Select icons to remove (only unused icons are removables)', container, () -> {
+			Dialog.show('::show_title_icon_remove::', container, () -> {
 				return new js.lib.Promise((resolve, reject) -> {
 					var removed = [];
 					for (c in container.children) {
@@ -401,7 +401,7 @@ class App {
 			for (sv in editorData.layout.sharedVars) {
 				container.appendChild(createSharedDataDiv(sv.key, sv.value));
 			}
-			Dialog.show('Shared values', container, () -> {
+			Dialog.show('::show_title_shared_values::', container, () -> {
 				return new js.lib.Promise((resolveDialog, _) -> {
 					var svDivs = Cls.shared_var_edit.from(container);
 					var newSharedVars = [];
@@ -460,13 +460,13 @@ class App {
 				actionNameInput.value = '';
 				var actionDescriptionInput = Id.create_action_description.as(InputElement);
 				actionDescriptionInput.value = '';
-				Dialog.show('Define the new action parameters', Id.create_action_data.get(), () -> {
+				Dialog.show('::show_title_action_params::', Id.create_action_data.get(), () -> {
 					return new js.lib.Promise((resolve, reject) -> {
 						var actionName = actionNameInput.value;
 						var actionDescription = actionDescriptionInput.value;
 
 						if (actionName == '') {
-							js.Browser.alert('Action name is mandatory.');
+							js.Browser.alert('::alert_action_name_empty::');
 							resolve(false);
 							return;
 						}
@@ -474,7 +474,7 @@ class App {
 						var selectedRadio = Std.downcast(Tag.input.specify('[name="$radioInputsName"]:checked'), InputElement);
 
 						if (selectedRadio == null) {
-							js.Browser.alert('You must select a template for the action.');
+							js.Browser.alert('::alert_action_tpl_empty::');
 							resolve(false);
 							return;
 						}
@@ -488,7 +488,7 @@ class App {
 							reject(msg);
 						};
 						http.onData = (d) -> {
-							js.Browser.alert('[${d}] action successfully created.');
+							js.Browser.alert(Utils.formatString('::alert_action_delete_ok::', [d]));
 							resolve(true);
 						};
 
@@ -573,6 +573,18 @@ class App {
 			return None;
 		trace(f[0]);
 		return Some(f[0]);
+	}
+
+	static public function getAllItems() {
+		var allItems = [];
+		for (dir in editorData.layout.dirs)
+			for (i in dir.items)
+				allItems.push(i);
+
+		if (editorData.layout.fixedItems != null)
+			allItems = allItems.concat(editorData.layout.fixedItems);
+
+		return allItems;
 	}
 
 	static function updateDirsSelect(showLast:Bool = false) {

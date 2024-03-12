@@ -113,11 +113,20 @@ class WebSocketServer {
 					} else {
 						'text/' + haxe.io.Path.extension(absolutePath);
 					}
-					resolve({
-						code: 200,
-						headers: {"Content-Type": contentType},
-						readStream: Fs.createReadStream(absolutePath)
-					});
+
+					if (absolutePath.endsWith('.js') || absolutePath.endsWith('.html')) {
+						resolve({
+							code: 200,
+							headers: headers,
+							body: Lang.localizeAll(sys.io.File.getContent(absolutePath))
+						});
+					} else {
+						resolve({
+							code: 200,
+							headers: {"Content-Type": contentType},
+							readStream: Fs.createReadStream(absolutePath)
+						});
+					}
 				} else if (request.method == 'POST' && requestUrl == newActionEndpoint) {
 					var data = '';
 					request.on('data', chunck -> {

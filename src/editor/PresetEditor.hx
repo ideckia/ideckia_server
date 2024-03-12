@@ -51,7 +51,7 @@ class PresetEditor {
 				input.value = if (isShared(key, descriptor)) {
 					input.disabled = true;
 					sharedTextDiv = document.createDivElement();
-					sharedTextDiv.textContent = '(shared variable)';
+					sharedTextDiv.textContent = '::text_content_shared_variable::';
 					div.appendChild(sharedTextDiv);
 					isAnyShared = true;
 
@@ -67,13 +67,13 @@ class PresetEditor {
 
 			if (isAnyShared) {
 				div = document.createDivElement();
-				div.textContent = 'Edit the shared variables via "edit shared variables" button please';
+				div.textContent = '::text_content_edit_shared_hint::';
 				container.appendChild(div);
 			}
 
 			Dialog.clear();
 
-			Dialog.show('Editor [$actionName.${preset.name}] preset', container, () -> {
+			Dialog.show(Utils.formatString('::show_title_action_preset_editor::', [actionName, preset.name]), container, () -> {
 				return new js.lib.Promise((resolveDialog, _) -> {
 					var inputs = Tag.input.from(container);
 					var fieldValue;

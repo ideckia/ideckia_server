@@ -1,5 +1,6 @@
 package;
 
+import appropos.Appropos;
 import managers.UpdateManager;
 import websocket.WebSocketServer;
 import api.internal.ServerApi;
@@ -20,6 +21,7 @@ class Ideckia {
 	public static var mediaPlayer:api.media.IMediaPlayer;
 
 	static public inline final CURRENT_VERSION = #if release Macros.getLastTagName() #else Macros.getGitCommitHash() #end;
+	public static inline var APPROPOS_FILE_NAME = "app.props";
 
 	function new() {
 		var appPath = getAppPath();
@@ -77,6 +79,10 @@ class Ideckia {
 			Log.raw(error.stack);
 		});
 
+		Chokidar.watch(getApproposPath()).on('change', (_, _) -> {
+			Appropos.init(getApproposPath());
+		});
+
 		var wsServer = new WebSocketServer();
 
 		Tray.show(WebSocketServer.port);
@@ -98,6 +104,8 @@ class Ideckia {
 				Log.info('Closing connection [code=$reasonCode]: $description');
 				connection.dispose();
 			}
+
+			Lang.init();
 		});
 	}
 
@@ -108,13 +116,18 @@ class Ideckia {
 		return haxe.io.Path.join(dir);
 	}
 
+	public static function getApproposPath() {
+		if (js.node.Path.isAbsolute(APPROPOS_FILE_NAME))
+			return APPROPOS_FILE_NAME;
+		return getAppPath(APPROPOS_FILE_NAME);
+	}
+
 	public static function isPkg() {
 		return js.Syntax.code('process.pkg != undefined');
 	}
 
 	public static function createNewAction(createActionDef:CreateActionDef) {
-		var actionDestination = createActionDef.destPath;
-		if (actionDestination == null || actionDestination == '')
+		if (createActionDef.destPath == null || createActionDef.destPath == '')
 			createActionDef.destPath = ActionManager.getActionsPath();
 		ActionManager.creatingNewAction = true;
 		var newActionPath = api.action.creator.ActionCreator.create(createActionDef, Log.info);
@@ -123,7 +136,7 @@ class Ideckia {
 	}
 
 	static function main() {
-		appropos.Appropos.init(getAppPath('app.props'));
+		Appropos.init(getApproposPath());
 		Log.init();
 		UpdateManager.checkServerRelease();
 		new Ideckia();

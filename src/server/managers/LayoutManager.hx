@@ -508,17 +508,15 @@ class LayoutManager {
 	}
 
 	static function setItemAndStateIds(items:Array<ServerItem>, toNull:Bool = false) {
-		var itemId = 0;
-		var stateId = 0;
 		for (i in items) {
-			i.id = toNull ? null : new ItemId(itemId++);
+			i.id = toNull ? null : ItemId.next();
 			i.kind = switch i.kind {
 				case States(_, list):
 					for (state in list)
-						state.id = toNull ? null : new StateId(stateId++);
+						state.id = toNull ? null : StateId.next();
 					States(null, list);
 				case ChangeDir(toDir, state):
-					state.id = toNull ? null : new StateId(stateId++);
+					state.id = toNull ? null : StateId.next();
 					ChangeDir(toDir, state);
 				case k:
 					k;

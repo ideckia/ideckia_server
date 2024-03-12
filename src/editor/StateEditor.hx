@@ -26,8 +26,8 @@ class StateEditor {
 		var parentLi = Utils.cloneElement(Id.state_list_item_tpl.get(), LIElement);
 		switch Tag.span.firstFrom(parentLi) {
 			case Some(v):
-				var iconText = (state.icon == null) ? '' : ' / icon: [${state.icon.substr(0, 30)}]';
-				v.innerText = 'text: [${state.text}]$iconText';
+				var iconText = (state.icon == null) ? '' : Utils.formatString('::state_list_icon::', [state.icon.substr(0, 30)]);
+				v.innerText = Utils.formatString('::state_list_text::', [state.text, iconText]);
 			case None:
 				trace('No [${Tag.span.selector()}] found in [${Id.state_list_item_tpl.selector()}]');
 		}
@@ -45,7 +45,7 @@ class StateEditor {
 			final endpoint = Endpoint.stateActionsForId(state.id.toUInt());
 			var http = new haxe.Http('http://localhost:$port/$endpoint');
 			http.addHeader('Content-Type', 'application/json');
-			http.onError = (e) -> js.Browser.alert('Error getting action statuses of [id=${state.id}]: $e');
+			http.onError = (e) -> js.Browser.alert(Utils.formatString('::alert_getting_state_action_statuses::', [Std.string(state.id), e]));
 			http.onData = (d) -> {
 				var statuses:Map<UInt, ActionStatus> = haxe.Json.parse(d);
 
@@ -100,7 +100,7 @@ class StateEditor {
 								emptyOption.concat([for (i in 0...actionPresets.length) {value: i + 1, text: actionPresets[i].name}]));
 						}
 					});
-					Dialog.show("New action", Id.new_action.get(), () -> {
+					Dialog.show('::show_title_new_action::', Id.new_action.get(), () -> {
 						return new js.lib.Promise((resolve, reject) -> {
 							var selectedActionIndex = Id.actions_select.as(SelectElement).selectedIndex;
 							if (selectedActionIndex == 0) {
@@ -140,7 +140,7 @@ class StateEditor {
 									var preset = actionPresets[selectedPresetIndex - 1];
 									var actionProps = preset.props;
 									if (actionProps == null) {
-										js.Browser.alert('The preset [${preset.name}] has not the mandatory [props] field.');
+										js.Browser.alert(Utils.formatString('::alert_preset_missing_mandatory_prop::', [preset.name]));
 										resolve(false);
 										return;
 									}
@@ -179,21 +179,24 @@ class StateEditor {
 				Utils.addListener(listeners, v, 'click', (event) -> {
 					event.stopImmediatePropagation();
 
-					if (js.Browser.window.confirm('Do you want to remove the state [${state.text}]?')) {
-						for (d in App.editorData.layout.dirs) {
-							for (i in d.items) {
-								switch i.kind {
-									case States(_, list):
-										for (sind in 0...list.length)
-											if (list[sind].id == state.id) {
-												list.remove(state);
-												App.dirtyData = true;
-												DirEditor.refresh();
-												ItemEditor.refresh();
-												FixedEditor.show();
-											}
-									default:
-								}
+					trace('removing ${state.id} state');
+					if (js.Browser.window.confirm(Utils.formatString('::confirm_remove_state::', [state.text]))) {
+						for (i in App.getAllItems()) {
+							switch i.kind {
+								case States(_, list):
+									trace('${i.id} ezabatzen: ${list.length}');
+									for (sind in 0...list.length) {
+										// trace('state id -> ${list[sind].id}');
+										if (list[sind].id == state.id) {
+											trace('removing ${state.id} state');
+											list.remove(state);
+											App.dirtyData = true;
+											DirEditor.refresh();
+											ItemEditor.refresh();
+											FixedEditor.show();
+										}
+									}
+								default:
 							}
 						}
 					}
@@ -285,6 +288,8 @@ class StateEditor {
 		Utils.addListener(listeners, Id.text_size.get(), 'change', onTextSizeChange);
 		Utils.addListener(listeners, Id.text_position.get(), 'change', onTextPositionChange);
 		Utils.addListener(listeners, Id.icons.get(), 'change', onIconChange);
+
+		updateState();
 	}
 
 	public static function hide() {
@@ -349,21 +354,20 @@ class StateEditor {
 	static function updateState() {
 		if (editingState == null)
 			return;
-		for (d in App.editorData.layout.dirs) {
-			for (i in d.items) {
-				switch i.kind {
-					case null:
-					case ChangeDir(toDir, state):
-						if (state.id == editingState.id)
-							i.kind = ChangeDir(toDir, editingState);
-					case States(_, list):
-						for (sind in 0...list.length) {
-							if (list[sind].id == editingState.id)
-								list[sind] = editingState;
-						}
-				}
+		for (i in App.getAllItems()) {
+			switch i.kind {
+				case null:
+				case ChangeDir(toDir, state):
+					if (state.id == editingState.id)
+						i.kind = ChangeDir(toDir, editingState);
+				case States(_, list):
+					for (sind in 0...list.length) {
+						if (list[sind].id == editingState.id)
+							list[sind] = editingState;
+					}
 			}
 		}
+
 		App.dirtyData = true;
 		DirEditor.refresh();
 		ItemEditor.refresh();
