@@ -115,7 +115,7 @@ class Ideckia {
 	public static function createNewAction(createActionDef:CreateActionDef) {
 		var actionDestination = createActionDef.destPath;
 		if (actionDestination == null || actionDestination == '')
-			createActionDef.destPath = actionsPath;
+			createActionDef.destPath = ActionManager.getActionsPath();
 		ActionManager.creatingNewAction = true;
 		var newActionPath = api.action.creator.ActionCreator.create(createActionDef, Log.info);
 		ActionManager.creatingNewAction = false;
