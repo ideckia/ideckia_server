@@ -79,6 +79,8 @@ class Ideckia {
 			Log.raw(error.stack);
 		});
 
+		Lang.init();
+
 		Chokidar.watch(getApproposPath()).on('change', (_, _) -> {
 			Appropos.init(getApproposPath());
 		});
@@ -104,8 +106,6 @@ class Ideckia {
 				Log.info('Closing connection [code=$reasonCode]: $description');
 				connection.dispose();
 			}
-
-			Lang.init();
 		});
 	}
 

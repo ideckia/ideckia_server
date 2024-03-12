@@ -2,32 +2,38 @@
 	"icon": "::icon_path::",
 	"menu": [
 		{
-			"text": "ideckia port: ::port::",
+			"id": "port_info",
+			"text": "::tray_ideckia_port:: ::port::",
 			"disabled": 1
 		},
 		{
-			"text": "open",
+			"text": "::tray_open::",
 			"menu": [
 				{
-					"text": "client",
+					"id": "client",
+					"text": "::tray_open_client::",
 					"disabled": ::client_disabled::
 				},
 				{
-					"text": "editor"
+					"id": "editor",
+					"text": "::tray_open_editor::"
 				},
 				{
-					"text": "logs"
+					"id": "logs",
+					"text": "::tray_open_logs::"
 				}
 			]
 		},
 		{
-			"text": "about"
+			"id": "about",
+			"text": "::tray_about::"
 		},
 		{
 			"text": "-"
 		},
 		{
-			"text": "quit",
+			"id": "quit",
+			"text": "::tray_quit::",
 			"exit": 1
 		}
 	]

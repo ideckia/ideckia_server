@@ -107,3 +107,11 @@ text_content_action_props=[{0}] ekintzaren xehetasunak
 text_content_shared_variable=(balio partekatua)
 text_content_edit_shared_hint=Editatu balio partekatuak 'editatu balio partekatuak' botoiaren bidez, mesedez.
 text_content_states_upper=EGOERAK
+
+tray_ideckia_port=ideckia portua:
+tray_open=ireki
+tray_open_client=bezeroa
+tray_open_editor=editorea
+tray_open_logs=log-ak
+tray_about=honi buruz
+tray_quit=irten

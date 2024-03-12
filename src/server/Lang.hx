@@ -23,6 +23,8 @@ class Lang {
 				locTexts = new Map();
 				var lines = ~/\r?\n/g.split(sys.io.File.getContent(directory + '/$langFile'));
 				for (locLine in lines) {
+					if (locLine.startsWith('#') || locLine.length == 0)
+						continue;
 					splittedLine = locLine.split('=');
 					if (splittedLine.length != 2) {
 						Log.debug('Skipping line [$locLine]');

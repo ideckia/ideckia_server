@@ -29,7 +29,7 @@ class Tray {
 		menuDefContent = menuDefContent.replace('::icon_path::', iconPath);
 		menuDefContent = menuDefContent.replace('::port::', Std.string(port));
 		menuDefContent = menuDefContent.replace('::client_disabled::', (sys.FileSystem.exists(clientFullPath)) ? '0' : '1');
-		var menuDef:MenuDef = haxe.Json.parse(menuDefContent);
+		var menuDef:MenuDef = haxe.Json.parse(Lang.localizeAll(menuDefContent));
 
 		menuDefContent = haxe.Json.stringify(menuDef).replace('"', '\\"');
 

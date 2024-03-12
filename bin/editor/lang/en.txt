@@ -107,3 +107,11 @@ text_content_action_props=[{0}] action properties
 text_content_shared_variable=(shared values)
 text_content_edit_shared_hint=Edit the shared values via 'edit shared values' button please
 text_content_states_upper=STATES
+
+tray_ideckia_port=ideckia port:
+tray_open=open
+tray_open_client=client
+tray_open_editor=editor
+tray_open_logs=logs
+tray_about=about
+tray_quit=quit
