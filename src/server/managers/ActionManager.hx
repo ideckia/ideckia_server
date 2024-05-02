@@ -76,12 +76,8 @@ class ActionManager {
 					}
 
 					state.textSize = state.textSize == null ? LayoutManager.layout.textSize : state.textSize;
-					var hasSetupMethod = js.Syntax.code("typeof {0}.setup", action) == 'function';
-					if (hasSetupMethod)
-						ideckiaAction.setup(action.props, idkServer);
-					var hasInitMethod = js.Syntax.code("typeof {0}.init", action) == 'function';
-					if (hasInitMethod)
-						initPromises.push(ideckiaAction.init(state));
+					ideckiaAction.setup(action.props, idkServer);
+					initPromises.push(ideckiaAction.init(state));
 
 					retActions.push({id: action.id, action: ideckiaAction});
 				} catch (e:haxe.Exception) {
