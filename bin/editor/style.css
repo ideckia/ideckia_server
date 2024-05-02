@@ -13,7 +13,7 @@ menu {
     width: 45%;
 }
 
-#execute-actions-lbl {
+.menu-right {
     float: right;
 }
 

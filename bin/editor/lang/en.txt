@@ -61,6 +61,7 @@ new_dir_rows=Rows
 new_dir_columns=Columns
 accept=Accept
 cancel=Cancel
+translate_me=Translate me!
 
 # javascript
 confirm_remove_action=Are you sure you want to remove the action [{0}]?
@@ -84,7 +85,8 @@ alert_icon_base64_empty=The base64 of the icon can not be empty. Drag&Drop an im
 
 alert_action_name_empty=Action name is mandatory.
 alert_action_tpl_empty=You must select a template for the action.
-alert_action_delete_ok=[{0}] action successfully created.
+alert_action_create_ok=[{0}] action successfully created.
+alert_translation_create_ok=[{0}] translation file copied successfully. Rename the file with your language code and start translation.
 
 alert_getting_state_action_statuses=Error getting action statuses of [id={0}]: {1}
 alert_preset_missing_mandatory_prop=The preset [{0}] has not the mandatory [props] field.

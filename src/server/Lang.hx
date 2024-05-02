@@ -15,6 +15,21 @@ class Lang {
 			getLang(absolutePath);
 	}
 
+	static public function newTranslation() {
+		var absolutePath = Ideckia.getAppPath(LOCALIZATIONS_DIR);
+		if (!sys.FileSystem.exists(absolutePath)) {
+			sys.FileSystem.createDirectory(absolutePath);
+		}
+
+		absolutePath += '/your_language_code_here.txt';
+		final innerTxtPath = js.Node.__dirname + LOCALIZATIONS_DIR + '/en.txt';
+		final innerTxtContent = sys.io.File.getContent(innerTxtPath);
+
+		sys.io.File.saveContent(absolutePath, innerTxtContent);
+
+		return absolutePath;
+	}
+
 	static function getLang(directory:String) {
 		var locTexts, splittedLine;
 		if (sys.FileSystem.isDirectory(directory)) {

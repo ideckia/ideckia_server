@@ -488,7 +488,7 @@ class App {
 							reject(msg);
 						};
 						http.onData = (d) -> {
-							js.Browser.alert(Utils.formatString('::alert_action_delete_ok::', [d]));
+							js.Browser.alert(Utils.formatString('::alert_action_create_ok::', [d]));
 							resolve(true);
 						};
 
@@ -533,6 +533,18 @@ class App {
 					Id.layout_updated.get().style.opacity = '1';
 				}, 3000);
 			}, 10);
+		});
+		Id.translate_me_btn.get().addEventListener('click', (_) -> {
+			final port = js.Browser.location.port;
+			var http = new haxe.Http('http://localhost:$port$newTranslationEndpoint');
+			http.onError = (e) -> {
+				var msg = 'Error creating translation: $e';
+				js.Browser.alert(msg);
+			};
+			http.onData = (d) -> {
+				js.Browser.alert(Utils.formatString('::alert_translation_create_ok::', [d]));
+			};
+			http.request();
 		});
 	}
 

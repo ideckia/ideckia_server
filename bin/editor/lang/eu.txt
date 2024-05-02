@@ -61,6 +61,7 @@ new_dir_rows=Lerroak
 new_dir_columns=Zutabeak
 accept=Onartu
 cancel=Ezeztatu
+translate_me=Itzul nazazu!
 
 # javascript
 confirm_remove_action=Ziur zaude [{0}] ekintza kendu nahi duzula?
@@ -84,7 +85,8 @@ alert_icon_base64_empty=Ikonoaren base64 ezin da hutsa izan. Arrastatu irudi bat
 
 alert_action_name_empty=Ekintzaren izena derrigorrezkoa da.
 alert_action_tpl_empty=Zure ekintzarentzat txantiloi bat aukeratu beharra duzu.
-alert_action_delete_ok=[{0}] ekintza ongi sortu da.
+alert_action_create_ok=[{0}] ekintza ongi sortu da.
+alert_translation_create_ok=[{0}] itzulpen fitxategia ongi kopiatu da. Berrizendatu fitxategia zure hizkuntzaren kodearekin eta hasi itzultzen.
 
 alert_getting_state_action_statuses=Errorea [id={0}] egoeraren ekintzen egoera kargatzean: {1}
 alert_preset_missing_mandatory_prop=Lehenetsietako [{0}] edukiak ez du derrigorrezko [props] eremua.

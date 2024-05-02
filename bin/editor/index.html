@@ -20,8 +20,7 @@
             <input type="button" value="::delete_directory::" id="delete-dir-btn" title="::delete_directory::">
             <input type="button" value="::export_directories::" id="export-dir-btn" title="::export_directories::">
             <input type="button" value="::append_layout::" id="append-layout-btn" title="::append_layout::">
-            <label id="execute-actions-lbl" for="execute-actions-cb"
-                title="::title_client_check::">
+            <label id="execute-actions-lbl" for="execute-actions-cb" class="menu-right" title="::title_client_check::">
                 ::label_client_check::
                 <input type="checkbox" name="execute-actions" id="execute-actions-cb">
             </label>
@@ -29,6 +28,7 @@
         <menu>
             <input type="button" value="::add_icon::" id="add-icon-btn">
             <input type="button" value="::remove_icon::" id="remove-icon-btn">
+            <input type="button" value="::translate_me::" class="menu-right" id="translate-me-btn">
         </menu>
         <menu>
             <input type="button" value="::add_fixed_item::" id="add-fixed-item-btn">
@@ -75,7 +75,8 @@
                     <input type="button" value="::add_item::" id="add-item-kind-btn" title="::title_add_item::">
                     <input type="button" value="::add_state::" id="add-state-btn" title="::title_add_state::">
                     <input type="button" value="::clear_item::" id="clear-item-btn" title="::clear_item::">
-                    <input type="button" value="::remove_item::" id="remove-item-btn" title="::remove_item::" class="hidden">
+                    <input type="button" value="::remove_item::" id="remove-item-btn" title="::remove_item::"
+                        class="hidden">
                 </div>
             </div>
             <div id="state-properties" class="hidden edit-property-container">
