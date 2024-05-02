@@ -70,9 +70,8 @@ class ClientManager {
 								MsgManager.sendToAll(LayoutManager.currentDirForClient());
 						};
 						var promiseError = (error) -> {
-							Log.error('Error executing actions of the state [${currentState.id}]');
-							Log.raw(error.stack);
-							Ideckia.dialog.error('Error executing actions of the state [${currentState.id}]', error.stack);
+							Log.error('Error executing actions of the state [${currentState.id}]. [${Std.string(error)}]');
+							Ideckia.dialog.error('Error executing actions of the state [${currentState.id}]', Std.string(error));
 						};
 
 						var prevAction:IdeckiaAction = null;
@@ -89,7 +88,11 @@ class ClientManager {
 										});
 									} else {
 										prevAction = action;
-										return action.onLongPress(newState);
+										var hasOnLongPressMethod = js.Syntax.code("typeof {0}.onLongPress", action) == 'function';
+										if (hasOnLongPressMethod)
+											return action.onLongPress(newState);
+										else
+											return js.lib.Promise.resolve(new ActionOutcome({state: currentState}));
 									}
 								} else {
 									if (newState.extraData != null && prevAction != null) {
