@@ -9,7 +9,12 @@ class Lang {
 	static var currentLang:String;
 
 	static public function init() {
+		languages = [];
 		getLang(js.Node.__dirname + LOCALIZATIONS_DIR);
+		reloadFromDisk();
+	}
+
+	static function reloadFromDisk() {
 		var absolutePath = Ideckia.getAppPath(LOCALIZATIONS_DIR);
 		if (sys.FileSystem.exists(absolutePath))
 			getLang(absolutePath);
@@ -72,8 +77,11 @@ class Lang {
 	static public function localizeAll(text:String) {
 		final currentLangLower = currentLang.toLowerCase();
 		if (!languages.exists(currentLangLower)) {
-			Log.error('[$currentLangLower] language not found.');
-			return text;
+			reloadFromDisk();
+			if (!languages.exists(currentLangLower)) {
+				Log.error('[$currentLangLower] language not found.');
+				return text;
+			}
 		}
 
 		var currentLangTexts = languages.get(currentLangLower);
