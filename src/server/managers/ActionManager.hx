@@ -38,7 +38,7 @@ class ActionManager {
 			var initPromises = [];
 			var actionsBasePath = getActionsPath();
 			for (action in actions) {
-				Log.debug('    Loading action [id=${action.id}] [name=${action.name}]');
+				Log.debug('    Loading action [id=${action.id}] [name=${action.name}] [enabled=${action.enabled}]');
 				try {
 					var name = action.name;
 					var idkServer:IdeckiaServer = {
@@ -49,7 +49,8 @@ class ActionManager {
 						},
 						dialog: Ideckia.dialog,
 						mediaPlayer: Ideckia.mediaPlayer,
-						updateClientState: ClientManager.fromActionToClient.bind(itemId, name)
+						updateClientState: ClientManager.fromActionToClient.bind(itemId, name),
+						getCurrentLang: Lang.getCurrentLang
 					};
 					if (!action.enabled) {
 						continue;

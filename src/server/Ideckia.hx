@@ -82,6 +82,7 @@ class Ideckia {
 		Lang.init();
 
 		Chokidar.watch(getApproposPath()).on('change', (_, _) -> {
+			Log.info('Realoading app.props info...');
 			Appropos.init(getApproposPath());
 		});
 
