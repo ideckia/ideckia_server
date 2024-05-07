@@ -71,7 +71,7 @@ confirm_clear_item=Ziur zaude itema HUSTU nahi duzula?
 confirm_remove_item=Ziur zaude itema EZABATU nahi duzula?
 confirm_remove_state=Ziur zaude [{0}] egoera ezabatu nahi duzula?
 
-alert_error_action_desc=Errorea [id={0}] ekintzaren informazioa eskuratzean: {1}
+alert_error_action_desc=Errorea [id:{0}] ekintzaren informazioa eskuratzean: {1}
 alert_create_dir_empty_name=Ezin da direktorio bat sortu izen hutsarekin.
 alert_create_dir_existing=Dagoeneko existitzen da [{0}] izena duen direktorioa.
 alert_append_ok=[{0}] fitxategia ongi erantsi da.
@@ -88,7 +88,7 @@ alert_action_tpl_empty=Zure ekintzarentzat txantiloi bat aukeratu beharra duzu.
 alert_action_create_ok=[{0}] ekintza ongi sortu da.
 alert_translation_create_ok=[{0}] itzulpen fitxategia ongi kopiatu da. Berrizendatu fitxategia zure hizkuntzaren kodearekin eta hasi itzultzen.
 
-alert_getting_state_action_statuses=Errorea [id={0}] egoeraren ekintzen egoera kargatzean: {1}
+alert_getting_state_action_statuses=Errorea [id:{0}] egoeraren ekintzen egoera kargatzean: {1}
 alert_preset_missing_mandatory_prop=Lehenetsietako [{0}] edukiak ez du derrigorrezko [props] eremua.
 
 title_delete_using_icon=Ikono hau egoeraren batek darabil, ezin da ezabatu.

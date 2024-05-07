@@ -20,7 +20,7 @@
 		"assets": [
 			"bin/tray/*",
 			"bin/editor/*",
-			"bin/editor/lang/*"
+			"bin/lang/*"
 		]
 	}
 }

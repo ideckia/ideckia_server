@@ -1,3 +1,5 @@
+# REMEMBER: To see the translated texts, you have to update the 'ideckia.editor-language' property of the file 'app.props' and give the value of the language code that you are translating to. It has to be the same value as the name of this file.
+
 # html
 
 create_directory=create directory
@@ -71,7 +73,7 @@ confirm_clear_item=Are you sure you want to CLEAR the item?
 confirm_remove_item=Are you sure you want to DELETE the item?
 confirm_remove_state=Are you sure you want to delete the state [{0}]?
 
-alert_error_action_desc=Error getting action descriptor of [id={0}]: {1}
+alert_error_action_desc=Error getting action descriptor of [id:{0}]: {1}
 alert_create_dir_empty_name=Cannot create a directory with empty name.
 alert_create_dir_existing=Already exists a directory with [{0}] name.
 alert_append_ok=[{0}] file successfully appended.
@@ -88,7 +90,7 @@ alert_action_tpl_empty=You must select a template for the action.
 alert_action_create_ok=[{0}] action successfully created.
 alert_translation_create_ok=[{0}] translation file copied successfully. Rename the file with your language code and start translating.
 
-alert_getting_state_action_statuses=Error getting action statuses of [id={0}]: {1}
+alert_getting_state_action_statuses=Error getting action statuses of [id:{0}]: {1}
 alert_preset_missing_mandatory_prop=The preset [{0}] has not the mandatory [props] field.
 
 title_delete_using_icon=This icon is used by some state, it cannot be removed.
