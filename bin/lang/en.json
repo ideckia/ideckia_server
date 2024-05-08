@@ -1,0 +1,438 @@
+[
+	{
+		"id": "create_directory",
+		"text": "create directory"
+	},
+	{
+		"id": "delete_directory",
+		"text": "delete directory"
+	},
+	{
+		"id": "export_directories",
+		"text": "export directories"
+	},
+	{
+		"id": "append_layout",
+		"text": "append layout"
+	},
+	{
+		"id": "title_client_check",
+		"text": "If activated, clicked states will be executed in the server."
+	},
+	{
+		"id": "label_client_check",
+		"text": "Use as client"
+	},
+	{
+		"id": "add_icon",
+		"text": "add icon"
+	},
+	{
+		"id": "remove_icon",
+		"text": "remove icon"
+	},
+	{
+		"id": "add_fixed_item",
+		"text": "add fixed item"
+	},
+	{
+		"id": "edit_shared_values",
+		"text": "edit shared values"
+	},
+	{
+		"id": "create_new_action",
+		"text": "create new action"
+	},
+	{
+		"id": "rows",
+		"text": "rows"
+	},
+	{
+		"id": "columns",
+		"text": "columns"
+	},
+	{
+		"id": "background_color",
+		"text": "background color"
+	},
+	{
+		"id": "directory_items",
+		"text": "Directory items"
+	},
+	{
+		"id": "fixed_items",
+		"text": "Fixed items"
+	},
+	{
+		"id": "update_layout",
+		"text": "Update layout"
+	},
+	{
+		"id": "server_layout_updated",
+		"text": "Layout updated!"
+	},
+	{
+		"id": "item_properties",
+		"text": "Item properties"
+	},
+	{
+		"id": "changedir_properties",
+		"text": "ChangeDir properties"
+	},
+	{
+		"id": "go_to_directory",
+		"text": "Go to directory"
+	},
+	{
+		"id": "add_item",
+		"text": "+item kind"
+	},
+	{
+		"id": "title_add_item",
+		"text": "add item kind"
+	},
+	{
+		"id": "add_state",
+		"text": "+state"
+	},
+	{
+		"id": "title_add_state",
+		"text": "add state"
+	},
+	{
+		"id": "clear_item",
+		"text": "clear item"
+	},
+	{
+		"id": "remove_item",
+		"text": "delete item"
+	},
+	{
+		"id": "state_properties",
+		"text": "State properties"
+	},
+	{
+		"id": "state_text",
+		"text": "Text"
+	},
+	{
+		"id": "state_text_color",
+		"text": "Text color"
+	},
+	{
+		"id": "state_bg_color",
+		"text": "Background color"
+	},
+	{
+		"id": "state_text_size",
+		"text": "Text size"
+	},
+	{
+		"id": "state_text_position",
+		"text": "Text position"
+	},
+	{
+		"id": "state_text_position_top",
+		"text": "top"
+	},
+	{
+		"id": "state_text_position_center",
+		"text": "center"
+	},
+	{
+		"id": "state_text_position_bottom",
+		"text": "bottom"
+	},
+	{
+		"id": "icon",
+		"text": "Icon"
+	},
+	{
+		"id": "state_list_text",
+		"text": "text: [{0}]{1}"
+	},
+	{
+		"id": "state_list_icon",
+		"text": " / icon: [{0}]"
+	},
+	{
+		"id": "add_action",
+		"text": "add action"
+	},
+	{
+		"id": "delete_state",
+		"text": "delete state"
+	},
+	{
+		"id": "enable_action",
+		"text": "enable action"
+	},
+	{
+		"id": "delete_action",
+		"text": "delete action"
+	},
+	{
+		"id": "new_icon_name",
+		"text": "Name"
+	},
+	{
+		"id": "new_icon_drop",
+		"text": "DROP IMAGE HERE"
+	},
+	{
+		"id": "new_icon_base64",
+		"text": "Or put the base64 text here"
+	},
+	{
+		"id": "remove_icon_name",
+		"text": "Name"
+	},
+	{
+		"id": "select_action",
+		"text": "Action"
+	},
+	{
+		"id": "select_action_preset",
+		"text": "Preset"
+	},
+	{
+		"id": "new_state_radio_changedir",
+		"text": "Change Directory"
+	},
+	{
+		"id": "new_state_radio_multi_state",
+		"text": "Multi-State"
+	},
+	{
+		"id": "shared_var_edit_key",
+		"text": "Key"
+	},
+	{
+		"id": "shared_var_edit_value",
+		"text": "Value"
+	},
+	{
+		"id": "new_action_tpl",
+		"text": "Action template"
+	},
+	{
+		"id": "new_action_name",
+		"text": "Action name"
+	},
+	{
+		"id": "new_action_desc",
+		"text": "Action description"
+	},
+	{
+		"id": "new_dir_name",
+		"text": "Name"
+	},
+	{
+		"id": "new_dir_rows",
+		"text": "Rows"
+	},
+	{
+		"id": "new_dir_columns",
+		"text": "Columns"
+	},
+	{
+		"id": "accept",
+		"text": "Accept"
+	},
+	{
+		"id": "cancel",
+		"text": "Cancel"
+	},
+	{
+		"id": "translate_me",
+		"text": "Translate me!"
+	},
+	{
+		"id": "confirm_remove_action",
+		"text": "Are you sure you want to remove the action [{0}]?"
+	},
+	{
+		"id": "confirm_remove_value",
+		"text": "Are you sure you want to delete the element?"
+	},
+	{
+		"id": "confirm_delete_dir",
+		"text": "Are you sure you want to delete the [{0}] directory?"
+	},
+	{
+		"id": "confirm_clear_item",
+		"text": "Are you sure you want to CLEAR the item?"
+	},
+	{
+		"id": "confirm_remove_item",
+		"text": "Are you sure you want to DELETE the item?"
+	},
+	{
+		"id": "confirm_remove_state",
+		"text": "Are you sure you want to delete the state [{0}]?"
+	},
+	{
+		"id": "alert_error_action_desc",
+		"text": "Error getting action descriptor of [id={0}]: {1}"
+	},
+	{
+		"id": "alert_create_dir_empty_name",
+		"text": "Cannot create a directory with empty name."
+	},
+	{
+		"id": "alert_create_dir_existing",
+		"text": "Already exists a directory with [{0}] name."
+	},
+	{
+		"id": "alert_append_ok",
+		"text": "[{0}] file successfully appended."
+	},
+	{
+		"id": "alert_append_error",
+		"text": "Error appending layout: [{0}]"
+	},
+	{
+		"id": "alert_export_dir_error",
+		"text": "Error exporting directory: [{0}]"
+	},
+	{
+		"id": "alert_invalid_file_type",
+		"text": "Invalid file type. Must be one of [{0}]"
+	},
+	{
+		"id": "alert_invalid_file_too_large",
+		"text": "File too large"
+	},
+	{
+		"id": "alert_icon_name_empty",
+		"text": "The name of the icon can not be empty."
+	},
+	{
+		"id": "alert_icon_name_existing",
+		"text": "Already exists [{0}] icon in the current list. Select another name, please."
+	},
+	{
+		"id": "alert_icon_base64_empty",
+		"text": "The base64 of the icon can not be empty. Drag&Drop an image to the area or paste the base64 in the textarea."
+	},
+	{
+		"id": "alert_action_name_empty",
+		"text": "Action name is mandatory."
+	},
+	{
+		"id": "alert_action_tpl_empty",
+		"text": "You must select a template for the action."
+	},
+	{
+		"id": "alert_action_create_ok",
+		"text": "[{0}] action successfully created."
+	},
+	{
+		"id": "alert_action_create_error",
+		"text": "Error creating action [{0}]. Maybe already exists an action with that name?"
+	},
+	{
+		"id": "alert_translation_create_ok",
+		"text": "[{0}] translation file copied successfully. Rename the file with your language code and start translating."
+	},
+	{
+		"id": "alert_getting_state_action_statuses",
+		"text": "Error getting action statuses of [id={0}]: {1}"
+	},
+	{
+		"id": "alert_preset_missing_mandatory_prop",
+		"text": "The preset [{0}] has not the mandatory [props] field."
+	},
+	{
+		"id": "title_delete_using_icon",
+		"text": "This icon is used by some state, it cannot be removed."
+	},
+	{
+		"id": "title_action_status",
+		"text": "Action status [{0}]"
+	},
+	{
+		"id": "show_title_new_dir",
+		"text": "Create directory"
+	},
+	{
+		"id": "show_title_layout_append",
+		"text": "Select the layout file to append"
+	},
+	{
+		"id": "show_title_dir_export",
+		"text": "Select directories to export"
+	},
+	{
+		"id": "show_title_new_icon",
+		"text": "New icon"
+	},
+	{
+		"id": "show_title_icon_remove",
+		"text": "Select icons to remove (only unused icons are removables)"
+	},
+	{
+		"id": "show_title_shared_values",
+		"text": "Shared values"
+	},
+	{
+		"id": "show_title_action_params",
+		"text": "Define the new action parameters"
+	},
+	{
+		"id": "show_title_action_preset_editor",
+		"text": "Editor [{0}.{1}] preset"
+	},
+	{
+		"id": "show_title_new_action",
+		"text": "New Action"
+	},
+	{
+		"id": "show_title_new_item_kind",
+		"text": "New item kind"
+	},
+	{
+		"id": "text_content_action_props",
+		"text": "[{0}] action properties"
+	},
+	{
+		"id": "text_content_shared_variable",
+		"text": "(shared values)"
+	},
+	{
+		"id": "text_content_edit_shared_hint",
+		"text": "Edit the shared values via 'edit shared values' button please"
+	},
+	{
+		"id": "text_content_states_upper",
+		"text": "STATES"
+	},
+	{
+		"id": "tray_ideckia_port",
+		"text": "ideckia port:"
+	},
+	{
+		"id": "tray_open",
+		"text": "open"
+	},
+	{
+		"id": "tray_open_client",
+		"text": "client"
+	},
+	{
+		"id": "tray_open_editor",
+		"text": "editor"
+	},
+	{
+		"id": "tray_open_logs",
+		"text": "logs"
+	},
+	{
+		"id": "tray_about",
+		"text": "about"
+	},
+	{
+		"id": "tray_quit",
+		"text": "quit"
+	}
+]

@@ -1,0 +1,438 @@
+[
+	{
+		"id": "create_directory",
+		"text": "sortu direktorioa"
+	},
+	{
+		"id": "delete_directory",
+		"text": "ezabatu direktorioa"
+	},
+	{
+		"id": "export_directories",
+		"text": "esportatu direktorioak"
+	},
+	{
+		"id": "append_layout",
+		"text": "erantsi layout-a"
+	},
+	{
+		"id": "title_client_check",
+		"text": "Aktibatuz gero, egoerak klikatzean zerbitzarian exekutatuko dira."
+	},
+	{
+		"id": "label_client_check",
+		"text": "Bezero bezala erabili"
+	},
+	{
+		"id": "add_icon",
+		"text": "gehitu ikonoa"
+	},
+	{
+		"id": "remove_icon",
+		"text": "kendu ikonoa"
+	},
+	{
+		"id": "add_fixed_item",
+		"text": "gehitu item finkoa"
+	},
+	{
+		"id": "edit_shared_values",
+		"text": "editatu balio partekatuak"
+	},
+	{
+		"id": "create_new_action",
+		"text": "sortu ekintza berria"
+	},
+	{
+		"id": "rows",
+		"text": "lerroak"
+	},
+	{
+		"id": "columns",
+		"text": "zutabeak"
+	},
+	{
+		"id": "background_color",
+		"text": "atzealdeko kolorea"
+	},
+	{
+		"id": "directory_items",
+		"text": "Direktorioko itemak"
+	},
+	{
+		"id": "fixed_items",
+		"text": "Item finkoak"
+	},
+	{
+		"id": "update_layout",
+		"text": "Eguneratu layout-a"
+	},
+	{
+		"id": "server_layout_updated",
+		"text": "Eguneratuta!"
+	},
+	{
+		"id": "item_properties",
+		"text": "Itemaren xehetasunak"
+	},
+	{
+		"id": "changedir_properties",
+		"text": "ChangeDir xehetasunak"
+	},
+	{
+		"id": "go_to_directory",
+		"text": "Joan direktoriora"
+	},
+	{
+		"id": "add_item",
+		"text": "+item mota"
+	},
+	{
+		"id": "title_add_item",
+		"text": "gehitu item mota"
+	},
+	{
+		"id": "add_state",
+		"text": "+egoera"
+	},
+	{
+		"id": "title_add_state",
+		"text": "gehitu egoera"
+	},
+	{
+		"id": "clear_item",
+		"text": "hustu itema"
+	},
+	{
+		"id": "remove_item",
+		"text": "ezabatu itema"
+	},
+	{
+		"id": "state_properties",
+		"text": "Egoeraren xehetasunak"
+	},
+	{
+		"id": "state_text",
+		"text": "Testua"
+	},
+	{
+		"id": "state_text_color",
+		"text": "Testuaren kolorea"
+	},
+	{
+		"id": "state_bg_color",
+		"text": "Atzealdearen kolorea"
+	},
+	{
+		"id": "state_text_size",
+		"text": "Testuaren tamaina"
+	},
+	{
+		"id": "state_text_position",
+		"text": "Testuaren posizioa"
+	},
+	{
+		"id": "state_text_position_top",
+		"text": "goian"
+	},
+	{
+		"id": "state_text_position_center",
+		"text": "erdian"
+	},
+	{
+		"id": "state_text_position_bottom",
+		"text": "behean"
+	},
+	{
+		"id": "icon",
+		"text": "Ikonoa"
+	},
+	{
+		"id": "state_list_text",
+		"text": "testua: [{0}]{1}"
+	},
+	{
+		"id": "state_list_icon",
+		"text": " / ikonoa: [{0}]"
+	},
+	{
+		"id": "add_action",
+		"text": "gehitu ekintza"
+	},
+	{
+		"id": "delete_state",
+		"text": "ezabatu egoera"
+	},
+	{
+		"id": "enable_action",
+		"text": "gaitu action"
+	},
+	{
+		"id": "delete_action",
+		"text": "ezabatu action"
+	},
+	{
+		"id": "new_icon_name",
+		"text": "Izena"
+	},
+	{
+		"id": "new_icon_drop",
+		"text": "ARRASTATU IRUDIA HONA"
+	},
+	{
+		"id": "new_icon_base64",
+		"text": "Edo idatzi base64 testua hemen"
+	},
+	{
+		"id": "remove_icon_name",
+		"text": "Izena"
+	},
+	{
+		"id": "select_action",
+		"text": "Ekintza"
+	},
+	{
+		"id": "select_action_preset",
+		"text": "Lehenetsiak"
+	},
+	{
+		"id": "new_state_radio_changedir",
+		"text": "Aldatu Direktorioa"
+	},
+	{
+		"id": "new_state_radio_multi_state",
+		"text": "Egoera-Anitza"
+	},
+	{
+		"id": "shared_var_edit_key",
+		"text": "Gakoa"
+	},
+	{
+		"id": "shared_var_edit_value",
+		"text": "Balioa"
+	},
+	{
+		"id": "new_action_tpl",
+		"text": "Ekintzaren txantiloia"
+	},
+	{
+		"id": "new_action_name",
+		"text": "Ekintzaren izena"
+	},
+	{
+		"id": "new_action_desc",
+		"text": "Ekintzaren deskripzioa"
+	},
+	{
+		"id": "new_dir_name",
+		"text": "Izena"
+	},
+	{
+		"id": "new_dir_rows",
+		"text": "Lerroak"
+	},
+	{
+		"id": "new_dir_columns",
+		"text": "Zutabeak"
+	},
+	{
+		"id": "accept",
+		"text": "Onartu"
+	},
+	{
+		"id": "cancel",
+		"text": "Ezeztatu"
+	},
+	{
+		"id": "translate_me",
+		"text": "Itzul nazazu!"
+	},
+	{
+		"id": "confirm_remove_action",
+		"text": "Ziur zaude [{0}] ekintza kendu nahi duzula?"
+	},
+	{
+		"id": "confirm_remove_value",
+		"text": "Ziur zaude elementua ezabatu nahi duzula?"
+	},
+	{
+		"id": "confirm_delete_dir",
+		"text": "Ziur zaude [{0}] direktorioa ezabatu nahi duzula?"
+	},
+	{
+		"id": "confirm_clear_item",
+		"text": "Ziur zaude itema HUSTU nahi duzula?"
+	},
+	{
+		"id": "confirm_remove_item",
+		"text": "Ziur zaude itema EZABATU nahi duzula?"
+	},
+	{
+		"id": "confirm_remove_state",
+		"text": "Ziur zaude [{0}] egoera ezabatu nahi duzula?"
+	},
+	{
+		"id": "alert_error_action_desc",
+		"text": "Errorea [id={0}] ekintzaren informazioa eskuratzean: {1}"
+	},
+	{
+		"id": "alert_create_dir_empty_name",
+		"text": "Ezin da direktorio bat sortu izen hutsarekin."
+	},
+	{
+		"id": "alert_create_dir_existing",
+		"text": "Dagoeneko existitzen da [{0}] izena duen direktorioa."
+	},
+	{
+		"id": "alert_append_ok",
+		"text": "[{0}] fitxategia ongi erantsi da."
+	},
+	{
+		"id": "alert_append_error",
+		"text": "Errorea layout-a eranstean: [{0}]"
+	},
+	{
+		"id": "alert_export_dir_error",
+		"text": "Errorea direktorioa esportatzean: [{0}]"
+	},
+	{
+		"id": "alert_invalid_file_type",
+		"text": "Fitxategi mota baliogabea. Hauetako bat izan behar du [{0}]"
+	},
+	{
+		"id": "alert_invalid_file_too_large",
+		"text": "Fitxategi handiegia"
+	},
+	{
+		"id": "alert_icon_name_empty",
+		"text": "Ikonoaren izena ezin da hutsa izan."
+	},
+	{
+		"id": "alert_icon_name_existing",
+		"text": "Lehendik ere badago [{0}] izeneko ikono bat zerrendan. Aukeratu beste izen bat, mesedez."
+	},
+	{
+		"id": "alert_icon_base64_empty",
+		"text": "Ikonoaren base64 ezin da hutsa izan. Arrastatu irudi bat dagokion eremura edo idatzi base64 testua."
+	},
+	{
+		"id": "alert_action_name_empty",
+		"text": "Ekintzaren izena derrigorrezkoa da."
+	},
+	{
+		"id": "alert_action_tpl_empty",
+		"text": "Zure ekintzarentzat txantiloi bat aukeratu beharra duzu."
+	},
+	{
+		"id": "alert_action_create_ok",
+		"text": "[{0}] ekintza ongi sortu da."
+	},
+	{
+		"id": "alert_action_create_error",
+		"text": "Errorea [{0}] ekintza sortzean. Beharbada badago izen hori duen ekintza bat?"
+	},
+	{
+		"id": "alert_translation_create_ok",
+		"text": "[{0}] itzulpen fitxategia ongi kopiatu da. Berrizendatu fitxategia zure hizkuntzaren kodearekin eta hasi itzultzen."
+	},
+	{
+		"id": "alert_getting_state_action_statuses",
+		"text": "Errorea [id={0}] egoeraren ekintzen egoera kargatzean: {1}"
+	},
+	{
+		"id": "alert_preset_missing_mandatory_prop",
+		"text": "Lehenetsietako [{0}] edukiak ez du derrigorrezko [props] eremua."
+	},
+	{
+		"id": "title_delete_using_icon",
+		"text": "Ikono hau egoeraren batek darabil, ezin da ezabatu."
+	},
+	{
+		"id": "title_action_status",
+		"text": "Ekintzaren egoera [{0}]"
+	},
+	{
+		"id": "show_title_new_dir",
+		"text": "Sortu direktorioa"
+	},
+	{
+		"id": "show_title_layout_append",
+		"text": "Aukeratu eransteko layout fitxategia"
+	},
+	{
+		"id": "show_title_dir_export",
+		"text": "Aukeratu esportatzeko direktorioak"
+	},
+	{
+		"id": "show_title_new_icon",
+		"text": "Ikono berria"
+	},
+	{
+		"id": "show_title_icon_remove",
+		"text": "Aukeratu ezabatzeko ikonoak (erabili gabeak bakarrik dira ezabagarriak)"
+	},
+	{
+		"id": "show_title_shared_values",
+		"text": "Balio partekatuak"
+	},
+	{
+		"id": "show_title_action_params",
+		"text": "Zehaztu ekintza berriaren parametroak"
+	},
+	{
+		"id": "show_title_action_preset_editor",
+		"text": "[{0}.{1}] lehenetsi editorea"
+	},
+	{
+		"id": "show_title_new_action",
+		"text": "Ekintza berria"
+	},
+	{
+		"id": "show_title_new_item_kind",
+		"text": "Item mota berria"
+	},
+	{
+		"id": "text_content_action_props",
+		"text": "[{0}] ekintzaren xehetasunak"
+	},
+	{
+		"id": "text_content_shared_variable",
+		"text": "(balio partekatua)"
+	},
+	{
+		"id": "text_content_edit_shared_hint",
+		"text": "Editatu balio partekatuak 'editatu balio partekatuak' botoiaren bidez, mesedez."
+	},
+	{
+		"id": "text_content_states_upper",
+		"text": "EGOERAK"
+	},
+	{
+		"id": "tray_ideckia_port",
+		"text": "ideckia portua:"
+	},
+	{
+		"id": "tray_open",
+		"text": "ireki"
+	},
+	{
+		"id": "tray_open_client",
+		"text": "bezeroa"
+	},
+	{
+		"id": "tray_open_editor",
+		"text": "editorea"
+	},
+	{
+		"id": "tray_open_logs",
+		"text": "log-ak"
+	},
+	{
+		"id": "tray_about",
+		"text": "honi buruz"
+	},
+	{
+		"id": "tray_quit",
+		"text": "irten"
+	}
+]
