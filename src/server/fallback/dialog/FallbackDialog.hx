@@ -9,7 +9,7 @@ import js.lib.Promise;
 import haxe.ds.Option;
 
 class FallbackDialog implements IDialog {
-	static inline var FALLBACK_MESSAGE = 'Using a very basic implementation of api.dialog.IDialog implementation found. Please provide an implementation as defined here [https://github.com/ideckia/ideckia_api/blob/develop/api/dialog/IDialog.hx]';
+	static inline var FALLBACK_MESSAGE = 'Using a very basic implementation of api.dialog.IDialog implementation found. Please provide an implementation as defined here [https://github.com/ideckia/ideckia_api/blob/main/api/dialog/IDialog.hx]';
 
 	public function new() {
 		Dialog.init();
