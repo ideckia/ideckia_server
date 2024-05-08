@@ -128,12 +128,18 @@ class Ideckia {
 	}
 
 	public static function createNewAction(createActionDef:CreateActionDef) {
-		if (createActionDef.destPath == null || createActionDef.destPath == '')
-			createActionDef.destPath = ActionManager.getActionsPath();
-		ActionManager.creatingNewAction = true;
-		var newActionPath = api.action.creator.ActionCreator.create(createActionDef, Log.info);
-		ActionManager.creatingNewAction = false;
-		return newActionPath;
+		return new js.lib.Promise((resolve, reject) -> {
+			if (createActionDef.destPath == null || createActionDef.destPath == '')
+				createActionDef.destPath = ActionManager.getActionsPath();
+			ActionManager.creatingNewAction = true;
+			var newActionPath = api.action.creator.ActionCreator.create(createActionDef, Log.info).then(newActionPath -> {
+				ActionManager.creatingNewAction = false;
+				resolve(newActionPath);
+			}).catchError(error -> {
+				Log.error('Error creating the action [${createActionDef.name}]. [$error]');
+				reject(error);
+			});
+		});
 	}
 
 	static function main() {

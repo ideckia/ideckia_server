@@ -134,11 +134,18 @@ class WebSocketServer {
 					});
 					request.on('end', chunck -> {
 						Log.debug('Create new Action received: $data');
-						var newActionPath = Ideckia.createNewAction(haxe.Json.parse(data));
-						resolve({
-							code: 200,
-							headers: headers,
-							body: newActionPath
+						Ideckia.createNewAction(haxe.Json.parse(data)).then(newActionPath -> {
+							resolve({
+								code: 200,
+								headers: headers,
+								body: newActionPath
+							});
+						}).catchError(error -> {
+							resolve({
+								code: 500,
+								headers: headers,
+								body: error
+							});
 						});
 					});
 				} else if (request.method == 'GET' && requestUrl == actionTemplatesEndpoint) {

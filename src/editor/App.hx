@@ -483,12 +483,19 @@ class App {
 						var http = new haxe.Http('http://localhost:$port$newActionEndpoint');
 						http.addHeader('Content-Type', 'application/json');
 						http.onError = (e) -> {
-							var msg = 'Error creating action: $e';
+							var msg = Utils.formatString('::alert_action_create_error::', [actionName]);
 							js.Browser.alert(msg);
 							reject(msg);
 						};
+						var status = -1;
+						http.onStatus = (s) -> {
+							status = s;
+						}
 						http.onData = (d) -> {
-							js.Browser.alert(Utils.formatString('::alert_action_create_ok::', [d]));
+							if (status == 200)
+								js.Browser.alert(Utils.formatString('::alert_action_create_ok::', [d]));
+							else if (status == 500)
+								js.Browser.alert(Utils.formatString('::alert_action_create_error::', [actionName]));
 							resolve(true);
 						};
 
